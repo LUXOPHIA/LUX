@@ -121,15 +121,30 @@ function BSpline( const T_:Double; const I0,N1:Integer; const Ts_:array of Doubl
 function BSpline( const T_:TdSingle; const I0,N1:Integer; const Ts_:array of TdSingle ) :TdSingle; overload;
 function BSpline( const T_:TdDouble; const I0,N1:Integer; const Ts_:array of TdDouble ) :TdDouble; overload;
 
+function BSpline3( const X_:Single ) :Single; overload;
+function BSpline3( const X_:Double ) :Double; overload;
+function BSpline3( const X_:TdSingle ) :TdSingle; overload;
+function BSpline3( const X_:TdDouble ) :TdDouble; overload;
+
 function BSpline4( const X_:Single ) :Single; overload;
 function BSpline4( const X_:Double ) :Double; overload;
 function BSpline4( const X_:TdSingle ) :TdSingle; overload;
 function BSpline4( const X_:TdDouble ) :TdDouble; overload;
 
+procedure BSpline3( const T_:Single; out Ws_:TSingle4D ); overload;
+procedure BSpline3( const T_:Double; out Ws_:TDouble4D ); overload;
+procedure BSpline3( const T_:TdSingle; out Ws_:TdSingle4D ); overload;
+procedure BSpline3( const T_:TdDouble; out Ws_:TdDouble4D ); overload;
+
 procedure BSpline4( const T_:Single; out Ws_:TSingle4D ); overload;
 procedure BSpline4( const T_:Double; out Ws_:TDouble4D ); overload;
 procedure BSpline4( const T_:TdSingle; out Ws_:TdSingle4D ); overload;
 procedure BSpline4( const T_:TdDouble; out Ws_:TdDouble4D ); overload;
+
+function BSpline3( const P0_,P1_,P2_,P3_:Single; const T_:Single ) :Single; overload;
+function BSpline3( const P0_,P1_,P2_,P3_:Double; const T_:Double ) :Double; overload;
+function BSpline3( const P0_,P1_,P2_,P3_:TdSingle; const T_:TdSingle ) :TdSingle; overload;
+function BSpline3( const P0_,P1_,P2_,P3_:TdDouble; const T_:TdDouble ) :TdDouble; overload;
 
 function BSpline4( const P0_,P1_,P2_,P3_:Single; const T_:Single ) :Single; overload;
 function BSpline4( const P0_,P1_,P2_,P3_:Double; const T_:Double ) :Double; overload;
@@ -624,6 +639,56 @@ end;
 
 //------------------------------------------------------------------------------
 
+function BSpline3( const X_:Single ) :Single;
+var
+   X :Single;
+begin
+     X := Abs( X_ );
+
+     if X < 0.5 then Result := 0.75 - Pow2( X )
+                else
+     if X < 1.5 then Result := 0.5 * Pow2( X - 1.5 )
+                else Result := 0;
+end;
+
+function BSpline3( const X_:Double ) :Double;
+var
+   X :Double;
+begin
+     X := Abs( X_ );
+
+     if X < 0.5 then Result := 0.75 - Pow2( X )
+                else
+     if X < 1.5 then Result := 0.5 * Pow2( X - 1.5 )
+                else Result := 0;
+end;
+
+function BSpline3( const X_:TdSingle ) :TdSingle;
+var
+   X :TdSingle;
+begin
+     X := Abso( X_ );
+
+     if X < 0.5 then Result := 0.75 - Pow2( X )
+                else
+     if X < 1.5 then Result := 0.5 * Pow2( X - 1.5 )
+                else Result := 0;
+end;
+
+function BSpline3( const X_:TdDouble ) :TdDouble;
+var
+   X :TdDouble;
+begin
+     X := Abso( X_ );
+
+     if X < 0.5 then Result := 0.75 - Pow2( X )
+                else
+     if X < 1.5 then Result := 0.5 * Pow2( X - 1.5 )
+                else Result := 0;
+end;
+
+//------------------------------------------------------------------------------
+
 function BSpline4( const X_:Single ) :Single;
 const
      A :Single = 1/6;
@@ -690,6 +755,52 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure BSpline3( const T_:Single; out Ws_:TSingle4D );
+begin
+     with Ws_ do
+     begin
+          _1 := BSpline3( T_ + 1 );
+          _2 := BSpline3( T_     );
+          _3 := BSpline3( T_ - 1 );
+          _4 := BSpline3( T_ - 2 );
+     end;
+end;
+
+procedure BSpline3( const T_:Double; out Ws_:TDouble4D );
+begin
+     with Ws_ do
+     begin
+          _1 := BSpline3( T_ + 1 );
+          _2 := BSpline3( T_     );
+          _3 := BSpline3( T_ - 1 );
+          _4 := BSpline3( T_ - 2 );
+     end;
+end;
+
+procedure BSpline3( const T_:TdSingle; out Ws_:TdSingle4D );
+begin
+     with Ws_ do
+     begin
+          _1 := BSpline3( T_ + 1 );
+          _2 := BSpline3( T_     );
+          _3 := BSpline3( T_ - 1 );
+          _4 := BSpline3( T_ - 2 );
+     end;
+end;
+
+procedure BSpline3( const T_:TdDouble; out Ws_:TdDouble4D );
+begin
+     with Ws_ do
+     begin
+          _1 := BSpline3( T_ + 1 );
+          _2 := BSpline3( T_     );
+          _3 := BSpline3( T_ - 1 );
+          _4 := BSpline3( T_ - 2 );
+     end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure BSpline4( const T_:Single; out Ws_:TSingle4D );
 begin
      with Ws_ do
@@ -732,6 +843,56 @@ begin
           _3 := BSpline4( T_ - 1 );
           _4 := BSpline4( T_ - 2 );
      end;
+end;
+
+//------------------------------------------------------------------------------
+
+function BSpline3( const P0_,P1_,P2_,P3_:Single; const T_:Single ) :Single;
+var
+   Ws :TSingle4D;
+begin
+     BSpline3( T_, Ws );
+
+     Result := Ws._1 * P0_
+             + Ws._2 * P1_
+             + Ws._3 * P2_
+             + Ws._4 * P3_;
+end;
+
+function BSpline3( const P0_,P1_,P2_,P3_:Double; const T_:Double ) :Double;
+var
+   Ws :TDouble4D;
+begin
+     BSpline3( T_, Ws );
+
+     Result := Ws._1 * P0_
+             + Ws._2 * P1_
+             + Ws._3 * P2_
+             + Ws._4 * P3_;
+end;
+
+function BSpline3( const P0_,P1_,P2_,P3_:TdSingle; const T_:TdSingle ) :TdSingle;
+var
+   Ws :TdSingle4D;
+begin
+     BSpline3( T_, Ws );
+
+     Result := Ws._1 * P0_
+             + Ws._2 * P1_
+             + Ws._3 * P2_
+             + Ws._4 * P3_;
+end;
+
+function BSpline3( const P0_,P1_,P2_,P3_:TdDouble; const T_:TdDouble ) :TdDouble;
+var
+   Ws :TdDouble4D;
+begin
+     BSpline3( T_, Ws );
+
+     Result := Ws._1 * P0_
+             + Ws._2 * P1_
+             + Ws._3 * P2_
+             + Ws._4 * P3_;
 end;
 
 //------------------------------------------------------------------------------
