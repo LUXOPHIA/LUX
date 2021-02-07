@@ -8,7 +8,8 @@ uses LUX,
      LUX.D3, LUX.D3x3, LUX.D3x4,
      LUX.D4, LUX.D4x4,
      LUX.D5,
-     LUX.DN;
+     LUX.DN,
+     LUX.Curve;
 
 //type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【型】
 
@@ -55,8 +56,6 @@ function BeziToPoly( const P_:TSingleND ) :TSingleND; overload;
 function BeziToPoly( const P_:TDoubleND ) :TDoubleND; overload;
 
 implementation //############################################################### ■
-
-uses LUX.Curve;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
 
