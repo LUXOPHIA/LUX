@@ -31,13 +31,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TCurve<_TPoin_:record> = class
      private
      protected
-       _FilterW  :Integer;
+       _MargsN   :Integer;
        _Poins    :TArray<_TPoin_>;  upPoins :Boolean;
        _CurvMinI :Integer;
        _CurvMaxI :Integer;
        ///// アクセス
-       function GetFilterW :Integer; virtual;
-       procedure SetFilterW( const FilterW_:Integer ); virtual;
+       function GetMargsN :Integer; virtual;
+       procedure SetMargsN( const MargsN_:Integer ); virtual;
        function GetPoinMinI :Integer; virtual;
        function GetPoinMaxI :Integer; virtual;
        function GetPoins( const I_:Integer ) :_TPoin_;
@@ -53,7 +53,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure AfterConstruction; override;
        destructor Destroy; override;
        ///// プロパティ
-       property FilterW                   :Integer read GetFilterW  write SetFilterW ;
+       property MargsN                    :Integer read GetMargsN   write SetMargsN  ;
        property PoinMinI                  :Integer read GetPoinMinI                  ;
        property PoinMaxI                  :Integer read GetPoinMaxI                  ;
        property Poins[ const I_:Integer ] :_TPoin_ read GetPoins    write SetPoins   ; default;
@@ -211,26 +211,26 @@ uses System.Math,
 
 /////////////////////////////////////////////////////////////////////// アクセス
 
-function TCurve<_TPoin_>.GetFilterW :Integer;
+function TCurve<_TPoin_>.GetMargsN :Integer;
 begin
-     Result := _FilterW;
+     Result := _MargsN;
 end;
 
-procedure TCurve<_TPoin_>.SetFilterW( const FilterW_:Integer );
+procedure TCurve<_TPoin_>.SetMargsN( const MargsN_:Integer );
 begin
-     _FilterW := FilterW_;  MakePoins;
+     _MargsN := MargsN_;  MakePoins;
 end;
 
 //------------------------------------------------------------------------------
 
 function TCurve<_TPoin_>.GetPoinMinI :Integer;
 begin
-     Result := CurvMinI - FilterW;
+     Result := CurvMinI - MargsN;
 end;
 
 function TCurve<_TPoin_>.GetPoinMaxI :Integer;
 begin
-     Result := CurvMaxI + FilterW;
+     Result := CurvMaxI + MargsN;
 end;
 
 //------------------------------------------------------------------------------
@@ -286,7 +286,7 @@ procedure TCurve<_TPoin_>.AfterConstruction;
 begin
      inherited;
 
-     FilterW  := 0;
+     MargsN  := 0;
 
      CurvMinI := 0;
      CurvMaxI := 1;
@@ -316,7 +316,7 @@ procedure TBSCurve4<_TPoin_>.AfterConstruction;
 begin
      inherited;
 
-     FilterW := 1;
+     MargsN := 1;
 end;
 
 destructor TBSCurve4<_TPoin_>.Destroy;
@@ -431,7 +431,7 @@ procedure TBSInterp<_TPoin_,_TCurve_>.AfterConstruction;
 begin
      inherited;
 
-     FilterW := 4 + 1;
+     MargsN := 4 + 1;
 end;
 
 destructor TBSInterp<_TPoin_,_TCurve_>.Destroy;
@@ -472,7 +472,7 @@ begin
      begin
           C := 0;
 
-          for X := -FilterW to +FilterW do
+          for X := -MargsN to +MargsN do
           begin
                C := C + HEFilter4( X ) * Poins[ I + X ];
           end;
@@ -512,7 +512,7 @@ begin
      begin
           C := 0;
 
-          for X := -FilterW to +FilterW do
+          for X := -MargsN to +MargsN do
           begin
                C := C + HEFilter4( X ) * Poins[ I + X ];
           end;
