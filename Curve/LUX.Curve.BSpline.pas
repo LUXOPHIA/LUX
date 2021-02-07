@@ -56,11 +56,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property FilterW                   :Integer read GetFilterW  write SetFilterW ;
        property PoinMinI                  :Integer read GetPoinMinI                  ;
        property PoinMaxI                  :Integer read GetPoinMaxI                  ;
-       property Poins[ const I_:Integer ] :_TPoin_ read GetPoins    write SetPoins   ;
+       property Poins[ const I_:Integer ] :_TPoin_ read GetPoins    write SetPoins   ; default;
        property CurvMinI                  :Integer read GetCurvMinI write SetCurvMinI;
        property CurvMaxI                  :Integer read GetCurvMaxI write SetCurvMaxI;
        ///// メソッド
-       function Curv( const X_:_TPoin_ ) :_TPoin_; virtual; abstract;
+       function Curve( const X_:_TPoin_ ) :_TPoin_; virtual; abstract;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TBSCurve4<_TPoin_>
@@ -81,7 +81,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      protected
      public
        ///// メソッド
-       function Curv( const X_:Single ) :Single; override;
+       function Curve( const X_:Single ) :Single; override;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleBSCurve4
@@ -91,7 +91,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      protected
      public
        ///// メソッド
-       function Curv( const X_:Double ) :Double; override;
+       function Curve( const X_:Double ) :Double; override;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TBSInterp<_TPoin_,_TCurve_>
@@ -100,16 +100,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        _Curve :TBSCurve4<_TPoin_>;
-       _Verts :TArray<_TPoin_>;
        ///// アクセス
-       function GetPoinMinI :Integer; override;
-       function GetPoinMaxI :Integer; override;
        function GetVertMinI :Integer; virtual;
        function GetVertMaxI :Integer; virtual;
-       function GetCurvMinI :Integer; override;
-       procedure SetCurvMinI( const CurvMinI_:Integer ); override;
-       function GetCurvMaxI :Integer; override;
-       procedure SetCurvMaxI( const CurvMaxI_:Integer ); override;
        function GetVerts( const I_:Integer ) :_TPoin_; virtual;
        procedure SetVerts( const I_:Integer; const Verts_:_TPoin_ ); virtual;
        ///// メソッド
@@ -123,6 +116,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property VertMinI                  :Integer read GetVertMinI;
        property VertMaxI                  :Integer read GetVertMaxI;
        property Verts[ const I_:Integer ] :_TPoin_ read GetVerts   ;
+       ///// メソッド
+       function HEFilter3( const X_:Integer ) :_TPoin_; virtual; abstract;
+       function HEFilter4( const X_:Integer ) :_TPoin_; virtual; abstract;
+       function Curve( const X_:_TPoin_ ) :_TPoin_; override;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleBSInterp
@@ -134,9 +131,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure MakeVerts; override;
      public
        ///// メソッド
-       function HEFilter3( const X_:Integer ) :Single;
-       function HEFilter4( const X_:Integer ) :Single;
-       function Curv( const X_:Single ) :Single; override;
+       function HEFilter3( const X_:Integer ) :Single; override;
+       function HEFilter4( const X_:Integer ) :Single; override;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleBSInterp
@@ -148,9 +144,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure MakeVerts; override;
      public
        ///// メソッド
-       function HEFilter3( const X_:Integer ) :Double;
-       function HEFilter4( const X_:Integer ) :Double;
-       function Curv( const X_:Double ) :Double; override;
+       function HEFilter3( const X_:Integer ) :Double; override;
+       function HEFilter4( const X_:Integer ) :Double; override;
      end;
 
 //const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【定数】
@@ -276,7 +271,7 @@ end;
 
 procedure TCurve<_TPoin_>.MakePoins;
 begin
-     SetLength( _Poins, PoinMaxI - PoinMinI + 1 );  upPoins := True;
+     SetLength( _Poins, PoinMaxI - PoinMinI + 1 + 1 );  upPoins := True;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -291,7 +286,7 @@ procedure TCurve<_TPoin_>.AfterConstruction;
 begin
      inherited;
 
-     FilterW  := 1;
+     FilterW  := 0;
 
      CurvMinI := 0;
      CurvMaxI := 1;
@@ -340,17 +335,17 @@ end;
 
 /////////////////////////////////////////////////////////////////////// メソッド
 
-function TSingleBSCurve4.Curv( const X_:Single ) :Single;
+function TSingleBSCurve4.Curve( const X_:Single ) :Single;
 var
-   X0, X1 :Integer;
+   Xi :Integer;
    Xd :Single;
 begin
-     X0 := Floor( X_ );  Xd := X_ - X0;  X1 := Ceil( X_ );
+     Xi := Floor( X_ );  Xd := X_ - Xi;
 
-     Result := BSpline4( Poins[ X0-1 ],
-                         Poins[ X0   ],
-                         Poins[ X1   ],
-                         Poins[ X1+1 ], Xd );
+     Result := BSpline4( Poins[ Xi-1 ],
+                         Poins[ Xi   ],
+                         Poins[ Xi+1 ],
+                         Poins[ Xi+2 ], Xd );
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleBSCurve4
@@ -363,17 +358,17 @@ end;
 
 /////////////////////////////////////////////////////////////////////// メソッド
 
-function TDoubleBSCurve4.Curv( const X_:Double ) :Double;
+function TDoubleBSCurve4.Curve( const X_:Double ) :Double;
 var
-   X0, X1 :Integer;
+   Xi :Integer;
    Xd :Double;
 begin
-     X0 := Floor( X_ );  Xd := X_ - X0;  X1 := Ceil( X_ );
+     Xi := Floor( X_ );  Xd := X_ - Xi;
 
-     Result := BSpline4( Poins[ X0-1 ],
-                         Poins[ X0   ],
-                         Poins[ X1   ],
-                         Poins[ X1+1 ], Xd );
+     Result := BSpline4( Poins[ Xi-1 ],
+                         Poins[ Xi   ],
+                         Poins[ Xi+1 ],
+                         Poins[ Xi+2 ], Xd );
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TBSInterp<_TPoin_,_TCurve_>
@@ -384,48 +379,14 @@ end;
 
 /////////////////////////////////////////////////////////////////////// アクセス
 
-function TBSInterp<_TPoin_,_TCurve_>.GetPoinMinI :Integer;
-begin
-     Result := VertMinI - FilterW;
-end;
-
-function TBSInterp<_TPoin_,_TCurve_>.GetPoinMaxI :Integer;
-begin
-     Result := VertMaxI + FilterW;
-end;
-
-//------------------------------------------------------------------------------
-
 function TBSInterp<_TPoin_,_TCurve_>.GetVertMinI :Integer;
 begin
-     Result := CurvMinI - 1;
+     Result := _Curve.PoinMinI;
 end;
 
 function TBSInterp<_TPoin_,_TCurve_>.GetVertMaxI :Integer;
 begin
-     Result := CurvMaxI + 1;
-end;
-
-//------------------------------------------------------------------------------
-
-function TBSInterp<_TPoin_,_TCurve_>.GetCurvMinI :Integer;
-begin
-     Result := _CurvMinI;
-end;
-
-procedure TBSInterp<_TPoin_,_TCurve_>.SetCurvMinI( const CurvMinI_:Integer );
-begin
-     _CurvMinI := CurvMinI_;  MakePoins;
-end;
-
-function TBSInterp<_TPoin_,_TCurve_>.GetCurvMaxI :Integer;
-begin
-     Result := _CurvMaxI;
-end;
-
-procedure TBSInterp<_TPoin_,_TCurve_>.SetCurvMaxI( const CurvMaxI_:Integer );
-begin
-     _CurvMaxI := CurvMaxI_;  MakePoins;
+     Result := _Curve.PoinMaxI;
 end;
 
 //------------------------------------------------------------------------------
@@ -439,12 +400,12 @@ begin
           upPoins := False;
      end;
 
-     Result := _Verts[ I_ - VertMinI ];
+     Result := _Curve[ I_ ];
 end;
 
 procedure TBSInterp<_TPoin_,_TCurve_>.SetVerts( const I_:Integer; const Verts_:_TPoin_ );
 begin
-     _Verts[ I_ - VertMinI ] := Verts_;
+     _Curve[ I_ ] := Verts_;
 end;
 
 /////////////////////////////////////////////////////////////////////// メソッド
@@ -453,7 +414,8 @@ procedure TBSInterp<_TPoin_,_TCurve_>.MakePoins;
 begin
      inherited;
 
-     SetLength( _Verts, VertMaxI - VertMinI + 1 + 1 );
+     _Curve.CurvMinI := CurvMinI;
+     _Curve.CurvMaxI := CurvMaxI;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -469,7 +431,7 @@ procedure TBSInterp<_TPoin_,_TCurve_>.AfterConstruction;
 begin
      inherited;
 
-     FilterW := 4;
+     FilterW := 4 + 1;
 end;
 
 destructor TBSInterp<_TPoin_,_TCurve_>.Destroy;
@@ -477,6 +439,20 @@ begin
      _Curve.Free;
 
      inherited;
+end;
+
+/////////////////////////////////////////////////////////////////////// メソッド
+
+function TBSInterp<_TPoin_,_TCurve_>.Curve( const X_:_TPoin_ ) :_TPoin_;
+begin
+     if upPoins then
+     begin
+          MakeVerts;
+
+          upPoins := False;
+     end;
+
+     Result := _Curve.Curve( X_ );
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleBSInterp
@@ -519,28 +495,6 @@ begin
      Result := Sqrt(3) * IntPower( Sqrt(3)-2, Abs( X_ ) );
 end;
 
-//------------------------------------------------------------------------------
-
-function TSingleBSInterp.Curv( const X_:Single ) :Single;
-var
-   Xi :Integer;
-   Xd :Single;
-begin
-     if upPoins then
-     begin
-          MakeVerts;
-
-          upPoins := False;
-     end;
-
-     Xi := Floor( X_ );  Xd := X_ - Xi;
-
-     Result := BSpline4( Verts[ Xi-1 ],
-                         Verts[ Xi   ],
-                         Verts[ Xi+1 ],
-                         Verts[ Xi+2 ], Xd );
-end;
-
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleBSInterp
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
@@ -579,28 +533,6 @@ end;
 function TDoubleBSInterp.HEFilter4( const X_:Integer ) :Double;
 begin
      Result := Sqrt(3) * IntPower( Sqrt(3)-2, Abs( X_ ) );
-end;
-
-//------------------------------------------------------------------------------
-
-function TDoubleBSInterp.Curv( const X_:Double ) :Double;
-var
-   Xi :Integer;
-   Xd :Double;
-begin
-     if upPoins then
-     begin
-          MakeVerts;
-
-          upPoins := False;
-     end;
-
-     Xi := Floor( X_ );  Xd := X_ - Xi;
-
-     Result := BSpline4( Verts[ Xi-1 ],
-                         Verts[ Xi   ],
-                         Verts[ Xi+1 ],
-                         Verts[ Xi+2 ], Xd );
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
