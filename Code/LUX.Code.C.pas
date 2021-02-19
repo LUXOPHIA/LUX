@@ -47,7 +47,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      T_int16_t            = Int16;         P_int16_t            = PInt16;
      T_uint16_t           = UInt16;        P_uint16_t           = PUInt16;
      T_int32_t            = Int32;         P_int32_t            = PInt32;
-     T_uint32_t           = UInt32;        P_uint32_t           = PUInt32;
+     T_uint32_t           = UInt32;        P_uint32_t           = PUInt32;     PP_uint32_t = ^P_uint32_t;
      T_int64_t            = Int64;         P_int64_t            = PInt64;
      T_uint64_t           = UInt64;        P_uint64_t           = PUInt64;
 
