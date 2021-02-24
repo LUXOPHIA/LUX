@@ -23,12 +23,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        ///// プロパティ
        property _s[ const Y_,X_:Integer ] :Integer read Gets write Sets; default;
-     case Integer of
-      0:( _ :array [ 1..4, 1..4 ] of Integer; );
-      1:( _11, _12, _13, _14,
-          _21, _22, _23, _24,
-          _31, _32, _33, _34,
-          _41, _42, _43, _44 :Integer; );
+     case Byte of
+      0:( _1D :array [ 0..4*4-1       ] of Integer; );
+      1:( _2D :array [ 0..4-1, 0..4-1 ] of Integer; );
+      2:( _11, _21, _31, _41,
+          _12, _22, _32, _42,
+          _13, _23, _33, _43,
+          _14, _24, _34, _44 :Integer;              );
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleM4
@@ -87,15 +88,18 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function RotateY( const T_:Single ) :TSingleM4; static;
        class function RotateZ( const T_:Single ) :TSingleM4; static;
        class function Identity :TSingleM4; static;
-       class function ProjOrth( const L_,R_,B_,T_,N_,F_:Single ) :TSingleM4; static;
-       class function ProjPers( const L_,R_,B_,T_,N_,F_:Single ) :TSingleM4; static;
+       class function ProjOrth( const MinX_,MaxX_,MinY_,MaxY_,NeaZ_,FarZ_:Single ) :TSingleM4; static;
+       class function ProjPers( const MinX_,MaxX_,MinY_,MaxY_,NeaZ_,FarZ_:Single ) :TSingleM4; static;
+       class function ProjPersH( const AngH_,AspW_,NeaZ_,FarZ_:Single ) :TSingleM4; static;
+       class function LookAt( const EyeP_,TarP_,UppV_:TSingle3D ) :TSingleM4; static;
 
-     case Integer of
-      0:( _ :array [ 1..4, 1..4 ] of Single; );
-      1:( _11, _12, _13, _14,
-          _21, _22, _23, _24,
-          _31, _32, _33, _34,
-          _41, _42, _43, _44 :Single;        );
+     case Byte of
+      0:( _1D :array [ 0..4*4-1       ] of Single; );
+      1:( _2D :array [ 0..4-1, 0..4-1 ] of Single; );
+      2:( _11, _21, _31, _41,
+          _12, _22, _32, _42,
+          _13, _23, _33, _43,
+          _14, _24, _34, _44 :Single;              );
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleM4
@@ -156,15 +160,18 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function RotateY( const T_:Double ) :TDoubleM4; static;
        class function RotateZ( const T_:Double ) :TDoubleM4; static;
        class function Identity :TDoubleM4; static;
-       class function ProjOrth( const L_,R_,B_,T_,N_,F_:Double ) :TDoubleM4; static;
-       class function ProjPers( const L_,R_,B_,T_,N_,F_:Double ) :TDoubleM4; static;
+       class function ProjOrth( const MinX_,MaxX_,MinY_,MaxY_,NeaZ_,FarZ_:Double ) :TDoubleM4; static;
+       class function ProjPers( const MinX_,MaxX_,MinY_,MaxY_,NeaZ_,FarZ_:Double ) :TDoubleM4; static;
+       class function ProjPersH( const AngH_,AspW_,NeaZ_,FarZ_:Double ) :TDoubleM4; static;
+       class function LookAt( const EyeP_,TarP_,UppV_:TDouble3D ) :TDoubleM4; static;
 
-     case Integer of
-      0:( _ :array [ 1..4, 1..4 ] of Double; );
-      1:( _11, _12, _13, _14,
-          _21, _22, _23, _24,
-          _31, _32, _33, _34,
-          _41, _42, _43, _44 :Double;        );
+     case Byte of
+      0:( _1D :array [ 0..4*4-1       ] of Double; );
+      1:( _2D :array [ 0..4-1, 0..4-1 ] of Double; );
+      2:( _11, _21, _31, _41,
+          _12, _22, _32, _42,
+          _13, _23, _33, _43,
+          _14, _24, _34, _44 :Double;              );
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TdSingleM4
@@ -223,12 +230,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function RotateZ( const T_:TdSingle ) :TdSingleM4; static;
        class function Identity :TdSingleM4; static;
 
-     case Integer of
-      0:( _ :array [ 1..4, 1..4 ] of TdSingle; );
-      1:( _11, _12, _13, _14,
-          _21, _22, _23, _24,
-          _31, _32, _33, _34,
-          _41, _42, _43, _44 :TdSingle;        );
+     case Byte of
+      0:( _1D :array [ 0..4*4-1       ] of TdSingle; );
+      1:( _2D :array [ 0..4-1, 0..4-1 ] of TdSingle; );
+      2:( _11, _21, _31, _41,
+          _12, _22, _32, _42,
+          _13, _23, _33, _43,
+          _14, _24, _34, _44 :TdSingle;              );
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TdDoubleM4
@@ -289,12 +297,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function RotateZ( const T_:TdDouble ) :TdDoubleM4; static;
        class function Identity :TdDoubleM4; static;
 
-     case Integer of
-      0:( _ :array [ 1..4, 1..4 ] of TdDouble; );
-      1:( _11, _12, _13, _14,
-          _21, _22, _23, _24,
-          _31, _32, _33, _34,
-          _41, _42, _43, _44 :TdDouble;        );
+     case Byte of
+      0:( _1D :array [ 0..4*4-1       ] of TdDouble; );
+      1:( _2D :array [ 0..4-1, 0..4-1 ] of TdDouble; );
+      2:( _11, _21, _31, _41,
+          _12, _22, _32, _42,
+          _13, _23, _33, _43,
+          _14, _24, _34, _44 :TdDouble;              );
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleDualM4
@@ -352,12 +361,12 @@ uses System.Math;
 
 function TIntegerM4.Gets( const Y_,X_:Integer ) :Integer;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TIntegerM4.Sets( const Y_,X_:Integer; const M_:Integer );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -370,12 +379,12 @@ end;
 
 function TSingleM4.Gets( const Y_,X_:Integer ) :Single;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TSingleM4.Sets( const Y_,X_:Integer; const M_:Single );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------
@@ -855,37 +864,72 @@ end;
 
 //------------------------------------------------------------------------------
 
-class function TSingleM4.ProjOrth( const L_,R_,B_,T_,N_,F_:Single ) :TSingleM4;
+class function TSingleM4.ProjOrth( const MinX_,MaxX_,MinY_,MaxY_,NeaZ_,FarZ_:Single ) :TSingleM4;
 var
-   RL, TB, FN :Single;
+   SX, SY, SZ :Single;
 begin
-     RL := R_ - L_;
-     TB := T_ - B_;
-     FN := F_ - N_;
+     SX := MaxX_ - MinX_;
+     SY := MaxY_ - MinY_;
+     SZ := FarZ_ - NeaZ_;
 
      with Result do
      begin
-          _11 := +2 / RL;  _12 :=  0     ;  _13 :=  0     ;  _14 := -( R_ + L_ ) / RL;
-          _21 :=  0     ;  _22 := +2 / TB;  _23 :=  0     ;  _24 := -( T_ + B_ ) / TB;
-          _31 :=  0     ;  _32 :=  0     ;  _33 := -2 / FN;  _34 := -( F_ + N_ ) / FN;
-          _41 :=  0     ;  _42 :=  0     ;  _43 :=  0     ;  _44 := +1               ;
+          _11 := +2 / SX;  _12 :=  0     ;  _13 :=  0     ;  _14 := -( MaxX_ + MinX_ ) / SX;
+          _21 :=  0     ;  _22 := +2 / SY;  _23 :=  0     ;  _24 := -( MaxY_ + MinY_ ) / SY;
+          _31 :=  0     ;  _32 :=  0     ;  _33 := -2 / SZ;  _34 := -( FarZ_ + NeaZ_ ) / SZ;
+          _41 :=  0     ;  _42 :=  0     ;  _43 :=  0     ;  _44 := +1                     ;
      end;
 end;
 
-class function TSingleM4.ProjPers( const L_,R_,B_,T_,N_,F_:Single ) :TSingleM4;
+class function TSingleM4.ProjPers( const MinX_,MaxX_,MinY_,MaxY_,NeaZ_,FarZ_:Single ) :TSingleM4;
 var
-   RL, TB, FN :Single;
+   SX, SY, SZ :Single;
 begin
-     RL := R_ - L_;
-     TB := T_ - B_;
-     FN := F_ - N_;
+     SX := MaxX_ - MinX_;
+     SY := MaxY_ - MinY_;
+     SZ := FarZ_ - NeaZ_;
 
      with Result do
      begin
-          _11 := +2 * N_ / RL;  _12 :=  0          ;  _13 :=  +( R_ + L_ ) / RL;  _14 :=  0               ;
-          _21 :=  0          ;  _22 := +2 * N_ / TB;  _23 :=  +( T_ + B_ ) / TB;  _24 :=  0               ;
-          _31 :=  0          ;  _32 :=  0          ;  _33 :=  -( F_ + N_ ) / FN;  _34 := -2 * F_ * N_ / FN;
-          _41 :=  0          ;  _42 :=  0          ;  _43 :=  -1               ;  _44 :=  0               ;
+          _11 := +2 * NeaZ_ / SX;  _12 :=  0             ;  _13 :=  +( MaxX_ + MinX_ ) / SX;  _14 :=  0                     ;
+          _21 :=  0             ;  _22 := +2 * NeaZ_ / SY;  _23 :=  +( MaxY_ + MinY_ ) / SY;  _24 :=  0                     ;
+          _31 :=  0             ;  _32 :=  0             ;  _33 :=  -( FarZ_ + NeaZ_ ) / SZ;  _34 := -2 * FarZ_ * NeaZ_ / SZ;
+          _41 :=  0             ;  _42 :=  0             ;  _43 :=  -1                     ;  _44 :=  0                     ;
+     end;
+end;
+
+//------------------------------------------------------------------------------
+
+class function TSingleM4.ProjPersH( const AngH_,AspW_,NeaZ_,FarZ_:Single ) :TSingleM4;
+var
+   SX, SY :Single;
+begin
+     SX := NeaZ_ * Tan( AngH_ / 2 );
+     SY := SX * AspW_;
+
+     Result := TSingleM4.ProjPers( -SX, +SY, -SY, +SY, NeaZ_, FarZ_ );
+end;
+
+//------------------------------------------------------------------------------
+
+class function TSingleM4.LookAt( const EyeP_,TarP_,UppV_:TSingle3D ) :TSingleM4;
+var
+   AX, AY, AZ, AP :TSingle3D;
+begin
+     AZ := ( EyeP_ - TarP_ ).Unitor;
+     AX := CrossProduct( UppV_, AZ ).Unitor;
+     AY := CrossProduct( AZ, AX );
+
+     AP.X := -DotProduct( AX, EyeP_ );
+     AP.Y := -DotProduct( AY, EyeP_ );
+     AP.Z := -DotProduct( AZ, EyeP_ );
+
+     with Result do
+     begin
+          _11 := AX.X;  _12 := AY.X;  _13 := AZ.X;  _14 := AP.X;
+          _21 := AX.Y;  _22 := AY.Y;  _23 := AZ.Y;  _24 := AP.Y;
+          _31 := AX.Z;  _32 := AY.Z;  _33 := AZ.Z;  _34 := AP.Z;
+          _41 :=    0;  _42 :=    0;  _43 :=    0;  _44 :=    1;
      end;
 end;
 
@@ -897,12 +941,12 @@ end;
 
 function TDoubleM4.Gets( const Y_,X_:Integer ) :Double;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TDoubleM4.Sets( const Y_,X_:Integer; const M_:Double );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------
@@ -1398,37 +1442,72 @@ end;
 
 //------------------------------------------------------------------------------
 
-class function TDoubleM4.ProjOrth( const L_,R_,B_,T_,N_,F_:Double ) :TDoubleM4;
+class function TDoubleM4.ProjOrth( const MinX_,MaxX_,MinY_,MaxY_,NeaZ_,FarZ_:Double ) :TDoubleM4;
 var
-   RL, TB, FN :Double;
+   SX, SY, SZ :Double;
 begin
-     RL := R_ - L_;
-     TB := T_ - B_;
-     FN := F_ - N_;
+     SX := MaxX_ - MinX_;
+     SY := MaxY_ - MinY_;
+     SZ := FarZ_ - NeaZ_;
 
      with Result do
      begin
-          _11 := +2 / RL;  _12 :=  0     ;  _13 :=  0     ;  _14 := -( R_ + L_ ) / RL;
-          _21 :=  0     ;  _22 := +2 / TB;  _23 :=  0     ;  _24 := -( T_ + B_ ) / TB;
-          _31 :=  0     ;  _32 :=  0     ;  _33 := -2 / FN;  _34 := -( F_ + N_ ) / FN;
-          _41 :=  0     ;  _42 :=  0     ;  _43 :=  0     ;  _44 := +1               ;
+          _11 := +2 / SX;  _12 :=  0     ;  _13 :=  0     ;  _14 := -( MaxX_ + MinX_ ) / SX;
+          _21 :=  0     ;  _22 := +2 / SY;  _23 :=  0     ;  _24 := -( MaxY_ + MinY_ ) / SY;
+          _31 :=  0     ;  _32 :=  0     ;  _33 := -2 / SZ;  _34 := -( FarZ_ + NeaZ_ ) / SZ;
+          _41 :=  0     ;  _42 :=  0     ;  _43 :=  0     ;  _44 := +1                     ;
      end;
 end;
 
-class function TDoubleM4.ProjPers( const L_,R_,B_,T_,N_,F_:Double ) :TDoubleM4;
+class function TDoubleM4.ProjPers( const MinX_,MaxX_,MinY_,MaxY_,NeaZ_,FarZ_:Double ) :TDoubleM4;
 var
-   RL, TB, FN :Double;
+   SX, SY, SZ :Double;
 begin
-     RL := R_ - L_;
-     TB := T_ - B_;
-     FN := F_ - N_;
+     SX := MaxX_ - MinX_;
+     SY := MaxY_ - MinY_;
+     SZ := FarZ_ - NeaZ_;
 
      with Result do
      begin
-          _11 := +2 * N_ / RL;  _12 :=  0          ;  _13 :=  +( R_ + L_ ) / RL;  _14 :=  0               ;
-          _21 :=  0          ;  _22 := +2 * N_ / TB;  _23 :=  +( T_ + B_ ) / TB;  _24 :=  0               ;
-          _31 :=  0          ;  _32 :=  0          ;  _33 :=  -( F_ + N_ ) / FN;  _34 := -2 * F_ * N_ / FN;
-          _41 :=  0          ;  _42 :=  0          ;  _43 :=  -1               ;  _44 :=  0               ;
+          _11 := +2 * NeaZ_ / SX;  _12 :=  0             ;  _13 :=  +( MaxX_ + MinX_ ) / SX;  _14 :=  0                     ;
+          _21 :=  0             ;  _22 := +2 * NeaZ_ / SY;  _23 :=  +( MaxY_ + MinY_ ) / SY;  _24 :=  0                     ;
+          _31 :=  0             ;  _32 :=  0             ;  _33 :=  -( FarZ_ + NeaZ_ ) / SZ;  _34 := -2 * FarZ_ * NeaZ_ / SZ;
+          _41 :=  0             ;  _42 :=  0             ;  _43 :=  -1                     ;  _44 :=  0                     ;
+     end;
+end;
+
+//------------------------------------------------------------------------------
+
+class function TDoubleM4.ProjPersH( const AngH_,AspW_,NeaZ_,FarZ_:Double ) :TDoubleM4;
+var
+   SX, SY :Double;
+begin
+     SX := NeaZ_ * Tan( AngH_ / 2 );
+     SY := SX * AspW_;
+
+     Result := TDoubleM4.ProjPers( -SX, +SY, -SY, +SY, NeaZ_, FarZ_ );
+end;
+
+//------------------------------------------------------------------------------
+
+class function TDoubleM4.LookAt( const EyeP_,TarP_,UppV_:TDouble3D ) :TDoubleM4;
+var
+   AX, AY, AZ, AP :TDouble3D;
+begin
+     AZ := ( EyeP_ - TarP_ ).Unitor;
+     AX := CrossProduct( UppV_, AZ ).Unitor;
+     AY := CrossProduct( AZ, AX );
+
+     AP.X := -DotProduct( AX, EyeP_ );
+     AP.Y := -DotProduct( AY, EyeP_ );
+     AP.Z := -DotProduct( AZ, EyeP_ );
+
+     with Result do
+     begin
+          _11 := AX.X;  _12 := AY.X;  _13 := AZ.X;  _14 := AP.X;
+          _21 := AX.Y;  _22 := AY.Y;  _23 := AZ.Y;  _24 := AP.Y;
+          _31 := AX.Z;  _32 := AY.Z;  _33 := AZ.Z;  _34 := AP.Z;
+          _41 :=    0;  _42 :=    0;  _43 :=    0;  _44 :=    1;
      end;
 end;
 
@@ -1440,12 +1519,12 @@ end;
 
 function TdSingleM4.Gets( const Y_,X_:Integer ) :TdSingle;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TdSingleM4.Sets( const Y_,X_:Integer; const M_:TdSingle );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------
@@ -1916,12 +1995,12 @@ end;
 
 function TdDoubleM4.Gets( const Y_,X_:Integer ) :TdDouble;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TdDoubleM4.Sets( const Y_,X_:Integer; const M_:TdDouble );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------

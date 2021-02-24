@@ -52,11 +52,12 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function Adjugate :TSingleM3;
        function Inverse :TSingleM3;
 
-     case Integer of
-      0:( _ :array [ 1..3, 1..3 ] of Single; );
-      1:( _11, _12, _13,
-          _21, _22, _23,
-          _31, _32, _33 :Single;             );
+     case Byte of
+      0:( _1D :array [ 0..3*3-1       ] of Single; );
+      1:( _2D :array [ 0..3-1, 0..3-1 ] of Single; );
+      2:( _11, _21, _31,
+          _12, _22, _32,
+          _13, _23, _33 :Single;                   );
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleM3
@@ -98,11 +99,12 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function Adjugate :TDoubleM3;
        function Inverse :TDoubleM3;
 
-     case Integer of
-      0:( _ :array [ 1..3, 1..3 ] of Double; );
-      1:( _11, _12, _13,
-          _21, _22, _23,
-          _31, _32, _33 :Double;             );
+     case Byte of
+      0:( _1D :array [ 0..3*3-1       ] of Double; );
+      1:( _2D :array [ 0..3-1, 0..3-1 ] of Double; );
+      2:( _11, _21, _31,
+          _12, _22, _32,
+          _13, _23, _33 :Double;                   );
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TdSingleM3
@@ -146,11 +148,12 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function Adjugate :TdSingleM3;
        function Inverse :TdSingleM3;
 
-     case Integer of
-      0:( _ :array [ 1..3, 1..3 ] of TdSingle; );
-      1:( _11, _12, _13,
-          _21, _22, _23,
-          _31, _32, _33 :TdSingle;             );
+     case Byte of
+      0:( _1D :array [ 0..3*3-1       ] of TdSingle; );
+      1:( _2D :array [ 0..3-1, 0..3-1 ] of TdSingle; );
+      2:( _11, _21, _31,
+          _12, _22, _32,
+          _13, _23, _33 :TdSingle;                   );
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TdDoubleM3
@@ -192,11 +195,12 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function Adjugate :TdDoubleM3;
        function Inverse :TdDoubleM3;
 
-     case Integer of
-      0:( _ :array [ 1..3, 1..3 ] of TdDouble; );
-      1:( _11, _12, _13,
-          _21, _22, _23,
-          _31, _32, _33 :TdDouble;             );
+     case Byte of
+      0:( _1D :array [ 0..3*3-1       ] of TdDouble; );
+      1:( _2D :array [ 0..3-1, 0..3-1 ] of TdDouble; );
+      2:( _11, _21, _31,
+          _12, _22, _32,
+          _13, _23, _33 :TdDouble;                   );
      end;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
@@ -222,12 +226,12 @@ implementation //###############################################################
 
 function TSingleM3.Gets( const Y_,X_:Integer ) :Single;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TSingleM3.Sets( const Y_,X_:Integer; const M_:Single );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------
@@ -512,12 +516,12 @@ end;
 
 function TDoubleM3.Gets( const Y_,X_:Integer ) :Double;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TDoubleM3.Sets( const Y_,X_:Integer; const M_:Double );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------
@@ -796,12 +800,12 @@ end;
 
 function TdSingleM3.Gets( const Y_,X_:Integer ) :TdSingle;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TdSingleM3.Sets( const Y_,X_:Integer; const M_:TdSingle );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------
@@ -1086,12 +1090,12 @@ end;
 
 function TdDoubleM3.Gets( const Y_,X_:Integer ) :TdDouble;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TdDoubleM3.Sets( const Y_,X_:Integer; const M_:TdDouble );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------
