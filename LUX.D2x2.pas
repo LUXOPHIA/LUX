@@ -43,10 +43,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function Inverse :TSingleM2;
        class function Rotate( const Angle_:Single ) :TSingleM2; static;
 
-     case Integer of
-      0:( _ :array [ 1..2, 1..2 ] of Single; );
-      1:( _11, _12,
-          _21, _22 :Single;                  );
+     case Byte of
+      0:( _1D :array [ 0..2*2-1       ] of Single; );
+      1:( _2D :array [ 0..2-1, 0..2-1 ] of Single; );
+      2:( _11, _21,
+          _12, _22 :Single;                        );
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleM2
@@ -84,10 +85,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function Inverse :TDoubleM2;
        class function Rotate( const Angle_:Double ) :TDoubleM2; static;
 
-     case Integer of
-       0: ( _ :array [ 1..2, 1..2 ] of Double; );
-       1: ( _11, _12,
-            _21, _22 :Double;                  );
+     case Byte of
+       0: ( _1D :array [ 0..2*2-1       ] of Double; );
+       1: ( _2D :array [ 0..2-1, 0..2-1 ] of Double; );
+       2: ( _11, _21,
+            _12, _22 :Double;                        );
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TdSingleM2
@@ -125,10 +127,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function Inverse :TdSingleM2;
        class function Rotate( const Angle_:TdSingle ) :TdSingleM2; static;
 
-     case Integer of
-      0:( _ :array [ 1..2, 1..2 ] of TdSingle; );
-      1:( _11, _12,
-          _21, _22 :TdSingle;                  );
+     case Byte of
+      0:( _1D :array [ 0..2*2-1       ] of TdSingle; );
+      1:( _2D :array [ 0..2-1, 0..2-1 ] of TdSingle; );
+      2:( _11, _21,
+          _12, _22 :TdSingle;                        );
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TdDoubleM2
@@ -166,10 +169,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function Inverse :TdDoubleM2;
        class function Rotate( const Angle_:TdDouble ) :TdDoubleM2; static;
 
-     case Integer of
-       0: ( _ :array [ 1..2, 1..2 ] of TdDouble; );
-       1: ( _11, _12,
-            _21, _22 :TdDouble;                  );
+     case Byte of
+       0: ( _1D :array [ 0..2*2-1       ] of TdDouble; );
+       1: ( _2D :array [ 0..2-1, 0..2-1 ] of TdDouble; );
+       2: ( _11, _21,
+            _12, _22 :TdDouble;                        );
      end;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
@@ -194,12 +198,12 @@ uses System.Math;
 
 function TSingleM2.Gets( const Y_,X_:Integer ) :Single;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TSingleM2.Sets( const Y_,X_:Integer; const M_:Single );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------
@@ -397,12 +401,12 @@ end;
 
 function TDoubleM2.Gets( const Y_,X_:Integer ) :Double;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TDoubleM2.Sets( const Y_,X_:Integer; const M_:Double );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------
@@ -600,12 +604,12 @@ end;
 
 function TdSingleM2.Gets( const Y_,X_:Integer ) :TdSingle;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TdSingleM2.Sets( const Y_,X_:Integer; const M_:TdSingle );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------
@@ -803,12 +807,12 @@ end;
 
 function TdDoubleM2.Gets( const Y_,X_:Integer ) :TdDouble;
 begin
-     Result := _[ Y_, X_ ];
+     Result := _2D[ X_-1, Y_-1 ];
 end;
 
 procedure TdDoubleM2.Sets( const Y_,X_:Integer; const M_:TdDouble );
 begin
-     _[ Y_, X_ ] := M_;
+     _2D[ X_-1, Y_-1 ] := M_;
 end;
 
 //------------------------------------------------------------------------------
