@@ -47,7 +47,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      T_HANDLE              = THandle;              P_HANDLE              = ^T_HANDLE;
      T_HINSTANCE           = HINST;
-     T_HWND                = type UIntPtr;
+     T_HWND                = HWND;
 
      T_size_t              = NativeUInt;           P_size_t              = ^T_size_t;
 
