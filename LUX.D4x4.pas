@@ -926,9 +926,9 @@ begin
 
      with Result do
      begin
-          _11 := AX.X;  _12 := AY.X;  _13 := AZ.X;  _14 := AP.X;
-          _21 := AX.Y;  _22 := AY.Y;  _23 := AZ.Y;  _24 := AP.Y;
-          _31 := AX.Z;  _32 := AY.Z;  _33 := AZ.Z;  _34 := AP.Z;
+          _11 := AX.X;  _12 := AX.Y;  _13 := AX.Z;  _14 := AP.X;
+          _21 := AY.X;  _22 := AY.Y;  _23 := AY.Z;  _24 := AP.Y;
+          _31 := AZ.X;  _32 := AZ.Y;  _33 := AZ.Z;  _34 := AP.Z;
           _41 :=    0;  _42 :=    0;  _43 :=    0;  _44 :=    1;
      end;
 end;
@@ -1504,9 +1504,9 @@ begin
 
      with Result do
      begin
-          _11 := AX.X;  _12 := AY.X;  _13 := AZ.X;  _14 := AP.X;
-          _21 := AX.Y;  _22 := AY.Y;  _23 := AZ.Y;  _24 := AP.Y;
-          _31 := AX.Z;  _32 := AY.Z;  _33 := AZ.Z;  _34 := AP.Z;
+          _11 := AX.X;  _12 := AX.Y;  _13 := AX.Z;  _14 := AP.X;
+          _21 := AY.X;  _22 := AY.Y;  _23 := AY.Z;  _24 := AP.Y;
+          _31 := AZ.X;  _32 := AZ.Y;  _33 := AZ.Z;  _34 := AP.Z;
           _41 :=    0;  _42 :=    0;  _43 :=    0;  _44 :=    1;
      end;
 end;
