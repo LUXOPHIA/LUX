@@ -6,9 +6,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TNodeProc<_INode_>
 
-     TListChild0   = class;
-
-     TListParent   = class;
+     TListObject   = class;
+       TListParent = class;
        TListChildr = class;
 
      TNodeProc<_TNode_:class> = reference to procedure( const Node_:_TNode_ );
@@ -17,26 +16,26 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
 
-     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChild0
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListObject
 
-     TListChild0 = class
+     TListObject = class
      private
      protected
        _Prev :TListChildr;
        _Next :TListChildr;
        ///// アクセス
-       function GetOrder :Integer; virtual;
+       function GetPrev :TListChildr;
+       function GetNext :TListChildr;
      public
        constructor Create; overload; virtual;
        ///// プロパティ
-       property Order :Integer     read GetOrder;
-       property Prev  :TListChildr read   _Prev ;
-       property Next  :TListChildr read   _Next ;
+       property Prev :TListChildr read GetPrev;
+       property Next :TListChildr read GetNext;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListParent
 
-     TListParent = class
+     TListParent = class( TListObject )
      private
        ///// アクセス
        function Get_Zero :TListChildr;
@@ -72,7 +71,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure OnInsertChild( const Childr_:TListChildr ); virtual;
        procedure OnRemoveChild( const Childr_:TListChildr ); virtual;
      public
-       constructor Create; overload; virtual;
+       constructor Create; overload; override;
        destructor Destroy; override;
        ///// プロパティ
        property Head                        :TListChildr read GetHead                     ;
@@ -89,7 +88,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChildr
 
-     TListChildr = class( TListChild0 )
+     TListChildr = class( TListObject )
      private
        ///// アクセス
        function GetIsOrdered :Boolean;
@@ -101,7 +100,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// アクセス
        function GetParent :TListParent; virtual;
        procedure SetParent( const Parent_:TListParent ); virtual;
-       function GetOrder :Integer; override;
+       function GetOrder :Integer; virtual;
        procedure SetOrder( const Order_:Integer ); virtual;
        ///// メソッド
        procedure _Remove;
@@ -130,7 +129,7 @@ implementation //###############################################################
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChild0
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListObject
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
@@ -138,14 +137,19 @@ implementation //###############################################################
 
 /////////////////////////////////////////////////////////////////////// アクセス
 
-function TListChild0.GetOrder :Integer;
+function TListObject.GetPrev :TListChildr;
 begin
-     Result := -1;
+     Result := _Prev;
+end;
+
+function TListObject.GetNext :TListChildr;
+begin
+     Result := _Next;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-constructor TListChild0.Create;
+constructor TListObject.Create;
 begin
      inherited;
 
@@ -336,15 +340,13 @@ begin
 
      _ChildrsN := 0;
      _LinksN   := 0;
-     _Zero     := TListChildr.Create;
+     _Zero     := TListChildr( Self );
      _MaxOrder := -1;
 end;
 
 destructor TListParent.Destroy;
 begin
      Clear;
-
-     _Zero.Free;
 
      inherited;
 end;
@@ -500,8 +502,6 @@ begin
 
      _Parent := nil;
      _Order  := -1;
-     _Prev   := Self;
-     _Next   := Self;
 end;
 
 constructor TListChildr.Create( const Parent_:TListParent );
