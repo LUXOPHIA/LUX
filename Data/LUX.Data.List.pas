@@ -159,6 +159,19 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetEnumerator: TListParentEnumerator<TChildr_>;
      end;
 
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChildr<TParent_>
+
+     TListChildr<TParent_:class> = class( TListChildr )
+     private
+     protected
+       ///// アクセス
+       function GetParent :TParent_;
+       procedure SetParent( const Parent_:TParent_ );
+     public
+       ///// プロパティ
+       property Parent :TParent_ read GetParent write SetParent;
+     end;
+
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListParentEnumerator<TChildr_>
 
      TListParentEnumerator<TChildr_:class> = class( TListParentEnumerator )
@@ -676,6 +689,26 @@ function TListParent<TChildr_>.GetEnumerator: TListParentEnumerator<TChildr_>;
 begin
      Result := TListParentEnumerator<TChildr_>.Create( Self );
 end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChildr<TParent_>
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+/////////////////////////////////////////////////////////////////////// アクセス
+
+function TListChildr<TParent_>.GetParent :TParent_;
+begin
+     Result := TParent_( inherited Parent );
+end;
+
+procedure TListChildr<TParent_>.SetParent( const Parent_:TParent_ );
+begin
+     inherited Parent := TListParent( Parent_ );
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListParentEnumerator<TChildr_>
 
