@@ -10,6 +10,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        TListParent = class;
        TListChildr = class;
 
+     TListParentEnumerator = class;
+
      TNodeProc<_TNode_:class> = reference to procedure( const Node_:_TNode_ );
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
@@ -85,6 +87,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure InsertTail( const Childr_:TListChildr );
        class procedure Swap( const C1_,C2_:TListChildr ); overload;
        procedure Swap( const I1_,I2_:Integer ); overload;
+       function GetEnumerator: TListParentEnumerator;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChildr
@@ -116,6 +119,23 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure Remove;
        procedure InsertPrev( const Siblin_:TListChildr );
        procedure InsertNext( const Siblin_:TListChildr );
+     end;
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListParentEnumerator
+
+     TListParentEnumerator = class
+     private
+     protected
+       _Container :TListParent;
+       _Current   :TListChildr;
+       ///// アクセス
+       function GetCurrent: TListChildr;
+     public
+       constructor Create( Container_:TListParent );
+       ///// プロパティ
+       property Current :TListChildr read GetCurrent;
+       ///// メソッド
+       function MoveNext :Boolean;
      end;
 
 //const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【定数】
@@ -431,6 +451,13 @@ begin
      Swap( Childrs[ I1_ ], Childrs[ I2_ ] );
 end;
 
+//------------------------------------------------------------------------------
+
+function TListParent.GetEnumerator: TListParentEnumerator;
+begin
+     Result := TListParentEnumerator.Create( Self );
+end;
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChildr
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
@@ -544,6 +571,38 @@ begin
      _Parent.InsertBind( Self, Siblin_, _Next );
 
      if IsOrdered then _Parent._MaxOrder := _Order;
+end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListParentEnumerator
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+/////////////////////////////////////////////////////////////////////// アクセス
+
+function TListParentEnumerator.GetCurrent: TListChildr;
+begin
+     Result := _Current;
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+constructor TListParentEnumerator.Create( Container_:TListParent );
+begin
+     inherited Create;
+
+     _Container := Container_;
+     _Current   := Container_.Origin;
+end;
+
+/////////////////////////////////////////////////////////////////////// メソッド
+
+function TListParentEnumerator.MoveNext :Boolean;
+begin
+     _Current := _Current.Next;
+
+     Result := _Current <> _Container.Origin;
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
