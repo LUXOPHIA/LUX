@@ -22,10 +22,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        ///// アクセス
-       function GetHeader :TChildr_;
-       function GetTailer :TChildr_;
-       function GetChildrs( const I_:Integer ) :TChildr_;
-       procedure SetChildrs( const I_:Integer; const Childr_:TChildr_ );
+       function GetHeader :TChildr_; reintroduce; virtual;
+       function GetTailer :TChildr_; reintroduce; virtual;
+       function GetChildrs( const I_:Integer ) :TChildr_; reintroduce; virtual;
+       procedure SetChildrs( const I_:Integer; const Childr_:TChildr_ ); reintroduce; virtual;
      public
        ///// プロパティ
        property Header                      :TChildr_ read GetHeader                  ;
@@ -41,8 +41,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        ///// アクセス
-       function GetParent :TParent_;
-       procedure SetParent( const Parent_:TParent_ );
+       function GetParent :TParent_; reintroduce; virtual;
+       procedure SetParent( const Parent_:TParent_ ); reintroduce; virtual;
      public
        ///// プロパティ
        property Parent :TParent_ read GetParent write SetParent;
@@ -54,7 +54,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        ///// アクセス
-       function GetCurrent: TChildr_;
+       function GetCurrent: TChildr_; reintroduce; virtual;
      public
        ///// プロパティ
        property Current :TChildr_ read GetCurrent;
