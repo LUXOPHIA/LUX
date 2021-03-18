@@ -23,8 +23,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _Prev :TListChildr;
        _Next :TListChildr;
        ///// アクセス
-       function GetPrev :TListChildr;
-       function GetNext :TListChildr;
+       function GetPrev :TListChildr; virtual;
+       function GetNext :TListChildr; virtual;
        ///// メソッド
        class procedure Bind( const C0_,C1_:TListChildr ); overload; inline;
        class procedure Bind( const C0_,C1_,C2_:TListChildr ); overload; inline;
@@ -52,11 +52,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _MaxOrder :Integer;
        _ChildrsN :Integer;
        ///// アクセス
-       function GetHeader :TListChildr;
-       function GetTailer :TListChildr;
-       function GetChildrs( const I_:Integer ) :TListChildr;
-       procedure SetChildrs( const I_:Integer; const Childr_:TListChildr );
-       function GetChildrsN :Integer;
+       function GetHeader :TListChildr; virtual;
+       function GetTailer :TListChildr; virtual;
+       function GetChildrs( const I_:Integer ) :TListChildr; virtual;
+       procedure SetChildrs( const I_:Integer; const Childr_:TListChildr ); virtual;
+       function GetChildrsN :Integer; virtual;
        ///// プロパティ
        property Origin                      :TListChildr read GetOrigin   write SetOrigin  ;
        property Indexes[ const I_:Integer ] :TListChildr read GetIndexes  write SetIndexes ;
@@ -126,7 +126,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _Container :TListParent;
        _Current   :TListChildr;
        ///// アクセス
-       function GetCurrent: TListChildr;
+       function GetCurrent: TListChildr; virtual;
      public
        constructor Create( Container_:TListParent );
        ///// プロパティ
