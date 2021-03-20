@@ -6,11 +6,12 @@ uses LUX.Data.List.core;
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【型】
 
-     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TNodeProc<_INode_>
+     TListParent<TChildr_:class> = class;
+     TListChildr<TParent_:class> = class;
+     TListEnumer<TChildr_:class> = class;
 
-     TListParent<TChildr_:class>           = class;
-       TListChildr<TParent_:class>         = class;
-     TListParentEnumerator<TChildr_:class> = class;
+     TListParent<TOwnere_,TChildr_:class> = class;
+     TListChildr<TOwnere_,TParent_:class> = class;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
 
@@ -32,7 +33,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Tailer                      :TChildr_ read GetTailer                  ;
        property Childrs[ const I_:Integer ] :TChildr_ read GetChildrs write SetChildrs; default;
        ///// メソッド
-       function GetEnumerator: TListParentEnumerator<TChildr_>;
+       function GetEnumerator: TListEnumer<TChildr_>;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChildr<TParent_>
@@ -48,9 +49,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Parent :TParent_ read GetParent write SetParent;
      end;
 
-     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListParentEnumerator<TChildr_>
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListEnumer<TChildr_>
 
-     TListParentEnumerator<TChildr_:class> = class( TListParentEnumerator )
+     TListEnumer<TChildr_:class> = class( TListEnumer )
      private
      protected
        ///// アクセス
@@ -58,6 +59,35 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        ///// プロパティ
        property Current :TChildr_ read GetCurrent;
+     end;
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListParent<TOwnere_,TChildr_>
+
+     TListParent<TOwnere_,TChildr_:class> = class( TListParent<TChildr_> )
+     private
+     protected
+       _Ownere :TOwnere_;
+       ///// アクセス
+       function GetOwnere :TOwnere_;
+     public
+       constructor Create; overload; override;
+       constructor Create( const Ownere_:TOwnere_ ); overload; virtual;
+       ///// プロパティ
+       property Ownere :TOwnere_ read GetOwnere;
+     end;
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChildr<TOwnere_,TParent_>
+
+     TListChildr<TOwnere_,TParent_:class> = class( TListChildr<TParent_> )
+     private
+       type TListChildr_ = TListChildr<TOwnere_,TParent_>;
+            TListParent_ = TListParent<TOwnere_,TListChildr_>;
+     protected
+       ///// アクセス
+       function GetOwnere :TOwnere_;
+     public
+       ///// プロパティ
+       property Ownere :TOwnere_ read GetOwnere;
      end;
 
 //const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【定数】
@@ -106,9 +136,9 @@ end;
 
 /////////////////////////////////////////////////////////////////////// メソッド
 
-function TListParent<TChildr_>.GetEnumerator: TListParentEnumerator<TChildr_>;
+function TListParent<TChildr_>.GetEnumerator: TListEnumer<TChildr_>;
 begin
-     Result := TListParentEnumerator<TChildr_>.Create( Self );
+     Result := TListEnumer<TChildr_>.Create( Self );
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChildr<TParent_>
@@ -131,7 +161,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListParentEnumerator<TChildr_>
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListEnumer<TChildr_>
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
@@ -139,9 +169,53 @@ end;
 
 /////////////////////////////////////////////////////////////////////// アクセス
 
-function TListParentEnumerator<TChildr_>.GetCurrent: TChildr_;
+function TListEnumer<TChildr_>.GetCurrent: TChildr_;
 begin
      Result := TChildr_( inherited Current );
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListParent<TOwnere_,TChildr_>
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+/////////////////////////////////////////////////////////////////////// アクセス
+
+function TListParent<TOwnere_,TChildr_>.GetOwnere :TOwnere_;
+begin
+     Result := _Ownere;
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+constructor TListParent<TOwnere_,TChildr_>.Create;
+begin
+     inherited;
+
+     _Ownere := nil;
+end;
+
+constructor TListParent<TOwnere_,TChildr_>.Create( const Ownere_:TOwnere_ );
+begin
+     Create;
+
+     _Ownere := Ownere_;
+end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChildr<TOwnere_,TParent_>
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+/////////////////////////////////////////////////////////////////////// アクセス
+
+function TListChildr<TOwnere_,TParent_>.GetOwnere :TOwnere_;
+begin
+     Result := TListParent_( Parent ).Ownere;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
