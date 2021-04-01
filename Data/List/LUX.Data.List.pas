@@ -42,9 +42,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        ///// アクセス
-       function GetParent :TParent_; reintroduce; virtual;
-       procedure SetParent( const Parent_:TParent_ ); reintroduce; virtual;
+       function GetParent :TParent_; reintroduce;
+       procedure SetParent( const Parent_:TParent_ ); reintroduce;
      public
+       constructor Create( const Parent_:TParent_ ); overload; virtual;
        ///// プロパティ
        property Parent :TParent_ read GetParent write SetParent;
      end;
@@ -160,6 +161,11 @@ begin
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+constructor TListChildr<TParent_>.Create( const Parent_:TParent_ );
+begin
+     inherited Create( TListParent( Parent_ ) );
+end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListEnumer<TChildr_>
 
