@@ -33,6 +33,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Tailer                      :TChildr_ read GetTailer                  ;
        property Childrs[ const I_:Integer ] :TChildr_ read GetChildrs write SetChildrs; default;
        ///// メソッド
+       procedure InsertHead( const Childr_:TChildr_ ); overload;
+       procedure InsertTail( const Childr_:TChildr_ ); overload;
+       procedure Add( const Childr_:TChildr_ ); overload;
        function GetEnumerator: TListEnumer<TChildr_>;
      end;
 
@@ -136,6 +139,23 @@ end;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
 /////////////////////////////////////////////////////////////////////// メソッド
+
+procedure TListParent<TChildr_>.InsertHead( const Childr_:TChildr_ );
+begin
+     inherited InsertHead( TListChildr( Childr_ ) );
+end;
+
+procedure TListParent<TChildr_>.InsertTail( const Childr_:TChildr_ );
+begin
+     inherited InsertTail( TListChildr( Childr_ ) );
+end;
+
+procedure TListParent<TChildr_>.Add( const Childr_:TChildr_ );
+begin
+     inherited Add( TListChildr( Childr_ ) );
+end;
+
+//------------------------------------------------------------------------------
 
 function TListParent<TChildr_>.GetEnumerator: TListEnumer<TChildr_>;
 begin
