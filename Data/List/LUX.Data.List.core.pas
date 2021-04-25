@@ -75,11 +75,14 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Header                      :TListChildr read GetHeader                   ;
        property Tailer                      :TListChildr read GetTailer                   ;
        property Childrs[ const I_:Integer ] :TListChildr read GetChildrs  write SetChildrs; default;
+       property Items[ const I_:Integer ]   :TListChildr read GetChildrs  write SetChildrs;
        property ChildrsN                    :Integer     read GetChildrsN                 ;
+       property Count                       :Integer     read GetChildrsN                 ;
        ///// メソッド
        procedure Clear; virtual;
-       procedure InsertHead( const Childr_:TListChildr );
-       procedure InsertTail( const Childr_:TListChildr );
+       procedure InsertHead( const Childr_:TListChildr ); overload;
+       procedure InsertTail( const Childr_:TListChildr ); overload;
+       procedure Add( const Childr_:TListChildr ); overload;
        class procedure Swap( const C1_,C2_:TListChildr ); overload;
        procedure Swap( const I1_,I2_:Integer ); overload;
        function GetEnumerator: TListEnumer;
@@ -388,6 +391,11 @@ end;
 procedure TListParent.InsertTail( const Childr_:TListChildr );
 begin
      Childr_.Remove;  _InsertTail( Childr_ );
+end;
+
+procedure TListParent.Add( const Childr_:TListChildr );
+begin
+     InsertTail( Childr_ );
 end;
 
 //------------------------------------------------------------------------------
