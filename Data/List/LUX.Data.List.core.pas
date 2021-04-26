@@ -66,6 +66,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure _InsertHead( const Childr_:TListChildr );
        procedure _InsertTail( const Childr_:TListChildr );
        ///// イベント
+       procedure OnInit; virtual;
        procedure OnInsertChild( const Childr_:TListChildr ); virtual;
        procedure OnRemoveChild( const Childr_:TListChildr ); virtual;
      public
@@ -239,11 +240,15 @@ end;
 
 function TListParent.GetHeader :TListChildr;
 begin
+     if _ChildrsN = 0 then OnInit;
+
      Result := Origin._Next;
 end;
 
 function TListParent.GetTailer :TListChildr;
 begin
+     if _ChildrsN = 0 then OnInit;
+
      Result := Origin._Prev;
 end;
 
@@ -251,6 +256,8 @@ end;
 
 function TListParent.GetChildrs( const I_:Integer ) :TListChildr;
 begin
+     if _ChildrsN = 0 then OnInit;
+
      if I_ > _MaxOrder then FindTo( I_ );
 
      Result := Indexes[ I_ ];
@@ -274,6 +281,8 @@ end;
 
 function TListParent.GetChildrsN :Integer;
 begin
+     if _ChildrsN = 0 then OnInit;
+
      Result := _ChildrsN;
 end;
 
@@ -331,17 +340,24 @@ end;
 
 procedure TListParent._InsertHead( const Childr_:TListChildr );
 begin
-     InsertBind( Origin, Childr_, Header );
+     InsertBind( Origin, Childr_, Origin._Next );
 
      _MaxOrder := -1;
 end;
 
 procedure TListParent._InsertTail( const Childr_:TListChildr );
 begin
-     InsertBind( Tailer, Childr_, Origin );
+     InsertBind( Origin._Prev, Childr_, Origin );
 end;
 
 /////////////////////////////////////////////////////////////////////// イベント
+
+procedure TListParent.OnInit;
+begin
+
+end;
+
+//------------------------------------------------------------------------------
 
 procedure TListParent.OnInsertChild( const Childr_:TListChildr );
 begin
@@ -460,6 +476,8 @@ end;
 
 function TListParent.GetEnumerator: TListEnumer;
 begin
+     if _ChildrsN = 0 then OnInit;
+
      Result := TListEnumer.Create( Self );
 end;
 
@@ -501,7 +519,7 @@ end;
 
 procedure TListChildr.SetOrder( const Order_:Integer );
 begin
-     TListParent.Swap( Self, _Parent.Childrs[ Order_ ] );
+     TListParent.Swap( Self, _Parent[ Order_ ] );
 end;
 
 /////////////////////////////////////////////////////////////////////// メソッド
