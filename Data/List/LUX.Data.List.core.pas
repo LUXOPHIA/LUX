@@ -125,14 +125,14 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TListEnumer = class
      private
      protected
-       _Container :TListParent;
-       _Current   :TListChildr;
+       _Parent :TListParent;
+       _Childr :TListChildr;
        ///// アクセス
-       function GetCurrent: TListChildr; virtual;
+       function GetChildr: TListChildr; virtual;
      public
-       constructor Create( Container_:TListParent );
+       constructor Create( Parent_:TListParent );
        ///// プロパティ
-       property Current :TListChildr read GetCurrent;
+       property Current :TListChildr read GetChildr;
        ///// メソッド
        function MoveNext :Boolean;
      end;
@@ -476,8 +476,6 @@ end;
 
 function TListParent.GetEnumerator: TListEnumer;
 begin
-     if _ChildrsN = 0 then OnInit;
-
      Result := TListEnumer.Create( Self );
 end;
 
@@ -602,28 +600,30 @@ end;
 
 /////////////////////////////////////////////////////////////////////// アクセス
 
-function TListEnumer.GetCurrent: TListChildr;
+function TListEnumer.GetChildr: TListChildr;
 begin
-     Result := _Current;
+     Result := _Childr;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-constructor TListEnumer.Create( Container_:TListParent );
+constructor TListEnumer.Create( Parent_:TListParent );
 begin
      inherited Create;
 
-     _Container := Container_;
-     _Current   := Container_.Origin;
+     with Parent_ do if _ChildrsN = 0 then OnInit;
+
+     _Parent := Parent_;
+     _Childr := Parent_.Origin;
 end;
 
 /////////////////////////////////////////////////////////////////////// メソッド
 
 function TListEnumer.MoveNext :Boolean;
 begin
-     _Current := _Current.Next;
+     _Childr := _Childr.Next;
 
-     Result := _Current <> _Container.Origin;
+     Result := _Childr <> _Parent.Origin;
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
