@@ -67,8 +67,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure _InsertTail( const Childr_:TListChildr );
        ///// イベント
        procedure OnInit; virtual;
-       procedure OnInsertChild( const Childr_:TListChildr ); virtual;
-       procedure OnRemoveChild( const Childr_:TListChildr ); virtual;
+       procedure OnInsertChild( const Childr_:TListChildr ); overload; virtual;
+       procedure OnRemoveChild( const Childr_:TListChildr ); overload; virtual;
      public
        constructor Create; overload; override;
        destructor Destroy; override;
@@ -340,9 +340,9 @@ end;
 
 procedure TListParent._InsertHead( const Childr_:TListChildr );
 begin
-     InsertBind( Origin, Childr_, Origin._Next );
-
      _MaxOrder := -1;
+
+     InsertBind( Origin, Childr_, Origin._Next );
 end;
 
 procedure TListParent._InsertTail( const Childr_:TListChildr );
@@ -524,6 +524,8 @@ end;
 
 procedure TListChildr._Remove;
 begin
+     _Parent.OnRemoveChild( Self );
+
      Bind( _Prev, _Next );
 
      if IsOrdered then _Parent._MaxOrder := _Order - 1;
