@@ -27,6 +27,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetTailer :TChildr_; reintroduce; virtual;
        function GetChildrs( const I_:Integer ) :TChildr_; reintroduce; virtual;
        procedure SetChildrs( const I_:Integer; const Childr_:TChildr_ ); reintroduce; virtual;
+       ///// イベント
+       procedure OnInsertChild( const Childr_:TListChildr ); override;
+       procedure OnRemoveChild( const Childr_:TListChildr ); override;
+       procedure OnInsertChild( const Childr_:TChildr_ ); overload; virtual;
+       procedure OnRemoveChild( const Childr_:TChildr_ ); overload; virtual;
      public
        ///// プロパティ
        property Header                      :TChildr_ read GetHeader                  ;
@@ -84,7 +89,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TListChildr<TOwnere_,TParent_:class> = class( TListChildr<TParent_> )
      private
-       type TListChildr_ = TListChildr<TOwnere_,TParent_>;
+       type TListChildr_ = TListChildr<TOwnere_,TParent_    >;
             TListParent_ = TListParent<TOwnere_,TListChildr_>;
      protected
        ///// アクセス
@@ -134,6 +139,28 @@ end;
 procedure TListParent<TChildr_>.SetChildrs( const I_:Integer; const Childr_:TChildr_ );
 begin
      inherited Childrs[ I_ ] := TListChildr( Childr_ );
+end;
+
+/////////////////////////////////////////////////////////////////////// イベント
+
+procedure TListParent<TChildr_>.OnInsertChild( const Childr_:TListChildr );
+begin
+     OnInsertChild( TChildr_( Childr_ ) );
+end;
+
+procedure TListParent<TChildr_>.OnRemoveChild( const Childr_:TListChildr );
+begin
+     OnRemoveChild( TChildr_( Childr_ ) );
+end;
+
+procedure TListParent<TChildr_>.OnInsertChild( const Childr_:TChildr_ );
+begin
+
+end;
+
+procedure TListParent<TChildr_>.OnRemoveChild( const Childr_:TChildr_ );
+begin
+
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
