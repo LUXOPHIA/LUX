@@ -52,8 +52,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// アクセス
        function GetHeader :TListChildr; virtual;
        function GetTailer :TListChildr; virtual;
-       function GetChildrs( const I_:Integer ) :TListChildr; virtual;
-       procedure SetChildrs( const I_:Integer; const Childr_:TListChildr ); virtual;
+       function GetChildrs( const I_:Integer ) :TListChildr; overload; virtual;
+       procedure SetChildrs( const I_:Integer; const Childr_:TListChildr ); overload; virtual;
        function GetChildrsN :Integer; virtual;
        ///// プロパティ
        property Origin                      :TListChildr read GetOrigin   write SetOrigin  ;
