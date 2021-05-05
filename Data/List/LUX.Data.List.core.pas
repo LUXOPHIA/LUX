@@ -110,6 +110,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        constructor Create; overload; override;
        constructor Create( const Parent_:TListParent ); overload; virtual;
+       procedure AfterConstruction; override;
        destructor Destroy; override;
        ///// プロパティ
        property Parent :TListParent read GetParent write SetParent;
@@ -329,8 +330,6 @@ end;
 
 procedure TListParent.InsertBind( const C0_,C1_,C2_:TListChildr );
 begin
-     C1_._Parent := Self;
-
      Bind( C0_, C1_, C2_ );
 
      Inc( _ChildrsN );
@@ -401,12 +400,20 @@ end;
 
 procedure TListParent.InsertHead( const Childr_:TListChildr );
 begin
-     Childr_.Remove;  _InsertHead( Childr_ );
+     Childr_.Remove;
+
+     Childr_._Parent := Self;
+
+     _InsertHead( Childr_ );
 end;
 
 procedure TListParent.InsertTail( const Childr_:TListChildr );
 begin
-     Childr_.Remove;  _InsertTail( Childr_ );
+     Childr_.Remove;
+
+     Childr_._Parent := Self;
+
+     _InsertTail( Childr_ );
 end;
 
 procedure TListParent.Add( const Childr_:TListChildr );
@@ -503,7 +510,9 @@ procedure TListChildr.SetParent( const Parent_:TListParent );
 begin
      Remove;
 
-     if Assigned( Parent_ ) then Parent_._InsertTail( Self );
+     _Parent := Parent_;
+
+     if Assigned( _Parent ) then _Parent._InsertTail( Self );
 end;
 
 //------------------------------------------------------------------------------
@@ -557,7 +566,14 @@ constructor TListChildr.Create( const Parent_:TListParent );
 begin
      Create;
 
-     Parent_._InsertTail( Self );
+     _Parent := Parent_;
+end;
+
+procedure TListChildr.AfterConstruction;
+begin
+     inherited;
+
+     if Assigned( _Parent ) then _Parent._InsertTail( Self );
 end;
 
 destructor TListChildr.Destroy;
