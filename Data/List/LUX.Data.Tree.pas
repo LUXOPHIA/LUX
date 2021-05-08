@@ -33,8 +33,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
        type TTreeChildr_ = TTreeChildr<TNode_>;
             TTreeNode_   = TTreeNode<TNode_>;
+       ///// アクセス
+       function Get_Childr :TTreeChildr_; virtual;
      protected
-       _Childr :TTreeChildr_;
        ///// アクセス
        function GetParent :TNode_; virtual;
        procedure SetParent( const Parent_:TNode_ ); virtual;
@@ -42,10 +43,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetTailer :TNode_; reintroduce; virtual;
        function GetChildrs( const I_:Integer ) :TNode_; reintroduce; overload; virtual;
        procedure SetChildrs( const I_:Integer; const Childr_:TNode_ ); reintroduce; overload; virtual;
+       ///// プロパティ
+       property _Childr :TTreeChildr_ read Get_Childr;
      public
-       constructor Create; override;
        constructor Create( const Parent_:TNode_ ); overload; virtual;
-       destructor Destroy; override;
        ///// プロパティ
        property Parent                      :TNode_ read GetParent  write SetParent ;
        property Header                      :TNode_ read GetHeader                  ;
@@ -55,6 +56,22 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// メソッド
        procedure InsertPrev( const Siblin_:TNode_ );
        procedure InsertNext( const Siblin_:TNode_ );
+     end;
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeKnot<TNode_>
+
+     TTreeKnot<TNode_:class> = class( TTreeNode<TNode_> )
+       type TTreeChildr_ = TTreeChildr<TNode_>;
+     private
+       __Childr :TTreeChildr_;
+       ///// アクセス
+       function Get_Childr :TTreeChildr_; override;
+     protected
+       ///// プロパティ
+       property _Childr :TTreeChildr_ read Get_Childr;
+     public
+       constructor Create; override;
+       destructor Destroy; override;
      end;
 
 //const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【定数】
@@ -95,6 +112,13 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
+/////////////////////////////////////////////////////////////////////// アクセス
+
+function TTreeNode<TNode_>.Get_Childr :TTreeChildr_;
+begin
+     Result := nil;
+end;
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
 /////////////////////////////////////////////////////////////////////// アクセス
@@ -133,25 +157,11 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-constructor TTreeNode<TNode_>.Create;
-begin
-     inherited;
-
-     _Childr := TTreeChildr_.Create( Self );
-end;
-
 constructor TTreeNode<TNode_>.Create( const Parent_:TNode_ );
 begin
      Create;
 
      Parent := Parent_;
-end;
-
-destructor TTreeNode<TNode_>.Destroy;
-begin
-     _Childr.Free;
-
-     inherited;
 end;
 
 /////////////////////////////////////////////////////////////////////// メソッド
@@ -164,6 +174,35 @@ end;
 procedure TTreeNode<TNode_>.InsertNext( const Siblin_:TNode_ );
 begin
      _Childr.InsertNext( TTreeNode_( Siblin_ )._Childr );
+end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeKnot<TNode_>
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
+
+/////////////////////////////////////////////////////////////////////// アクセス
+
+function TTreeKnot<TNode_>.Get_Childr :TTreeChildr_;
+begin
+     Result := __Childr;
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+constructor TTreeKnot<TNode_>.Create;
+begin
+     inherited;
+
+     __Childr := TTreeChildr_.Create( Self );
+end;
+
+destructor TTreeKnot<TNode_>.Destroy;
+begin
+     __Childr.Free;
+
+     inherited;
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
