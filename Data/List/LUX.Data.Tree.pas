@@ -6,17 +6,19 @@ uses LUX.Data.List.core;
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【型】
 
-     TTreeNode<TNode_:class> = class;
+     TTreeNode<TRoot_,TNode_:class> = class;
+     TTreeRoot<TRoot_,TNode_:class> = class;
+     TTreeKnot<TRoot_,TNode_:class> = class;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
 
-     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeChildr<TNode_>
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeChildr<TRoot_,TNode_>
 
-     TTreeChildr<TNode_:class> = class( TListChildr )
+     TTreeChildr<TRoot_,TNode_:class> = class( TListChildr )
      private
-       type TTreeNode_ = TTreeNode<TNode_>;
+       type TTreeNode_ = TTreeNode<TRoot_,TNode_>;
      protected
        _Ownere :TTreeNode_;
        ///// アクセス
@@ -27,16 +29,17 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Ownere :TNode_ read GetOwnere;
      end;
 
-     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeNode<TNode_>
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeNode<TRoot_,TNode_>
 
-     TTreeNode<TNode_:class> = class( TListParent )
+     TTreeNode<TRoot_,TNode_:class> = class( TListParent )
      private
-       type TTreeChildr_ = TTreeChildr<TNode_>;
-            TTreeNode_   = TTreeNode<TNode_>;
+       type TTreeChildr_ = TTreeChildr<TRoot_,TNode_>;
+            TTreeNode_   = TTreeNode  <TRoot_,TNode_>;
        ///// アクセス
-       function Get_Childr :TTreeChildr_; virtual;
+       function Get_Childr :TTreeChildr_; virtual; abstract;
      protected
        ///// アクセス
+       function GetRoot :TRoot_; virtual; abstract;
        function GetParent :TNode_; virtual;
        procedure SetParent( const Parent_:TNode_ ); virtual;
        function GetHeader :TNode_; reintroduce; virtual;
@@ -46,8 +49,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// プロパティ
        property _Childr :TTreeChildr_ read Get_Childr;
      public
+       constructor Create( const Parent_:TRoot_ ); overload; virtual;
        constructor Create( const Parent_:TNode_ ); overload; virtual;
        ///// プロパティ
+       property Root                        :TRoot_ read GetRoot                    ;
        property Parent                      :TNode_ read GetParent  write SetParent ;
        property Header                      :TNode_ read GetHeader                  ;
        property Tailer                      :TNode_ read GetTailer                  ;
@@ -58,17 +63,30 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure InsertNext( const Siblin_:TNode_ );
      end;
 
-     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeKnot<TNode_>
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeRoot<TRoot_,TNode_>
 
-     TTreeKnot<TNode_:class> = class( TTreeNode<TNode_> )
-       type TTreeChildr_ = TTreeChildr<TNode_>;
+     TTreeRoot<TRoot_,TNode_:class> = class( TTreeNode<TRoot_,TNode_> )
+       type TTreeChildr_ = TTreeChildr<TRoot_,TNode_>;
+     private
+       ///// アクセス
+       function Get_Childr :TTreeChildr_; override;
+     protected
+       ///// アクセス
+       function GetRoot :TRoot_; override;
+     public
+     end;
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeKnot<TRoot_,TNode_>
+
+     TTreeKnot<TRoot_,TNode_:class> = class( TTreeNode<TRoot_,TNode_> )
+       type TTreeChildr_ = TTreeChildr<TRoot_,TNode_>;
      private
        __Childr :TTreeChildr_;
        ///// アクセス
        function Get_Childr :TTreeChildr_; override;
      protected
-       ///// プロパティ
-       property _Childr :TTreeChildr_ read Get_Childr;
+       ///// アクセス
+       function GetRoot :TRoot_; override;
      public
        constructor Create; override;
        destructor Destroy; override;
@@ -86,7 +104,7 @@ implementation //###############################################################
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeChildr<TNode_>
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeChildr<TRoot_,TNode_>
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
@@ -94,70 +112,68 @@ implementation //###############################################################
 
 /////////////////////////////////////////////////////////////////////// アクセス
 
-function TTreeChildr<TNode_>.GetOwnere :TNode_;
+function TTreeChildr<TRoot_,TNode_>.GetOwnere :TNode_;
 begin
      Result := TNode_( _Ownere );
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-constructor TTreeChildr<TNode_>.Create( const Ownere_:TTreeNode_ );
+constructor TTreeChildr<TRoot_,TNode_>.Create( const Ownere_:TTreeNode_ );
 begin
      inherited Create;
 
      _Ownere := Ownere_;
 end;
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeNode<TNode_>
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeNode<TRoot_,TNode_>
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
-
-/////////////////////////////////////////////////////////////////////// アクセス
-
-function TTreeNode<TNode_>.Get_Childr :TTreeChildr_;
-begin
-     Result := nil;
-end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
 /////////////////////////////////////////////////////////////////////// アクセス
 
-function TTreeNode<TNode_>.GetParent :TNode_;
+function TTreeNode<TRoot_,TNode_>.GetParent :TNode_;
 begin
      Result := TNode_( _Childr.Parent );
 end;
 
-procedure TTreeNode<TNode_>.SetParent( const Parent_:TNode_ );
+procedure TTreeNode<TRoot_,TNode_>.SetParent( const Parent_:TNode_ );
 begin
      _Childr.Parent := TListParent( Parent_ );
 end;
 
 //------------------------------------------------------------------------------
 
-function TTreeNode<TNode_>.GetHeader :TNode_;
+function TTreeNode<TRoot_,TNode_>.GetHeader :TNode_;
 begin
      Result := TTreeChildr_( inherited Header ).Ownere;
 end;
 
-function TTreeNode<TNode_>.GetTailer :TNode_;
+function TTreeNode<TRoot_,TNode_>.GetTailer :TNode_;
 begin
      Result := TTreeChildr_( inherited Tailer ).Ownere;
 end;
 
-function TTreeNode<TNode_>.GetChildrs( const I_:Integer ) :TNode_;
+function TTreeNode<TRoot_,TNode_>.GetChildrs( const I_:Integer ) :TNode_;
 begin
      Result := TTreeChildr_( inherited Childrs[ I_ ] ).Ownere;
 end;
 
-procedure TTreeNode<TNode_>.SetChildrs( const I_:Integer; const Childr_:TNode_ );
+procedure TTreeNode<TRoot_,TNode_>.SetChildrs( const I_:Integer; const Childr_:TNode_ );
 begin
      inherited Childrs[ I_ ] := TTreeNode_( Childr_ )._Childr;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-constructor TTreeNode<TNode_>.Create( const Parent_:TNode_ );
+constructor TTreeNode<TRoot_,TNode_>.Create( const Parent_:TRoot_ );
+begin
+     Create( TNode_( TTreeNode_( Parent_ ) ) );
+end;
+
+constructor TTreeNode<TRoot_,TNode_>.Create( const Parent_:TNode_ );
 begin
      Create;
 
@@ -166,39 +182,68 @@ end;
 
 /////////////////////////////////////////////////////////////////////// メソッド
 
-procedure TTreeNode<TNode_>.InsertPrev( const Siblin_:TNode_ );
+procedure TTreeNode<TRoot_,TNode_>.InsertPrev( const Siblin_:TNode_ );
 begin
      _Childr.InsertPrev( TTreeNode_( Siblin_ )._Childr );
 end;
 
-procedure TTreeNode<TNode_>.InsertNext( const Siblin_:TNode_ );
+procedure TTreeNode<TRoot_,TNode_>.InsertNext( const Siblin_:TNode_ );
 begin
      _Childr.InsertNext( TTreeNode_( Siblin_ )._Childr );
 end;
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeKnot<TNode_>
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeRoot<TRoot_,TNode_>
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
 /////////////////////////////////////////////////////////////////////// アクセス
 
-function TTreeKnot<TNode_>.Get_Childr :TTreeChildr_;
+function TTreeRoot<TRoot_,TNode_>.Get_Childr :TTreeChildr_;
+begin
+     Result := nil;
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+/////////////////////////////////////////////////////////////////////// アクセス
+
+function TTreeRoot<TRoot_,TNode_>.GetRoot :TRoot_;
+begin
+     Result := TRoot_( Self );
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeKnot<TRoot_,TNode_>
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
+
+/////////////////////////////////////////////////////////////////////// アクセス
+
+function TTreeKnot<TRoot_,TNode_>.Get_Childr :TTreeChildr_;
 begin
      Result := __Childr;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
+/////////////////////////////////////////////////////////////////////// アクセス
+
+function TTreeKnot<TRoot_,TNode_>.GetRoot :TRoot_;
+begin
+     Result := TTreeNode_( Parent ).Root;
+end;
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-constructor TTreeKnot<TNode_>.Create;
+constructor TTreeKnot<TRoot_,TNode_>.Create;
 begin
      inherited;
 
      __Childr := TTreeChildr_.Create( Self );
 end;
 
-destructor TTreeKnot<TNode_>.Destroy;
+destructor TTreeKnot<TRoot_,TNode_>.Destroy;
 begin
      __Childr.Free;
 
