@@ -19,10 +19,12 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        type TTreeNode_ = TTreeNode<TNode_>;
      protected
        _Ownere :TTreeNode_;
+       ///// アクセス
+       function GetOwnere :TNode_;
      public
        constructor Create( const Ownere_:TTreeNode_ );
        ///// プロパティ
-       property Ownere :TTreeNode_ read _Ownere;
+       property Ownere :TNode_ read GetOwnere;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeNode<TNode_>
@@ -34,25 +36,25 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      protected
        _Childr :TTreeChildr_;
        ///// アクセス
-       function GetParent :TTreeNode_; virtual;
-       procedure SetParent( const Parent_:TTreeNode_ ); virtual;
-       function GetHeader :TTreeNode_; reintroduce; virtual;
-       function GetTailer :TTreeNode_; reintroduce; virtual;
-       function GetChildrs( const I_:Integer ) :TTreeNode_; reintroduce; overload; virtual;
-       procedure SetChildrs( const I_:Integer; const Childr_:TTreeNode_ ); reintroduce; overload; virtual;
+       function GetParent :TNode_; virtual;
+       procedure SetParent( const Parent_:TNode_ ); virtual;
+       function GetHeader :TNode_; reintroduce; virtual;
+       function GetTailer :TNode_; reintroduce; virtual;
+       function GetChildrs( const I_:Integer ) :TNode_; reintroduce; overload; virtual;
+       procedure SetChildrs( const I_:Integer; const Childr_:TNode_ ); reintroduce; overload; virtual;
      public
        constructor Create; override;
-       constructor Create( const Parent_:TTreeNode_ ); overload; virtual;
+       constructor Create( const Parent_:TNode_ ); overload; virtual;
        destructor Destroy; override;
        ///// プロパティ
-       property Parent                      :TTreeNode_ read GetParent  write SetParent ;
-       property Header                      :TTreeNode_ read GetHeader                  ;
-       property Tailer                      :TTreeNode_ read GetTailer                  ;
-       property Childrs[ const I_:Integer ] :TTreeNode_ read GetChildrs write SetChildrs; default;
-       property Items[ const I_:Integer ]   :TTreeNode_ read GetChildrs write SetChildrs;
+       property Parent                      :TNode_ read GetParent  write SetParent ;
+       property Header                      :TNode_ read GetHeader                  ;
+       property Tailer                      :TNode_ read GetTailer                  ;
+       property Childrs[ const I_:Integer ] :TNode_ read GetChildrs write SetChildrs; default;
+       property Items[ const I_:Integer ]   :TNode_ read GetChildrs write SetChildrs;
        ///// メソッド
-       procedure InsertPrev( const Siblin_:TTreeNode_ );
-       procedure InsertNext( const Siblin_:TTreeNode_ );
+       procedure InsertPrev( const Siblin_:TNode_ );
+       procedure InsertNext( const Siblin_:TNode_ );
      end;
 
 //const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【定数】
@@ -73,6 +75,13 @@ implementation //###############################################################
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
+/////////////////////////////////////////////////////////////////////// アクセス
+
+function TTreeChildr<TNode_>.GetOwnere :TNode_;
+begin
+     Result := TNode_( _Ownere );
+end;
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
 constructor TTreeChildr<TNode_>.Create( const Ownere_:TTreeNode_ );
@@ -90,36 +99,36 @@ end;
 
 /////////////////////////////////////////////////////////////////////// アクセス
 
-function TTreeNode<TNode_>.GetParent :TTreeNode_;
+function TTreeNode<TNode_>.GetParent :TNode_;
 begin
-     Result := TTreeNode_( _Childr.Parent );
+     Result := TNode_( _Childr.Parent );
 end;
 
-procedure TTreeNode<TNode_>.SetParent( const Parent_:TTreeNode_ );
+procedure TTreeNode<TNode_>.SetParent( const Parent_:TNode_ );
 begin
-     _Childr.Parent := Parent_;
+     _Childr.Parent := TListParent( Parent_ );
 end;
 
 //------------------------------------------------------------------------------
 
-function TTreeNode<TNode_>.GetHeader :TTreeNode_;
+function TTreeNode<TNode_>.GetHeader :TNode_;
 begin
      Result := TTreeChildr_( inherited Header ).Ownere;
 end;
 
-function TTreeNode<TNode_>.GetTailer :TTreeNode_;
+function TTreeNode<TNode_>.GetTailer :TNode_;
 begin
      Result := TTreeChildr_( inherited Tailer ).Ownere;
 end;
 
-function TTreeNode<TNode_>.GetChildrs( const I_:Integer ) :TTreeNode_;
+function TTreeNode<TNode_>.GetChildrs( const I_:Integer ) :TNode_;
 begin
      Result := TTreeChildr_( inherited Childrs[ I_ ] ).Ownere;
 end;
 
-procedure TTreeNode<TNode_>.SetChildrs( const I_:Integer; const Childr_:TTreeNode_ );
+procedure TTreeNode<TNode_>.SetChildrs( const I_:Integer; const Childr_:TNode_ );
 begin
-     inherited Childrs[ I_ ] := Childr_._Childr;
+     inherited Childrs[ I_ ] := TTreeNode_( Childr_ )._Childr;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -131,7 +140,7 @@ begin
      _Childr := TTreeChildr_.Create( Self );
 end;
 
-constructor TTreeNode<TNode_>.Create( const Parent_:TTreeNode_ );
+constructor TTreeNode<TNode_>.Create( const Parent_:TNode_ );
 begin
      Create;
 
@@ -147,14 +156,14 @@ end;
 
 /////////////////////////////////////////////////////////////////////// メソッド
 
-procedure TTreeNode<TNode_>.InsertPrev( const Siblin_:TTreeNode_ );
+procedure TTreeNode<TNode_>.InsertPrev( const Siblin_:TNode_ );
 begin
-     _Childr.InsertPrev( Siblin_._Childr );
+     _Childr.InsertPrev( TTreeNode_( Siblin_ )._Childr );
 end;
 
-procedure TTreeNode<TNode_>.InsertNext( const Siblin_:TTreeNode_ );
+procedure TTreeNode<TNode_>.InsertNext( const Siblin_:TNode_ );
 begin
-     _Childr.InsertNext( Siblin_._Childr );
+     _Childr.InsertNext( TTreeNode_( Siblin_ )._Childr );
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
