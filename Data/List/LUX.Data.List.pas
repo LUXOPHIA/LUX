@@ -51,6 +51,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Header                      :TChildr_ read GetHeader                  ;
        property Tailer                      :TChildr_ read GetTailer                  ;
        property Childrs[ const I_:Integer ] :TChildr_ read GetChildrs write SetChildrs; default;
+       property Items[ const I_:Integer ]   :TChildr_ read GetChildrs write SetChildrs;
        ///// メソッド
        procedure InsertHead( const Childr_:TChildr_ ); overload;
        procedure InsertTail( const Childr_:TChildr_ ); overload;
