@@ -75,8 +75,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TListChildr<TOwnere_,TParent_:class> = class( TListChildr<TParent_> )
      private
-       type TListChildr_ = TListChildr<TOwnere_,TParent_    >;
-            TListParent_ = TListParent<TOwnere_,TListChildr_>;
+       type TListParent_ = TListParent<TOwnere_,TListChildr<TParent_>>;
      protected
        ///// アクセス
        function GetOwnere :TOwnere_;
