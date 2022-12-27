@@ -70,20 +70,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function ToString :String;
      end;
 
-     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% HMatrix3D
-
-     HMatrix3D = record helper for TMatrix3D
-     private
-       ///// アクセス
-       function GetTranslate :TPoint3D;
-       procedure SetTranslate( const Translate_:TPoint3D );
-     public
-       ///// プロパティ
-       property Translate :TPoint3D read GetTranslate write SetTranslate;
-       ///// 定数
-       class function Identity :TMatrix3D; static;
-     end;
-
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TRay3D
 
      TRay3D = record
@@ -461,47 +447,6 @@ uses System.Math;
 function HHex4.ToString :String;
 begin
      Result := IntToHex( Self, 4 );
-end;
-
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% HMatrix3D
-
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
-
-/////////////////////////////////////////////////////////////////////// アクセス
-
-function HMatrix3D.GetTranslate :TPoint3D;
-begin
-     with Result do
-     begin
-          X := m41;
-          Y := m42;
-          Z := m43;
-     end;
-end;
-
-procedure HMatrix3D.SetTranslate( const Translate_:TPoint3D );
-begin
-     with Translate_ do
-     begin
-          m41 := X;
-          m42 := Y;
-          m43 := Z;
-     end;
-end;
-
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
-
-/////////////////////////////////////////////////////////////////////////// 定数
-
-class function HMatrix3D.Identity :TMatrix3D;
-begin
-     with Result do
-     begin
-          m11 := 1;  m12 := 0;  m13 := 0;  m14 := 0;
-          m21 := 0;  m22 := 1;  m23 := 0;  m24 := 0;
-          m31 := 0;  m32 := 0;  m33 := 1;  m34 := 0;
-          m41 := 0;  m42 := 0;  m43 := 0;  m44 := 1;
-     end;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TRay3D
