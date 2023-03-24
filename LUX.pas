@@ -47,10 +47,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TConstFunc<TA,TB,TC,   TResult> = reference to function( const A:TA; const B:TB; const C:TC             ) :TResult;
      TConstFunc<TA,TB,TC,TD,TResult> = reference to function( const A:TA; const B:TB; const C:TC; const D:TD ) :TResult;
 
-     TConstProc1<T>         = reference to procedure( const A:T       );
-     TConstProc2<T,TResult> = reference to procedure( const A,B:T     );
-     TConstProc3<T,TResult> = reference to procedure( const A,B,C:T   );
-     TConstProc4<T,TResult> = reference to procedure( const A,B,C,D:T );
+     TConstProc1<T> = reference to procedure( const A:T       );
+     TConstProc2<T> = reference to procedure( const A,B:T     );
+     TConstProc3<T> = reference to procedure( const A,B,C:T   );
+     TConstProc4<T> = reference to procedure( const A,B,C,D:T );
 
      TConstFunc1<T,TResult> = reference to function( const A:T       ) :TResult;
      TConstFunc2<T,TResult> = reference to function( const A,B:T     ) :TResult;
