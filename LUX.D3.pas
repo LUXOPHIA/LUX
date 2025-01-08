@@ -336,6 +336,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Implicit( const V_:TDouble3D ) :TPoint3D; inline;
        class operator Implicit( const V_:TVector3D ) :TDouble3D; inline;
        class operator Implicit( const V_:TDouble3D ) :TVector3D; inline;
+       class operator Implicit( const V_:TSingle3D ) :TDouble3D; inline;
+       class operator Implicit( const V_:TDouble3D ) :TSingle3D; inline;
        ///// 定数
        class function IdentityX :TDouble3D; inline; static;
        class function IdentityY :TDouble3D; inline; static;
@@ -712,6 +714,9 @@ function Nabla( const Func_:TConstFunc<TdDouble3D,TdDouble>; const P_:TDouble3D 
 
 function PolySolveReal( const Ks_:TSingle3D; out Xs_:TSingle2D ) :Byte; overload;
 function PolySolveReal( const Ks_:TDouble3D; out Xs_:TDouble2D ) :Byte; overload;
+
+function SolidAngle( const V1_,V2_,V3_:TSingle3D ) :Single; overload;
+function SolidAngle( const V1_,V2_,V3_:TDouble3D ) :Double; overload;
 
 implementation //############################################################### ■
 
@@ -1968,6 +1973,26 @@ end;
 class operator TDouble3D.Implicit( const V_:TDouble3D ) :TVector3D;
 begin
      Result := TPoint3D( V_ );
+end;
+
+class operator TDouble3D.Implicit( const V_:TSingle3D ) :TDouble3D;
+begin
+     with Result do
+     begin
+          X := V_.X;
+          Y := V_.Y;
+          Z := V_.Z;
+     end;
+end;
+
+class operator TDouble3D.Implicit( const V_:TDouble3D ) :TSingle3D;
+begin
+     with Result do
+     begin
+          X := V_.X;
+          Y := V_.Y;
+          Z := V_.Z;
+     end;
 end;
 
 /////////////////////////////////////////////////////////////////////////// 定数
@@ -3439,6 +3464,40 @@ begin
                end;
           end;
      end;
+end;
+
+//------------------------------------------------------------------------------
+
+function SolidAngle( const V1_,V2_,V3_:TSingle3D ) :Single;
+var
+   N1, N2, N3 :TSingle3D;
+   A1, A2, A3 :Single;
+begin
+     N1 := CrossProduct( V2_, V3_ ).Unitor;
+     N2 := CrossProduct( V3_, V1_ ).Unitor;
+     N3 := CrossProduct( V1_, V2_ ).Unitor;
+
+     A1 := ArcCos( -DotProduct( N2, N3 ) );
+     A2 := ArcCos( -DotProduct( N3, N1 ) );
+     A3 := ArcCos( -DotProduct( N1, N2 ) );
+
+     Result := A1 + A2 + A3 - Pi;
+end;
+
+function SolidAngle( const V1_,V2_,V3_:TDouble3D ) :Double;
+var
+   N1, N2, N3 :TDouble3D;
+   A1, A2, A3 :Double;
+begin
+     N1 := CrossProduct( V2_, V3_ ).Unitor;
+     N2 := CrossProduct( V3_, V1_ ).Unitor;
+     N3 := CrossProduct( V1_, V2_ ).Unitor;
+
+     A1 := ArcCos( -DotProduct( N2, N3 ) );
+     A2 := ArcCos( -DotProduct( N3, N1 ) );
+     A3 := ArcCos( -DotProduct( N1, N2 ) );
+
+     Result := A1 + A2 + A3 - Pi;
 end;
 
 //############################################################################## □
