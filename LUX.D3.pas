@@ -126,30 +126,30 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property LSB :T1Bit3D read GetLSB;
        property MSB :T1Bit3D read GetMSB;
        ///// O P E R A T O R
-       class operator Negative( const V_:TCardinal3D ) :TCardinal3D; inline;
-       class operator Positive( const V_:TCardinal3D ) :TCardinal3D; inline;
-       class operator Add( const A_,B_:TCardinal3D ) :TCardinal3D; inline;
-       class operator Subtract( const A_,B_:TCardinal3D ) :TCardinal3D; inline;
-       class operator Multiply( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D; inline;
-       class operator Multiply( const A_:Cardinal; const B_:TCardinal3D ) :TCardinal3D; inline;
-       class operator IntDivide( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D; inline;
-       class operator Modulus( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D; inline;
-       class operator LeftShift( const A_:TCardinal3D; const B_:Integer ) :TCardinal3D; inline;
-       class operator RightShift( const A_:TCardinal3D; const B_:Integer ) :TCardinal3D; inline;
-       class operator Equal( const A_,B_:TCardinal3D ) :Boolean; inline;
-       class operator NotEqual( const A_,B_:TCardinal3D ) :Boolean; inline;
-       class operator BitwiseAnd( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D; inline;
-       class operator BitwiseOr( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D; inline;
-       class operator BitwiseXor( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D; inline;
+       class operator Negative( const V_:TCardinal3D ) :TCardinal3D;
+       class operator Positive( const V_:TCardinal3D ) :TCardinal3D;
+       class operator Add( const A_,B_:TCardinal3D ) :TCardinal3D;
+       class operator Subtract( const A_,B_:TCardinal3D ) :TCardinal3D;
+       class operator Multiply( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D;
+       class operator Multiply( const A_:Cardinal; const B_:TCardinal3D ) :TCardinal3D;
+       class operator IntDivide( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D;
+       class operator Modulus( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D;
+       class operator LeftShift( const A_:TCardinal3D; const B_:Integer ) :TCardinal3D;
+       class operator RightShift( const A_:TCardinal3D; const B_:Integer ) :TCardinal3D;
+       class operator Equal( const A_,B_:TCardinal3D ) :Boolean;
+       class operator NotEqual( const A_,B_:TCardinal3D ) :Boolean;
+       class operator BitwiseAnd( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D;
+       class operator BitwiseOr( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D;
+       class operator BitwiseXor( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D;
        ///// C A S T
-       class operator Explicit( const V_:TCardinal3D ) :TByte3D; inline;
-       class operator Explicit( const V_:TByte3D ) :TCardinal3D; inline;
-       class operator Explicit( const V_:TCardinal3D ) :TShortint3D; inline;
-       class operator Explicit( const V_:TShortint3D ) :TCardinal3D; inline;
-       class operator Explicit( const V_:TCardinal3D ) :TWord3D; inline;
-       class operator Explicit( const V_:TWord3D ) :TCardinal3D; inline;
-       class operator Explicit( const V_:TCardinal3D ) :TSmallint3D; inline;
-       class operator Explicit( const V_:TSmallint3D ) :TCardinal3D; inline;
+       class operator Explicit( const V_:TCardinal3D ) :TByte3D;
+       class operator Explicit( const V_:TByte3D ) :TCardinal3D;
+       class operator Explicit( const V_:TCardinal3D ) :TShortint3D;
+       class operator Explicit( const V_:TShortint3D ) :TCardinal3D;
+       class operator Explicit( const V_:TCardinal3D ) :TWord3D;
+       class operator Explicit( const V_:TWord3D ) :TCardinal3D;
+       class operator Explicit( const V_:TCardinal3D ) :TSmallint3D;
+       class operator Explicit( const V_:TSmallint3D ) :TCardinal3D;
      case Byte of
       0:( _Xs :array [ 1..3 ] of Cardinal; );
       1:(  X  :Cardinal;
@@ -176,31 +176,31 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property LSB :T1Bit3D read GetLSB;
        property MSB :T1Bit3D read GetMSB;
        ///// O P E R A T O R
-       class operator Negative( const V_:TInteger3D ) :TInteger3D; inline;
-       class operator Positive( const V_:TInteger3D ) :TInteger3D; inline;
-       class operator Add( const A_,B_:TInteger3D ) :TInteger3D; inline;
-       class operator Subtract( const A_,B_:TInteger3D ) :TInteger3D; inline;
-       class operator Multiply( const A_:TInteger3D; const B_:Integer ) :TInteger3D; inline;
-       class operator Multiply( const A_:Integer; const B_:TInteger3D ) :TInteger3D; inline;
-       class operator IntDivide( const A_:TInteger3D; const B_:Integer ) :TInteger3D; inline;
-       class operator Modulus( const A_:TInteger3D; const B_:Integer ) :TInteger3D; inline;
-       class operator LeftShift( const A_:TInteger3D; const B_:Integer ) :TInteger3D; inline;
-       class operator RightShift( const A_:TInteger3D; const B_:Integer ) :TInteger3D; inline;
-       class operator Equal( const A_,B_:TInteger3D ) :Boolean; inline;
-       class operator NotEqual( const A_,B_:TInteger3D ) :Boolean; inline;
-       class operator BitwiseAnd( const A_:TInteger3D; const B_:Integer ) :TInteger3D; inline;
-       class operator BitwiseOr( const A_:TInteger3D; const B_:Integer ) :TInteger3D; inline;
-       class operator BitwiseXor( const A_:TInteger3D; const B_:Integer ) :TInteger3D; inline;
+       class operator Negative( const V_:TInteger3D ) :TInteger3D;
+       class operator Positive( const V_:TInteger3D ) :TInteger3D;
+       class operator Add( const A_,B_:TInteger3D ) :TInteger3D;
+       class operator Subtract( const A_,B_:TInteger3D ) :TInteger3D;
+       class operator Multiply( const A_:TInteger3D; const B_:Integer ) :TInteger3D;
+       class operator Multiply( const A_:Integer; const B_:TInteger3D ) :TInteger3D;
+       class operator IntDivide( const A_:TInteger3D; const B_:Integer ) :TInteger3D;
+       class operator Modulus( const A_:TInteger3D; const B_:Integer ) :TInteger3D;
+       class operator LeftShift( const A_:TInteger3D; const B_:Integer ) :TInteger3D;
+       class operator RightShift( const A_:TInteger3D; const B_:Integer ) :TInteger3D;
+       class operator Equal( const A_,B_:TInteger3D ) :Boolean;
+       class operator NotEqual( const A_,B_:TInteger3D ) :Boolean;
+       class operator BitwiseAnd( const A_:TInteger3D; const B_:Integer ) :TInteger3D;
+       class operator BitwiseOr( const A_:TInteger3D; const B_:Integer ) :TInteger3D;
+       class operator BitwiseXor( const A_:TInteger3D; const B_:Integer ) :TInteger3D;
        ///// C A S T
-       class operator Explicit( const V_:TInteger3D ) :TByte3D; inline;
-       class operator Explicit( const V_:TByte3D ) :TInteger3D; inline;
-       class operator Explicit( const V_:TInteger3D ) :TShortint3D; inline;
-       class operator Explicit( const V_:TShortint3D ) :TInteger3D; inline;
-       class operator Explicit( const V_:TInteger3D ) :TWord3D; inline;
-       class operator Explicit( const V_:TWord3D ) :TInteger3D; inline;
-       class operator Explicit( const V_:TInteger3D ) :TSmallint3D; inline;
-       class operator Explicit( const V_:TSmallint3D ) :TInteger3D; inline;
-       class operator Implicit( const V_:TInteger3D ) :TPoint3D; inline;
+       class operator Explicit( const V_:TInteger3D ) :TByte3D;
+       class operator Explicit( const V_:TByte3D ) :TInteger3D;
+       class operator Explicit( const V_:TInteger3D ) :TShortint3D;
+       class operator Explicit( const V_:TShortint3D ) :TInteger3D;
+       class operator Explicit( const V_:TInteger3D ) :TWord3D;
+       class operator Explicit( const V_:TWord3D ) :TInteger3D;
+       class operator Explicit( const V_:TInteger3D ) :TSmallint3D;
+       class operator Explicit( const V_:TSmallint3D ) :TInteger3D;
+       class operator Implicit( const V_:TInteger3D ) :TPoint3D;
      case Byte of
       0:( _Xs :array [ 1..3 ] of Integer; );
       1:(  X  :Integer;
@@ -218,21 +218,21 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TSingle3D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :Single; inline;
-       procedure Sets( const X_:Integer; const V_:Single ); inline;
-       function GetSiz2 :Single; inline;
-       procedure SetSiz2( const Siz2_:Single ); inline;
-       function GetSize :Single; inline;
-       procedure SetSize( const Size_:Single ); inline;
-       function GetUnitor :TSingle3D; inline;
-       procedure SetUnitor( const Unitor_:TSingle3D ); inline;
+       function Gets( const X_:Integer ) :Single;
+       procedure Sets( const X_:Integer; const V_:Single );
+       function GetSiz2 :Single;
+       procedure SetSiz2( const Siz2_:Single );
+       function GetSize :Single;
+       procedure SetSize( const Size_:Single );
+       function GetUnitor :TSingle3D;
+       procedure SetUnitor( const Unitor_:TSingle3D );
        function GetOrthant :Byte;
-       function GetProjXY :TSingle2D; inline;
-       procedure SetProjXY( const ProjXY_:TSingle2D ); inline;
-       function GetProjYZ :TSingle2D; inline;
-       procedure SetProjYZ( const ProjYZ_:TSingle2D ); inline;
-       function GetProjZX :TSingle2D; inline;
-       procedure SetProjZX( const ProjZX_:TSingle2D ); inline;
+       function GetProjXY :TSingle2D;
+       procedure SetProjXY( const ProjXY_:TSingle2D );
+       function GetProjYZ :TSingle2D;
+       procedure SetProjYZ( const ProjYZ_:TSingle2D );
+       function GetProjZX :TSingle2D;
+       procedure SetProjZX( const ProjZX_:TSingle2D );
      public
        constructor Create( const V_:Single ); overload;
        constructor Create( const X_,Y_,Z_:Single ); overload;
@@ -246,25 +246,25 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property ProjYZ                 :TSingle2D read GetProjYZ  write SetProjYZ;
        property ProjZX                 :TSingle2D read GetProjZX  write SetProjZX;
        ///// O P E R A T O R
-       class operator Negative( const V_:TSingle3D ) :TSingle3D; inline;
-       class operator Positive( const V_:TSingle3D ) :TSingle3D; inline;
-       class operator Add( const A_,B_:TSingle3D ) :TSingle3D; inline;
-       class operator Subtract( const A_,B_:TSingle3D ) :TSingle3D; inline;
-       class operator Multiply( const A_:TSingle3D; const B_:Single ) :TSingle3D; inline;
-       class operator Multiply( const A_:Single; const B_:TSingle3D ) :TSingle3D; inline;
-       class operator Divide( const A_:TSingle3D; const B_:Single ) :TSingle3D; inline;
+       class operator Negative( const V_:TSingle3D ) :TSingle3D;
+       class operator Positive( const V_:TSingle3D ) :TSingle3D;
+       class operator Add( const A_,B_:TSingle3D ) :TSingle3D;
+       class operator Subtract( const A_,B_:TSingle3D ) :TSingle3D;
+       class operator Multiply( const A_:TSingle3D; const B_:Single ) :TSingle3D;
+       class operator Multiply( const A_:Single; const B_:TSingle3D ) :TSingle3D;
+       class operator Divide( const A_:TSingle3D; const B_:Single ) :TSingle3D;
        ///// C A S T
-       class operator Implicit( const V_:TInteger3D ) :TSingle3D; inline;
-       class operator Implicit( const V_:TSingle2D ) :TSingle3D; inline;
-       class operator Explicit( const V_:TSingle3D ) :TSingle2D; inline;
-       class operator Implicit( const V_:TPoint3D ) :TSingle3D; inline;
-       class operator Implicit( const V_:TSingle3D ) :TPoint3D; inline;
-       class operator Implicit( const V_:TVector3D ) :TSingle3D; inline;
-       class operator Implicit( const V_:TSingle3D ) :TVector3D; inline;
+       class operator Implicit( const V_:TInteger3D ) :TSingle3D;
+       class operator Implicit( const V_:TSingle2D ) :TSingle3D;
+       class operator Explicit( const V_:TSingle3D ) :TSingle2D;
+       class operator Implicit( const V_:TPoint3D ) :TSingle3D;
+       class operator Implicit( const V_:TSingle3D ) :TPoint3D;
+       class operator Implicit( const V_:TVector3D ) :TSingle3D;
+       class operator Implicit( const V_:TSingle3D ) :TVector3D;
        ///// C O N S T A N T
-       class function IdentityX :TSingle3D; inline; static;
-       class function IdentityY :TSingle3D; inline; static;
-       class function IdentityZ :TSingle3D; inline; static;
+       class function IdentityX :TSingle3D; static;
+       class function IdentityY :TSingle3D; static;
+       class function IdentityZ :TSingle3D; static;
        ///// M E T H O D
        function VectorTo( const P_:TSingle3D ) :TSingle3D;
        function UnitorTo( const P_:TSingle3D ) :TSingle3D;
@@ -293,21 +293,21 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TDouble3D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :Double; inline;
-       procedure Sets( const X_:Integer; const V_:Double ); inline;
-       function GetSiz2 :Double; inline;
-       procedure SetSiz2( const Siz2_:Double ); inline;
-       function GetSize :Double; inline;
-       procedure SetSize( const Size_:Double ); inline;
-       function GetUnitor :TDouble3D; inline;
-       procedure SetUnitor( const Unitor_:TDouble3D ); inline;
+       function Gets( const X_:Integer ) :Double;
+       procedure Sets( const X_:Integer; const V_:Double );
+       function GetSiz2 :Double;
+       procedure SetSiz2( const Siz2_:Double );
+       function GetSize :Double;
+       procedure SetSize( const Size_:Double );
+       function GetUnitor :TDouble3D;
+       procedure SetUnitor( const Unitor_:TDouble3D );
        function GetOrthant :Byte;
-       function GetProjXY :TDouble2D; inline;
-       procedure SetProjXY( const ProjXY_:TDouble2D ); inline;
-       function GetProjYZ :TDouble2D; inline;
-       procedure SetProjYZ( const ProjYZ_:TDouble2D ); inline;
-       function GetProjZX :TDouble2D; inline;
-       procedure SetProjZX( const ProjZX_:TDouble2D ); inline;
+       function GetProjXY :TDouble2D;
+       procedure SetProjXY( const ProjXY_:TDouble2D );
+       function GetProjYZ :TDouble2D;
+       procedure SetProjYZ( const ProjYZ_:TDouble2D );
+       function GetProjZX :TDouble2D;
+       procedure SetProjZX( const ProjZX_:TDouble2D );
      public
        constructor Create( const V_:Double ); overload;
        constructor Create( const X_,Y_,Z_:Double ); overload;
@@ -321,27 +321,27 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property ProjYZ                 :TDouble2D read GetProjYZ  write SetProjYZ;
        property ProjZX                 :TDouble2D read GetProjZX  write SetProjZX;
        ///// O P E R A T O R
-       class operator Negative( const V_:TDouble3D ) :TDouble3D; inline;
-       class operator Positive( const V_:TDouble3D ) :TDouble3D; inline;
-       class operator Add( const A_,B_:TDouble3D ) :TDouble3D; inline;
-       class operator Subtract( const A_,B_:TDouble3D ) :TDouble3D; inline;
-       class operator Multiply( const A_:TDouble3D; const B_:Double ) :TDouble3D; inline;
-       class operator Multiply( const A_:Double; const B_:TDouble3D ) :TDouble3D; inline;
-       class operator Divide( const A_:TDouble3D; const B_:Double ) :TDouble3D; inline;
+       class operator Negative( const V_:TDouble3D ) :TDouble3D;
+       class operator Positive( const V_:TDouble3D ) :TDouble3D;
+       class operator Add( const A_,B_:TDouble3D ) :TDouble3D;
+       class operator Subtract( const A_,B_:TDouble3D ) :TDouble3D;
+       class operator Multiply( const A_:TDouble3D; const B_:Double ) :TDouble3D;
+       class operator Multiply( const A_:Double; const B_:TDouble3D ) :TDouble3D;
+       class operator Divide( const A_:TDouble3D; const B_:Double ) :TDouble3D;
        ///// C A S T
-       class operator Implicit( const V_:TInteger3D ) :TDouble3D; inline;
-       class operator Implicit( const V_:TDouble2D ) :TDouble3D; inline;
-       class operator Explicit( const V_:TDouble3D ) :TDouble2D; inline;
-       class operator Implicit( const V_:TPoint3D ) :TDouble3D; inline;
-       class operator Implicit( const V_:TDouble3D ) :TPoint3D; inline;
-       class operator Implicit( const V_:TVector3D ) :TDouble3D; inline;
-       class operator Implicit( const V_:TDouble3D ) :TVector3D; inline;
-       class operator Implicit( const V_:TSingle3D ) :TDouble3D; inline;
-       class operator Implicit( const V_:TDouble3D ) :TSingle3D; inline;
+       class operator Implicit( const V_:TInteger3D ) :TDouble3D;
+       class operator Implicit( const V_:TDouble2D ) :TDouble3D;
+       class operator Explicit( const V_:TDouble3D ) :TDouble2D;
+       class operator Implicit( const V_:TPoint3D ) :TDouble3D;
+       class operator Implicit( const V_:TDouble3D ) :TPoint3D;
+       class operator Implicit( const V_:TVector3D ) :TDouble3D;
+       class operator Implicit( const V_:TDouble3D ) :TVector3D;
+       class operator Implicit( const V_:TSingle3D ) :TDouble3D;
+       class operator Implicit( const V_:TDouble3D ) :TSingle3D;
        ///// C O N S T A N T
-       class function IdentityX :TDouble3D; inline; static;
-       class function IdentityY :TDouble3D; inline; static;
-       class function IdentityZ :TDouble3D; inline; static;
+       class function IdentityX :TDouble3D; static;
+       class function IdentityY :TDouble3D; static;
+       class function IdentityZ :TDouble3D; static;
        ///// M E T H O D
        function VectorTo( const P_:TDouble3D ) :TDouble3D;
        function UnitorTo( const P_:TDouble3D ) :TDouble3D;
@@ -370,18 +370,18 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TdSingle3D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :TdSingle; inline;
-       procedure Sets( const X_:Integer; const V_:TdSingle ); inline;
-       function Geto :TSingle3D; inline;
-       procedure Seto( const o_:TSingle3D ); inline;
-       function Getd :TSingle3D; inline;
-       procedure Setd( const d_:TSingle3D ); inline;
-       function GetSiz2 :TdSingle; inline;
-       procedure SetSiz2( const Siz2_:TdSingle ); inline;
-       function GetSize :TdSingle; inline;
-       procedure SetSize( const Size_:TdSingle ); inline;
-       function GetUnitor :TdSingle3D; inline;
-       procedure SetUnitor( const Unitor_:TdSingle3D ); inline;
+       function Gets( const X_:Integer ) :TdSingle;
+       procedure Sets( const X_:Integer; const V_:TdSingle );
+       function Geto :TSingle3D;
+       procedure Seto( const o_:TSingle3D );
+       function Getd :TSingle3D;
+       procedure Setd( const d_:TSingle3D );
+       function GetSiz2 :TdSingle;
+       procedure SetSiz2( const Siz2_:TdSingle );
+       function GetSize :TdSingle;
+       procedure SetSize( const Size_:TdSingle );
+       function GetUnitor :TdSingle3D;
+       procedure SetUnitor( const Unitor_:TdSingle3D );
      public
        constructor Create( const X_,Y_,Z_:TdSingle );
        ///// P R O P E R T Y
@@ -392,16 +392,16 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Size                   :TdSingle   read GetSize   write SetSize  ;
        property Unitor                 :TdSingle3D read GetUnitor write SetUnitor;
        ///// O P E R A T O R
-       class operator Negative( const V_:TdSingle3D ) :TdSingle3D; inline;
-       class operator Positive( const V_:TdSingle3D ) :TdSingle3D; inline;
-       class operator Add( const A_,B_:TdSingle3D ) :TdSingle3D; inline;
-       class operator Subtract( const A_,B_:TdSingle3D ) :TdSingle3D; inline;
-       class operator Multiply( const A_:TdSingle3D; const B_:TdSingle ) :TdSingle3D; inline;
-       class operator Multiply( const A_:TdSingle; const B_:TdSingle3D ) :TdSingle3D; inline;
-       class operator Divide( const A_:TdSingle3D; const B_:TdSingle ) :TdSingle3D; inline;
+       class operator Negative( const V_:TdSingle3D ) :TdSingle3D;
+       class operator Positive( const V_:TdSingle3D ) :TdSingle3D;
+       class operator Add( const A_,B_:TdSingle3D ) :TdSingle3D;
+       class operator Subtract( const A_,B_:TdSingle3D ) :TdSingle3D;
+       class operator Multiply( const A_:TdSingle3D; const B_:TdSingle ) :TdSingle3D;
+       class operator Multiply( const A_:TdSingle; const B_:TdSingle3D ) :TdSingle3D;
+       class operator Divide( const A_:TdSingle3D; const B_:TdSingle ) :TdSingle3D;
        ///// C A S T
        class operator Implicit( const V_:TSingle3D ) :TdSingle3D;
-       class operator Implicit( const V_:TdSingle3D ) :TSingle3D; inline;
+       class operator Implicit( const V_:TdSingle3D ) :TSingle3D;
      case Byte of
       0:( _Xs :array [ 1..3 ] of TdSingle; );
       1:(  X  :TdSingle;
@@ -422,18 +422,18 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TdDouble3D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :TdDouble; inline;
-       procedure Sets( const X_:Integer; const V_:TdDouble ); inline;
-       function Geto :TDouble3D; inline;
-       procedure Seto( const o_:TDouble3D ); inline;
-       function Getd :TDouble3D; inline;
-       procedure Setd( const d_:TDouble3D ); inline;
-       function GetSiz2 :TdDouble; inline;
-       procedure SetSiz2( const Siz2_:TdDouble ); inline;
-       function GetSize :TdDouble; inline;
-       procedure SetSize( const Size_:TdDouble ); inline;
-       function GetUnitor :TdDouble3D; inline;
-       procedure SetUnitor( const Unitor_:TdDouble3D ); inline;
+       function Gets( const X_:Integer ) :TdDouble;
+       procedure Sets( const X_:Integer; const V_:TdDouble );
+       function Geto :TDouble3D;
+       procedure Seto( const o_:TDouble3D );
+       function Getd :TDouble3D;
+       procedure Setd( const d_:TDouble3D );
+       function GetSiz2 :TdDouble;
+       procedure SetSiz2( const Siz2_:TdDouble );
+       function GetSize :TdDouble;
+       procedure SetSize( const Size_:TdDouble );
+       function GetUnitor :TdDouble3D;
+       procedure SetUnitor( const Unitor_:TdDouble3D );
      public
        constructor Create( const X_,Y_,Z_:TdDouble );
        ///// P R O P E R T Y
@@ -444,16 +444,16 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Size                   :TdDouble   read GetSize   write SetSize  ;
        property Unitor                 :TdDouble3D read GetUnitor write SetUnitor;
        ///// O P E R A T O R
-       class operator Negative( const V_:TdDouble3D ) :TdDouble3D; inline;
-       class operator Positive( const V_:TdDouble3D ) :TdDouble3D; inline;
-       class operator Add( const A_,B_:TdDouble3D ) :TdDouble3D; inline;
-       class operator Subtract( const A_,B_:TdDouble3D ) :TdDouble3D; inline;
-       class operator Multiply( const A_:TdDouble3D; const B_:TdDouble ) :TdDouble3D; inline;
-       class operator Multiply( const A_:TdDouble; const B_:TdDouble3D ) :TdDouble3D; inline;
-       class operator Divide( const A_:TdDouble3D; const B_:TdDouble ) :TdDouble3D; inline;
+       class operator Negative( const V_:TdDouble3D ) :TdDouble3D;
+       class operator Positive( const V_:TdDouble3D ) :TdDouble3D;
+       class operator Add( const A_,B_:TdDouble3D ) :TdDouble3D;
+       class operator Subtract( const A_,B_:TdDouble3D ) :TdDouble3D;
+       class operator Multiply( const A_:TdDouble3D; const B_:TdDouble ) :TdDouble3D;
+       class operator Multiply( const A_:TdDouble; const B_:TdDouble3D ) :TdDouble3D;
+       class operator Divide( const A_:TdDouble3D; const B_:TdDouble ) :TdDouble3D;
        ///// C A S T
        class operator Implicit( const V_:TDouble3D ) :TdDouble3D;
-       class operator Implicit( const V_:TdDouble3D ) :TDouble3D; inline;
+       class operator Implicit( const V_:TdDouble3D ) :TDouble3D;
      case Byte of
       0:( _Xs :array [ 1..3 ] of TdDouble; );
       1:(  X  :TdDouble;
@@ -480,20 +480,20 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        /////
        constructor Create( const X_,Y_,Z_:Single );
        ///// O P E R A T O R
-       class operator Negative( const V_:TSingleSiz3D ) :TSingleSiz3D; inline;
-       class operator Positive( const V_:TSingleSiz3D ) :TSingleSiz3D; inline;
-       class operator Add( const A_,B_:TSingleSiz3D ) :TSingleSiz3D; inline;
-       class operator Subtract( const A_,B_:TSingleSiz3D ) :TSingleSiz3D; inline;
-       class operator Multiply( const A_:TSingleSiz3D; const B_:Single ) :TSingleSiz3D; inline;
-       class operator Multiply( const A_:Single; const B_:TSingleSiz3D ) :TSingleSiz3D; inline;
-       class operator Divide( const A_:TSingleSiz3D; const B_:Single ) :TSingleSiz3D; inline;
+       class operator Negative( const V_:TSingleSiz3D ) :TSingleSiz3D;
+       class operator Positive( const V_:TSingleSiz3D ) :TSingleSiz3D;
+       class operator Add( const A_,B_:TSingleSiz3D ) :TSingleSiz3D;
+       class operator Subtract( const A_,B_:TSingleSiz3D ) :TSingleSiz3D;
+       class operator Multiply( const A_:TSingleSiz3D; const B_:Single ) :TSingleSiz3D;
+       class operator Multiply( const A_:Single; const B_:TSingleSiz3D ) :TSingleSiz3D;
+       class operator Divide( const A_:TSingleSiz3D; const B_:Single ) :TSingleSiz3D;
        ///// C A S T
-       class operator Implicit( const V_:TPoint3D ) :TSingleSiz3D; inline;
-       class operator Implicit( const V_:TSingleSiz3D ) :TPoint3D; inline;
-       class operator Implicit( const V_:TVector3D ) :TSingleSiz3D; inline;
-       class operator Implicit( const V_:TSingleSiz3D ) :TVector3D; inline;
-       class operator Implicit( const V_:TSingle3D ) :TSingleSiz3D; inline;
-       class operator Implicit( const V_:TSingleSiz3D ) :TSingle3D; inline;
+       class operator Implicit( const V_:TPoint3D ) :TSingleSiz3D;
+       class operator Implicit( const V_:TSingleSiz3D ) :TPoint3D;
+       class operator Implicit( const V_:TVector3D ) :TSingleSiz3D;
+       class operator Implicit( const V_:TSingleSiz3D ) :TVector3D;
+       class operator Implicit( const V_:TSingle3D ) :TSingleSiz3D;
+       class operator Implicit( const V_:TSingleSiz3D ) :TSingle3D;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleSiz3D
@@ -507,20 +507,20 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        /////
        constructor Create( const X_,Y_,Z_:Double );
        ///// O P E R A T O R
-       class operator Negative( const V_:TDoubleSiz3D ) :TDoubleSiz3D; inline;
-       class operator Positive( const V_:TDoubleSiz3D ) :TDoubleSiz3D; inline;
-       class operator Add( const A_,B_:TDoubleSiz3D ) :TDoubleSiz3D; inline;
-       class operator Subtract( const A_,B_:TDoubleSiz3D ) :TDoubleSiz3D; inline;
-       class operator Multiply( const A_:TDoubleSiz3D; const B_:Double ) :TDoubleSiz3D; inline;
-       class operator Multiply( const A_:Double; const B_:TDoubleSiz3D ) :TDoubleSiz3D; inline;
-       class operator Divide( const A_:TDoubleSiz3D; const B_:Double ) :TDoubleSiz3D; inline;
+       class operator Negative( const V_:TDoubleSiz3D ) :TDoubleSiz3D;
+       class operator Positive( const V_:TDoubleSiz3D ) :TDoubleSiz3D;
+       class operator Add( const A_,B_:TDoubleSiz3D ) :TDoubleSiz3D;
+       class operator Subtract( const A_,B_:TDoubleSiz3D ) :TDoubleSiz3D;
+       class operator Multiply( const A_:TDoubleSiz3D; const B_:Double ) :TDoubleSiz3D;
+       class operator Multiply( const A_:Double; const B_:TDoubleSiz3D ) :TDoubleSiz3D;
+       class operator Divide( const A_:TDoubleSiz3D; const B_:Double ) :TDoubleSiz3D;
        ///// C A S T
-       class operator Implicit( const V_:TPoint3D ) :TDoubleSiz3D; inline;
-       class operator Implicit( const V_:TDoubleSiz3D ) :TPoint3D; inline;
-       class operator Implicit( const V_:TVector3D ) :TDoubleSiz3D; inline;
-       class operator Implicit( const V_:TDoubleSiz3D ) :TVector3D; inline;
-       class operator Implicit( const V_:TDouble3D ) :TDoubleSiz3D; inline;
-       class operator Implicit( const V_:TDoubleSiz3D ) :TDouble3D; inline;
+       class operator Implicit( const V_:TPoint3D ) :TDoubleSiz3D;
+       class operator Implicit( const V_:TDoubleSiz3D ) :TPoint3D;
+       class operator Implicit( const V_:TVector3D ) :TDoubleSiz3D;
+       class operator Implicit( const V_:TDoubleSiz3D ) :TVector3D;
+       class operator Implicit( const V_:TDouble3D ) :TDoubleSiz3D;
+       class operator Implicit( const V_:TDoubleSiz3D ) :TDouble3D;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleArea3D
@@ -632,8 +632,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TSingleRay3D = record
      private
        ///// A C C E S S O R
-       function GetUnitor :TSingleRay3D; inline;
-       procedure SetUnitor( const Unitor_:TSingleRay3D ); inline;
+       function GetUnitor :TSingleRay3D;
+       procedure SetUnitor( const Unitor_:TSingleRay3D );
      public
        Pos :TSinglePos3D;
        Vec :TSingleVec3D;
@@ -648,8 +648,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TDoubleRay3D = record
      private
        ///// A C C E S S O R
-       function GetUnitor :TDoubleRay3D; inline;
-       procedure SetUnitor( const Unitor_:TDoubleRay3D ); inline;
+       function GetUnitor :TDoubleRay3D;
+       procedure SetUnitor( const Unitor_:TDoubleRay3D );
      public
        Pos :TDoublePos3D;
        Vec :TDoubleVec3D;
@@ -667,50 +667,50 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
-function DotProduct( const A_,B_:TSingleVec3D ) :Single; inline; overload;
-function DotProduct( const A_,B_:TDoubleVec3D ) :Double; inline; overload;
+function DotProduct( const A_,B_:TSingleVec3D ) :Single; overload;
+function DotProduct( const A_,B_:TDoubleVec3D ) :Double; overload;
 
-function DotProduct( const A_,B_:TdSingleVec3D ) :TdSingle; inline; overload;
-function DotProduct( const A_,B_:TdDoubleVec3D ) :TdDouble; inline; overload;
+function DotProduct( const A_,B_:TdSingleVec3D ) :TdSingle; overload;
+function DotProduct( const A_,B_:TdDoubleVec3D ) :TdDouble; overload;
 
-function CrossProduct( const A_,B_:TSingleVec3D ) :TSingleVec3D; inline; overload;
-function CrossProduct( const A_,B_:TDoubleVec3D ) :TDoubleVec3D; inline; overload;
+function CrossProduct( const A_,B_:TSingleVec3D ) :TSingleVec3D; overload;
+function CrossProduct( const A_,B_:TDoubleVec3D ) :TDoubleVec3D; overload;
 
-function CrossProduct( const A_,B_:TdSingleVec3D ) :TdSingleVec3D; inline; overload;
-function CrossProduct( const A_,B_:TdDoubleVec3D ) :TdDoubleVec3D; inline; overload;
+function CrossProduct( const A_,B_:TdSingleVec3D ) :TdSingleVec3D; overload;
+function CrossProduct( const A_,B_:TdDoubleVec3D ) :TdDoubleVec3D; overload;
 
-function Distanc2( const A_,B_:TSinglePos3D ) :Single; inline; overload;
-function Distanc2( const A_,B_:TDoublePos3D ) :Double; inline; overload;
+function Distanc2( const A_,B_:TSinglePos3D ) :Single; overload;
+function Distanc2( const A_,B_:TDoublePos3D ) :Double; overload;
 
-function Distance( const A_,B_:TSinglePos3D ) :Single; inline; overload;
-function Distance( const A_,B_:TDoublePos3D ) :Double; inline; overload;
+function Distance( const A_,B_:TSinglePos3D ) :Single; overload;
+function Distance( const A_,B_:TDoublePos3D ) :Double; overload;
 
-function Distanc2( const A_,B_:TdSinglePos3D ) :TdSingle; inline; overload;
-function Distanc2( const A_,B_:TdDoublePos3D ) :TdDouble; inline; overload;
+function Distanc2( const A_,B_:TdSinglePos3D ) :TdSingle; overload;
+function Distanc2( const A_,B_:TdDoublePos3D ) :TdDouble; overload;
 
-function Distance( const A_,B_:TdSinglePos3D ) :TdSingle; inline; overload;
-function Distance( const A_,B_:TdDoublePos3D ) :TdDouble; inline; overload;
+function Distance( const A_,B_:TdSinglePos3D ) :TdSingle; overload;
+function Distance( const A_,B_:TdDoublePos3D ) :TdDouble; overload;
 
-function Ave( const P1_,P2_:TSingle3D ) :TSingle3D; inline; overload;
-function Ave( const P1_,P2_:TDouble3D ) :TDouble3D; inline; overload;
+function Ave( const P1_,P2_:TSingle3D ) :TSingle3D; overload;
+function Ave( const P1_,P2_:TDouble3D ) :TDouble3D; overload;
 
-function Ave( const P1_,P2_,P3_:TSingle3D ) :TSingle3D; inline; overload;
-function Ave( const P1_,P2_,P3_:TDouble3D ) :TDouble3D; inline; overload;
+function Ave( const P1_,P2_,P3_:TSingle3D ) :TSingle3D; overload;
+function Ave( const P1_,P2_,P3_:TDouble3D ) :TDouble3D; overload;
 
-function Ave( const P1_,P2_,P3_,P4_:TSingle3D ) :TSingle3D; inline; overload;
-function Ave( const P1_,P2_,P3_,P4_:TDouble3D ) :TDouble3D; inline; overload;
+function Ave( const P1_,P2_,P3_,P4_:TSingle3D ) :TSingle3D; overload;
+function Ave( const P1_,P2_,P3_,P4_:TDouble3D ) :TDouble3D; overload;
 
-function Ave( const P1_,P2_:TdSingle3D ) :TdSingle3D; inline; overload;
-function Ave( const P1_,P2_:TdDouble3D ) :TdDouble3D; inline; overload;
+function Ave( const P1_,P2_:TdSingle3D ) :TdSingle3D; overload;
+function Ave( const P1_,P2_:TdDouble3D ) :TdDouble3D; overload;
 
-function Ave( const P1_,P2_,P3_:TdSingle3D ) :TdSingle3D; inline; overload;
-function Ave( const P1_,P2_,P3_:TdDouble3D ) :TdDouble3D; inline; overload;
+function Ave( const P1_,P2_,P3_:TdSingle3D ) :TdSingle3D; overload;
+function Ave( const P1_,P2_,P3_:TdDouble3D ) :TdDouble3D; overload;
 
-function Ave( const P1_,P2_,P3_,P4_:TdSingle3D ) :TdSingle3D; inline; overload;
-function Ave( const P1_,P2_,P3_,P4_:TdDouble3D ) :TdDouble3D; inline; overload;
+function Ave( const P1_,P2_,P3_,P4_:TdSingle3D ) :TdSingle3D; overload;
+function Ave( const P1_,P2_,P3_,P4_:TdDouble3D ) :TdDouble3D; overload;
 
-function Nabla( const Func_:TConstFunc<TdSingle3D,TdSingle>; const P_:TSingle3D ) :TSingle3D; inline; overload;
-function Nabla( const Func_:TConstFunc<TdDouble3D,TdDouble>; const P_:TDouble3D ) :TDouble3D; inline; overload;
+function Nabla( const Func_:TConstFunc<TdSingle3D,TdSingle>; const P_:TSingle3D ) :TSingle3D; overload;
+function Nabla( const Func_:TConstFunc<TdDouble3D,TdDouble>; const P_:TDouble3D ) :TDouble3D; overload;
 
 function PolySolveReal( const Ks_:TSingle3D; out Xs_:TSingle2D ) :Byte; overload;
 function PolySolveReal( const Ks_:TDouble3D; out Xs_:TDouble2D ) :Byte; overload;
@@ -3499,11 +3499,5 @@ begin
 
      Result := A1 + A2 + A3 - Pi;
 end;
-
-//############################################################################## □
-
-initialization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 初期化
-
-finalization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 最終化
 
 end. //######################################################################### ■
