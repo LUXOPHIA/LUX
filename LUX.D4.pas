@@ -13,13 +13,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TByte4D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Byte; inline;
        procedure Sets( const X_:Integer; const V_:Byte ); inline;
      public
        constructor Create( const V_:Byte ); overload;
        constructor Create( const X_,Y_,Z_,W_:Byte ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Byte read Gets write Sets; default;
      case Byte of
       0:( _ :array [ 1..4 ] of Byte; );
@@ -39,13 +39,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TWord4D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Word; inline;
        procedure Sets( const X_:Integer; const V_:Word ); inline;
      public
        constructor Create( const V_:Word ); overload;
        constructor Create( const X_,Y_,Z_,W_:Word ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Word read Gets write Sets; default;
      case Word of
       0:( _ :array [ 1..4 ] of Word; );
@@ -65,13 +65,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TInteger4D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Integer; inline;
        procedure Sets( const X_:Integer; const V_:Integer ); inline;
      public
        constructor Create( const V_:Integer ); overload;
        constructor Create( const X_,Y_,Z_,W_:Integer ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Integer read Gets write Sets; default;
      case Byte of
       0:( _ :array [ 1..4 ] of Integer; );
@@ -91,13 +91,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TCardinal4D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Cardinal; inline;
        procedure Sets( const X_:Integer; const V_:Cardinal ); inline;
      public
        constructor Create( const V_:Cardinal ); overload;
        constructor Create( const X_,Y_,Z_,W_:Cardinal ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Cardinal read Gets write Sets; default;
      case Byte of
       0:( _ :array [ 1..4 ] of Cardinal; );
@@ -117,13 +117,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TInt64u4D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Int64u; inline;
        procedure Sets( const X_:Integer; const V_:Int64u ); inline;
      public
        constructor Create( const V_:Int64u ); overload;
        constructor Create( const X_,Y_,Z_,W_:Int64u ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Int64u read Gets write Sets; default;
      case Byte of
       0:( _  :array [ 1..4 ] of Int64u; );
@@ -141,13 +141,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TInt64s4D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Int64s; inline;
        procedure Sets( const X_:Integer; const V_:Int64s ); inline;
      public
        constructor Create( const V_:Int64s ); overload;
        constructor Create( const X_,Y_,Z_,W_:Int64s ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Int64s read Gets write Sets; default;
      case Byte of
       0:( _  :array [ 1..4 ] of Int64s; );
@@ -165,7 +165,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TSingle4D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Single; inline;
        procedure Sets( const X_:Integer; const V_:Single ); inline;
        function GetSiz2 :Single; inline;
@@ -178,12 +178,12 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create( const V_:Single ); overload;
        constructor Create( const X_,Y_,Z_,W_:Single ); overload;
        constructor Create( const P_:TSingle3D; const W_:Single ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Single    read Gets      write Sets     ; default;
        property Siz2                   :Single    read GetSiz2   write SetSiz2  ;
        property Size                   :Single    read GetSize   write SetSize  ;
        property Unitor                 :TSingle4D read GetUnitor write SetUnitor;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TSingle4D ) :TSingle4D;
        class operator Positive( const V_:TSingle4D ) :TSingle4D;
        class operator Add( const A_,B_:TSingle4D ) :TSingle4D;
@@ -191,19 +191,19 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TSingle4D; const B_:Single ) :TSingle4D;
        class operator Multiply( const A_:Single; const B_:TSingle4D ) :TSingle4D;
        class operator Divide( const A_:TSingle4D; const B_:Single ) :TSingle4D;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TSingle3D ) :TSingle4D;
        class operator Explicit( const V_:TSingle4D ) :TSingle3D;
        class operator Implicit( const V_:TPoint3D ) :TSingle4D;
        class operator Explicit( const V_:TSingle4D ) :TPoint3D;
        class operator Implicit( const V_:TVector3D ) :TSingle4D;
        class operator Explicit( const V_:TSingle4D ) :TVector3D;
-       ///// 定数
+       ///// C O N S T A N T
        class function IdentityX :TSingle4D; inline; static;
        class function IdentityY :TSingle4D; inline; static;
        class function IdentityZ :TSingle4D; inline; static;
        class function IdentityW :TSingle4D; inline; static;
-       ///// メソッド
+       ///// M E T H O D
        function VectorTo( const P_:TSingle4D ) :TSingle4D;
        function UnitorTo( const P_:TSingle4D ) :TSingle4D;
        function DistanTo( const P_:TSingle4D ) :Single;
@@ -233,7 +233,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TDouble4D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Double; inline;
        procedure Sets( const X_:Integer; const V_:Double ); inline;
        function GetSiz2 :Double; inline;
@@ -246,12 +246,12 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create( const V_:Double ); overload;
        constructor Create( const X_,Y_,Z_,W_:Double ); overload;
        constructor Create( const P_:TDouble3D; const W_:Double ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Double    read Gets      write Sets     ; default;
        property Siz2                   :Double    read GetSiz2   write SetSiz2  ;
        property Size                   :Double    read GetSize   write SetSize  ;
        property Unitor                 :TDouble4D read GetUnitor write SetUnitor;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TDouble4D ) :TDouble4D;
        class operator Positive( const V_:TDouble4D ) :TDouble4D;
        class operator Add( const A_,B_:TDouble4D ) :TDouble4D;
@@ -259,19 +259,19 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TDouble4D; const B_:Double ) :TDouble4D;
        class operator Multiply( const A_:Double; const B_:TDouble4D ) :TDouble4D;
        class operator Divide( const A_:TDouble4D; const B_:Double ) :TDouble4D;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TDouble3D ) :TDouble4D;
        class operator Explicit( const V_:TDouble4D ) :TDouble3D;
        class operator Implicit( const V_:TPoint3D ) :TDouble4D;
        class operator Explicit( const V_:TDouble4D ) :TPoint3D;
        class operator Implicit( const V_:TVector3D ) :TDouble4D;
        class operator Explicit( const V_:TDouble4D ) :TVector3D;
-       ///// 定数
+       ///// C O N S T A N T
        class function IdentityX :TDouble4D; inline; static;
        class function IdentityY :TDouble4D; inline; static;
        class function IdentityZ :TDouble4D; inline; static;
        class function IdentityW :TDouble4D; inline; static;
-       ///// メソッド
+       ///// M E T H O D
        function VectorTo( const P_:TDouble4D ) :TDouble4D;
        function UnitorTo( const P_:TDouble4D ) :TDouble4D;
        function DistanTo( const P_:TDouble4D ) :Double;
@@ -301,7 +301,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdSingle4D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :TdSingle; inline;
        procedure Sets( const X_:Integer; const V_:TdSingle ); inline;
        function Geto :TSingle4D; inline;
@@ -316,14 +316,14 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetUnitor( const Unitor_:TdSingle4D ); inline;
      public
        constructor Create( const X_,Y_,Z_,W_:TdSingle );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :TdSingle   read Gets      write Sets     ; default;
        property o                      :TSingle4D  read Geto      write Seto     ;
        property d                      :TSingle4D  read Getd      write Setd     ;
        property Siz2                   :TdSingle   read GetSiz2   write SetSiz2  ;
        property Size                   :TdSingle   read GetSize   write SetSize  ;
        property Unitor                 :TdSingle4D read GetUnitor write SetUnitor;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdSingle4D ) :TdSingle4D; inline;
        class operator Positive( const V_:TdSingle4D ) :TdSingle4D; inline;
        class operator Add( const A_,B_:TdSingle4D ) :TdSingle4D; inline;
@@ -331,7 +331,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdSingle4D; const B_:TdSingle ) :TdSingle4D; inline;
        class operator Multiply( const A_:TdSingle; const B_:TdSingle4D ) :TdSingle4D; inline;
        class operator Divide( const A_:TdSingle4D; const B_:TdSingle ) :TdSingle4D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TSingle4D ) :TdSingle4D;
        class operator Implicit( const V_:TdSingle4D ) :TSingle4D;
      case Integer of
@@ -355,7 +355,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdDouble4D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :TdDouble; inline;
        procedure Sets( const X_:Integer; const V_:TdDouble ); inline;
        function Geto :TDouble4D; inline;
@@ -370,14 +370,14 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetUnitor( const Unitor_:TdDouble4D ); inline;
      public
        constructor Create( const X_,Y_,Z_,W_:TdDouble );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :TdDouble   read Gets      write Sets     ; default;
        property o                      :TDouble4D  read Geto      write Seto     ;
        property d                      :TDouble4D  read Getd      write Setd     ;
        property Siz2                   :TdDouble   read GetSiz2   write SetSiz2  ;
        property Size                   :TdDouble   read GetSize   write SetSize  ;
        property Unitor                 :TdDouble4D read GetUnitor write SetUnitor;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdDouble4D ) :TdDouble4D; inline;
        class operator Positive( const V_:TdDouble4D ) :TdDouble4D; inline;
        class operator Add( const A_,B_:TdDouble4D ) :TdDouble4D; inline;
@@ -385,7 +385,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdDouble4D; const B_:TdDouble ) :TdDouble4D; inline;
        class operator Multiply( const A_:TdDouble; const B_:TdDouble4D ) :TdDouble4D; inline;
        class operator Divide( const A_:TdDouble4D; const B_:TdDouble ) :TdDouble4D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TDouble4D ) :TdDouble4D;
        class operator Implicit( const V_:TdDouble4D ) :TDouble4D;
      case Integer of
@@ -461,7 +461,7 @@ uses System.SysUtils, System.Math;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TByte4D.Gets( const X_:Integer ) :Byte;
 begin
@@ -495,7 +495,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TWord4D.Gets( const X_:Integer ) :Word;
 begin
@@ -529,7 +529,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TInteger4D.Gets( const X_:Integer ) :Integer;
 begin
@@ -563,7 +563,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TCardinal4D.Gets( const X_:Integer ) :Cardinal;
 begin
@@ -597,7 +597,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TInt64u4D.Gets( const X_:Integer ) :Int64u;
 begin
@@ -631,7 +631,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TInt64s4D.Gets( const X_:Integer ) :Int64s;
 begin
@@ -665,7 +665,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSingle4D.Gets( const X_:Integer ) :Single;
 begin
@@ -735,7 +735,7 @@ begin
      W :=    W_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TSingle4D.Negative( const V_:TSingle4D ) :TSingle4D;
 begin
@@ -814,7 +814,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TSingle4D.Implicit( const V_:TSingle3D ) :TSingle4D;
 begin
@@ -880,7 +880,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TSingle4D.IdentityX :TSingle4D;
 begin
@@ -926,7 +926,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSingle4D.VectorTo( const P_:TSingle4D ) :TSingle4D;
 begin
@@ -1004,7 +1004,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TDouble4D.Gets( const X_:Integer ) :Double;
 begin
@@ -1074,7 +1074,7 @@ begin
      W :=    W_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TDouble4D.Negative( const V_:TDouble4D ) :TDouble4D;
 begin
@@ -1153,7 +1153,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TDouble4D.Implicit( const V_:TDouble3D ) :TDouble4D;
 begin
@@ -1219,7 +1219,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TDouble4D.IdentityX :TDouble4D;
 begin
@@ -1265,7 +1265,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TDouble4D.VectorTo( const P_:TDouble4D ) :TDouble4D;
 begin
@@ -1343,7 +1343,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdSingle4D.Gets( const X_:Integer ) :TdSingle;
 begin
@@ -1429,7 +1429,7 @@ begin
      W := W_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdSingle4D.Negative( const V_:TdSingle4D ) :TdSingle4D;
 begin
@@ -1508,7 +1508,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TdSingle4D.Implicit( const V_:TSingle4D ) :TdSingle4D;
 const
@@ -1530,7 +1530,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdDouble4D.Gets( const X_:Integer ) :TdDouble;
 begin
@@ -1616,7 +1616,7 @@ begin
      W := W_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdDouble4D.Negative( const V_:TdDouble4D ) :TdDouble4D;
 begin
@@ -1695,7 +1695,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TdDouble4D.Implicit( const V_:TDouble4D ) :TdDouble4D;
 const

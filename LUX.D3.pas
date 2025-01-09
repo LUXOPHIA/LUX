@@ -13,7 +13,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      T1Bit3D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Byte ) :Byte;
        procedure Sets( const X_:Byte; const o_:Byte );
        function GetX :Byte;
@@ -26,7 +26,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        o :Byte;
        constructor Create( const V_:Byte ); overload;
        constructor Create( const X_,Y_,Z_:Byte ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const I_:Byte ] :Byte read Gets write Sets;
        property  X                  :Byte read GetX write SetX;
        property  Y                  :Byte read GetY write SetY;
@@ -116,16 +116,16 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TCardinal3D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function GetLSB :T1Bit3D;
        function GetMSB :T1Bit3D;
      public
        constructor Create( const V_:Cardinal ); overload;
        constructor Create( const X_,Y_,Z_:Cardinal ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property LSB :T1Bit3D read GetLSB;
        property MSB :T1Bit3D read GetMSB;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TCardinal3D ) :TCardinal3D; inline;
        class operator Positive( const V_:TCardinal3D ) :TCardinal3D; inline;
        class operator Add( const A_,B_:TCardinal3D ) :TCardinal3D; inline;
@@ -141,7 +141,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator BitwiseAnd( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D; inline;
        class operator BitwiseOr( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D; inline;
        class operator BitwiseXor( const A_:TCardinal3D; const B_:Cardinal ) :TCardinal3D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Explicit( const V_:TCardinal3D ) :TByte3D; inline;
        class operator Explicit( const V_:TByte3D ) :TCardinal3D; inline;
        class operator Explicit( const V_:TCardinal3D ) :TShortint3D; inline;
@@ -166,16 +166,16 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TInteger3D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function GetLSB :T1Bit3D;
        function GetMSB :T1Bit3D;
      public
        constructor Create( const V_:Integer ); overload;
        constructor Create( const X_,Y_,Z_:Integer ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property LSB :T1Bit3D read GetLSB;
        property MSB :T1Bit3D read GetMSB;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TInteger3D ) :TInteger3D; inline;
        class operator Positive( const V_:TInteger3D ) :TInteger3D; inline;
        class operator Add( const A_,B_:TInteger3D ) :TInteger3D; inline;
@@ -191,7 +191,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator BitwiseAnd( const A_:TInteger3D; const B_:Integer ) :TInteger3D; inline;
        class operator BitwiseOr( const A_:TInteger3D; const B_:Integer ) :TInteger3D; inline;
        class operator BitwiseXor( const A_:TInteger3D; const B_:Integer ) :TInteger3D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Explicit( const V_:TInteger3D ) :TByte3D; inline;
        class operator Explicit( const V_:TByte3D ) :TInteger3D; inline;
        class operator Explicit( const V_:TInteger3D ) :TShortint3D; inline;
@@ -217,7 +217,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TSingle3D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Single; inline;
        procedure Sets( const X_:Integer; const V_:Single ); inline;
        function GetSiz2 :Single; inline;
@@ -236,7 +236,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        constructor Create( const V_:Single ); overload;
        constructor Create( const X_,Y_,Z_:Single ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Single    read Gets       write Sets     ; default;
        property Siz2                   :Single    read GetSiz2    write SetSiz2  ;
        property Size                   :Single    read GetSize    write SetSize  ;
@@ -245,7 +245,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property ProjXY                 :TSingle2D read GetProjXY  write SetProjXY;
        property ProjYZ                 :TSingle2D read GetProjYZ  write SetProjYZ;
        property ProjZX                 :TSingle2D read GetProjZX  write SetProjZX;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TSingle3D ) :TSingle3D; inline;
        class operator Positive( const V_:TSingle3D ) :TSingle3D; inline;
        class operator Add( const A_,B_:TSingle3D ) :TSingle3D; inline;
@@ -253,7 +253,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TSingle3D; const B_:Single ) :TSingle3D; inline;
        class operator Multiply( const A_:Single; const B_:TSingle3D ) :TSingle3D; inline;
        class operator Divide( const A_:TSingle3D; const B_:Single ) :TSingle3D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TInteger3D ) :TSingle3D; inline;
        class operator Implicit( const V_:TSingle2D ) :TSingle3D; inline;
        class operator Explicit( const V_:TSingle3D ) :TSingle2D; inline;
@@ -261,11 +261,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Implicit( const V_:TSingle3D ) :TPoint3D; inline;
        class operator Implicit( const V_:TVector3D ) :TSingle3D; inline;
        class operator Implicit( const V_:TSingle3D ) :TVector3D; inline;
-       ///// 定数
+       ///// C O N S T A N T
        class function IdentityX :TSingle3D; inline; static;
        class function IdentityY :TSingle3D; inline; static;
        class function IdentityZ :TSingle3D; inline; static;
-       ///// メソッド
+       ///// M E T H O D
        function VectorTo( const P_:TSingle3D ) :TSingle3D;
        function UnitorTo( const P_:TSingle3D ) :TSingle3D;
        function DistanTo( const P_:TSingle3D ) :Single;
@@ -292,7 +292,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TDouble3D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Double; inline;
        procedure Sets( const X_:Integer; const V_:Double ); inline;
        function GetSiz2 :Double; inline;
@@ -311,7 +311,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        constructor Create( const V_:Double ); overload;
        constructor Create( const X_,Y_,Z_:Double ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Double    read Gets       write Sets     ; default;
        property Siz2                   :Double    read GetSiz2    write SetSiz2  ;
        property Size                   :Double    read GetSize    write SetSize  ;
@@ -320,7 +320,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property ProjXY                 :TDouble2D read GetProjXY  write SetProjXY;
        property ProjYZ                 :TDouble2D read GetProjYZ  write SetProjYZ;
        property ProjZX                 :TDouble2D read GetProjZX  write SetProjZX;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TDouble3D ) :TDouble3D; inline;
        class operator Positive( const V_:TDouble3D ) :TDouble3D; inline;
        class operator Add( const A_,B_:TDouble3D ) :TDouble3D; inline;
@@ -328,7 +328,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TDouble3D; const B_:Double ) :TDouble3D; inline;
        class operator Multiply( const A_:Double; const B_:TDouble3D ) :TDouble3D; inline;
        class operator Divide( const A_:TDouble3D; const B_:Double ) :TDouble3D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TInteger3D ) :TDouble3D; inline;
        class operator Implicit( const V_:TDouble2D ) :TDouble3D; inline;
        class operator Explicit( const V_:TDouble3D ) :TDouble2D; inline;
@@ -338,11 +338,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Implicit( const V_:TDouble3D ) :TVector3D; inline;
        class operator Implicit( const V_:TSingle3D ) :TDouble3D; inline;
        class operator Implicit( const V_:TDouble3D ) :TSingle3D; inline;
-       ///// 定数
+       ///// C O N S T A N T
        class function IdentityX :TDouble3D; inline; static;
        class function IdentityY :TDouble3D; inline; static;
        class function IdentityZ :TDouble3D; inline; static;
-       ///// メソッド
+       ///// M E T H O D
        function VectorTo( const P_:TDouble3D ) :TDouble3D;
        function UnitorTo( const P_:TDouble3D ) :TDouble3D;
        function DistanTo( const P_:TDouble3D ) :Double;
@@ -369,7 +369,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdSingle3D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :TdSingle; inline;
        procedure Sets( const X_:Integer; const V_:TdSingle ); inline;
        function Geto :TSingle3D; inline;
@@ -384,14 +384,14 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetUnitor( const Unitor_:TdSingle3D ); inline;
      public
        constructor Create( const X_,Y_,Z_:TdSingle );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :TdSingle   read Gets      write Sets     ; default;
        property o                      :TSingle3D  read Geto      write Seto     ;
        property d                      :TSingle3D  read Getd      write Setd     ;
        property Siz2                   :TdSingle   read GetSiz2   write SetSiz2  ;
        property Size                   :TdSingle   read GetSize   write SetSize  ;
        property Unitor                 :TdSingle3D read GetUnitor write SetUnitor;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdSingle3D ) :TdSingle3D; inline;
        class operator Positive( const V_:TdSingle3D ) :TdSingle3D; inline;
        class operator Add( const A_,B_:TdSingle3D ) :TdSingle3D; inline;
@@ -399,7 +399,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdSingle3D; const B_:TdSingle ) :TdSingle3D; inline;
        class operator Multiply( const A_:TdSingle; const B_:TdSingle3D ) :TdSingle3D; inline;
        class operator Divide( const A_:TdSingle3D; const B_:TdSingle ) :TdSingle3D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TSingle3D ) :TdSingle3D;
        class operator Implicit( const V_:TdSingle3D ) :TSingle3D; inline;
      case Byte of
@@ -421,7 +421,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdDouble3D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :TdDouble; inline;
        procedure Sets( const X_:Integer; const V_:TdDouble ); inline;
        function Geto :TDouble3D; inline;
@@ -436,14 +436,14 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetUnitor( const Unitor_:TdDouble3D ); inline;
      public
        constructor Create( const X_,Y_,Z_:TdDouble );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :TdDouble   read Gets      write Sets     ; default;
        property o                      :TDouble3D  read Geto      write Seto     ;
        property d                      :TDouble3D  read Getd      write Setd     ;
        property Siz2                   :TdDouble   read GetSiz2   write SetSiz2  ;
        property Size                   :TdDouble   read GetSize   write SetSize  ;
        property Unitor                 :TdDouble3D read GetUnitor write SetUnitor;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdDouble3D ) :TdDouble3D; inline;
        class operator Positive( const V_:TdDouble3D ) :TdDouble3D; inline;
        class operator Add( const A_,B_:TdDouble3D ) :TdDouble3D; inline;
@@ -451,7 +451,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdDouble3D; const B_:TdDouble ) :TdDouble3D; inline;
        class operator Multiply( const A_:TdDouble; const B_:TdDouble3D ) :TdDouble3D; inline;
        class operator Divide( const A_:TdDouble3D; const B_:TdDouble ) :TdDouble3D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TDouble3D ) :TdDouble3D;
        class operator Implicit( const V_:TdDouble3D ) :TDouble3D; inline;
      case Byte of
@@ -479,7 +479,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        Z :Single;
        /////
        constructor Create( const X_,Y_,Z_:Single );
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TSingleSiz3D ) :TSingleSiz3D; inline;
        class operator Positive( const V_:TSingleSiz3D ) :TSingleSiz3D; inline;
        class operator Add( const A_,B_:TSingleSiz3D ) :TSingleSiz3D; inline;
@@ -487,7 +487,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TSingleSiz3D; const B_:Single ) :TSingleSiz3D; inline;
        class operator Multiply( const A_:Single; const B_:TSingleSiz3D ) :TSingleSiz3D; inline;
        class operator Divide( const A_:TSingleSiz3D; const B_:Single ) :TSingleSiz3D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TPoint3D ) :TSingleSiz3D; inline;
        class operator Implicit( const V_:TSingleSiz3D ) :TPoint3D; inline;
        class operator Implicit( const V_:TVector3D ) :TSingleSiz3D; inline;
@@ -506,7 +506,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        Z :Double;
        /////
        constructor Create( const X_,Y_,Z_:Double );
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TDoubleSiz3D ) :TDoubleSiz3D; inline;
        class operator Positive( const V_:TDoubleSiz3D ) :TDoubleSiz3D; inline;
        class operator Add( const A_,B_:TDoubleSiz3D ) :TDoubleSiz3D; inline;
@@ -514,7 +514,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TDoubleSiz3D; const B_:Double ) :TDoubleSiz3D; inline;
        class operator Multiply( const A_:Double; const B_:TDoubleSiz3D ) :TDoubleSiz3D; inline;
        class operator Divide( const A_:TDoubleSiz3D; const B_:Double ) :TDoubleSiz3D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TPoint3D ) :TDoubleSiz3D; inline;
        class operator Implicit( const V_:TDoubleSiz3D ) :TPoint3D; inline;
        class operator Implicit( const V_:TVector3D ) :TDoubleSiz3D; inline;
@@ -527,7 +527,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TSingleArea3D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function GetPoin( const I_:Integer ) :TSingle3D;
        function GetSign :ShortInt;
        function GetSizeX :Single;
@@ -551,7 +551,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create( const MinX_,MinY_,MinZ_,
                                  MaxX_,MaxY_,MaxZ_:Single ); overload;
        constructor Create( const Min_,Max_:TSingle3D ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Poin[ const I_:Integer ] :TSingle3D     read GetPoin                ;
        property Sign                     :ShortInt      read GetSign                ;
        property SizeX                    :Single        read GetSizeX               ;
@@ -564,13 +564,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property ProjXY                   :TSingleArea2D read GetProjXY              ;
        property ProjYZ                   :TSingleArea2D read GetProjYZ              ;
        property ProjZX                   :TSingleArea2D read GetProjZX              ;
-       ///// 定数
+       ///// C O N S T A N T
        class function NeInf :TSingleArea3D; static;
        class function NeMax :TSingleArea3D; static;
        class function Zero  :TSingleArea3D; static;
        class function PoMax :TSingleArea3D; static;
        class function PoInf :TSingleArea3D; static;
-       ///// メソッド
+       ///// M E T H O D
        function ProjVec( const Vec_:TSingle3D ) :TSingleArea;
        function Collision( const Area_:TSingleArea3D ) :Boolean;
      end;
@@ -579,7 +579,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TDoubleArea3D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function GetPoin( const I_:Integer ) :TDouble3D;
        function GetSign :ShortInt;
        function GetSizeX :Double;
@@ -603,7 +603,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create( const MinX_,MinY_,MinZ_,
                                  MaxX_,MaxY_,MaxZ_:Double ); overload;
        constructor Create( const Min_,Max_:TDouble3D ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Poin[ const I_:Integer ] :TDouble3D     read GetPoin                ;
        property Sign                     :ShortInt      read GetSign                ;
        property SizeX                    :Double        read GetSizeX               ;
@@ -616,13 +616,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property ProjXY                   :TDoubleArea2D read GetProjXY              ;
        property ProjYZ                   :TDoubleArea2D read GetProjYZ              ;
        property ProjZX                   :TDoubleArea2D read GetProjZX              ;
-       ///// 定数
+       ///// C O N S T A N T
        class function NeInf :TDoubleArea3D; static;
        class function NeMax :TDoubleArea3D; static;
        class function Zero  :TDoubleArea3D; static;
        class function PoMax :TDoubleArea3D; static;
        class function PoInf :TDoubleArea3D; static;
-       ///// メソッド
+       ///// M E T H O D
        function ProjVec( const Vec_:TDouble3D ) :TDoubleArea;
        function Collision( const Area_:TDoubleArea3D ) :Boolean;
      end;
@@ -631,15 +631,15 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TSingleRay3D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function GetUnitor :TSingleRay3D; inline;
        procedure SetUnitor( const Unitor_:TSingleRay3D ); inline;
      public
        Pos :TSinglePos3D;
        Vec :TSingleVec3D;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Unitor :TSingleRay3D read GetUnitor write SetUnitor;
-       ///// メソッド
+       ///// M E T H O D
        function GoPos( const Len_:Single ) :TSingle3D;
      end;
 
@@ -647,15 +647,15 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TDoubleRay3D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function GetUnitor :TDoubleRay3D; inline;
        procedure SetUnitor( const Unitor_:TDoubleRay3D ); inline;
      public
        Pos :TDoublePos3D;
        Vec :TDoubleVec3D;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Unitor :TDoubleRay3D read GetUnitor write SetUnitor;
-       ///// メソッド
+       ///// M E T H O D
        function GoPos( const Len_:Double ) :TDouble3D;
      end;
 
@@ -728,7 +728,7 @@ uses System.SysUtils;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function T1Bit3D.Gets( const X_:Byte ) :Byte;
 begin
@@ -866,7 +866,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TCardinal3D.GetLSB :T1Bit3D;
 begin
@@ -898,7 +898,7 @@ begin
      Z := Z_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TCardinal3D.Negative( const V_:TCardinal3D ) :TCardinal3D;
 begin
@@ -1040,7 +1040,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TCardinal3D.Explicit( const V_:TCardinal3D ) :TByte3D;
 begin
@@ -1126,7 +1126,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TInteger3D.GetLSB :T1Bit3D;
 begin
@@ -1158,7 +1158,7 @@ begin
      Z := Z_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TInteger3D.Negative( const V_:TInteger3D ) :TInteger3D;
 begin
@@ -1300,7 +1300,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TInteger3D.Explicit( const V_:TInteger3D ) :TByte3D;
 begin
@@ -1396,7 +1396,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSingle3D.Gets( const X_:Integer ) :Single;
 begin
@@ -1504,7 +1504,7 @@ begin
      Z := Z_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TSingle3D.Negative( const V_:TSingle3D ) :TSingle3D;
 begin
@@ -1576,7 +1576,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TSingle3D.Implicit( const V_:TInteger3D ) :TSingle3D;
 begin
@@ -1637,7 +1637,7 @@ begin
      Result := TPoint3D( V_ );
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TSingle3D.IdentityX :TSingle3D;
 begin
@@ -1669,7 +1669,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSingle3D.VectorTo( const P_:TSingle3D ) :TSingle3D;
 begin
@@ -1734,7 +1734,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TDouble3D.Gets( const X_:Integer ) :Double;
 begin
@@ -1842,7 +1842,7 @@ begin
      Z := Z_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TDouble3D.Negative( const V_:TDouble3D ) :TDouble3D;
 begin
@@ -1914,7 +1914,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TDouble3D.Implicit( const V_:TInteger3D ) :TDouble3D;
 begin
@@ -1995,7 +1995,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TDouble3D.IdentityX :TDouble3D;
 begin
@@ -2027,7 +2027,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TDouble3D.VectorTo( const P_:TDouble3D ) :TDouble3D;
 begin
@@ -2092,7 +2092,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdSingle3D.Gets( const X_:Integer ) :TdSingle;
 begin
@@ -2173,7 +2173,7 @@ begin
      Z := Z_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdSingle3D.Negative( const V_:TdSingle3D ) :TdSingle3D;
 begin
@@ -2245,7 +2245,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TdSingle3D.Implicit( const V_:TSingle3D ) :TdSingle3D;
 const
@@ -2267,7 +2267,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdDouble3D.Gets( const X_:Integer ) :TdDouble;
 begin
@@ -2348,7 +2348,7 @@ begin
      Z := Z_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdDouble3D.Negative( const V_:TdDouble3D ) :TdDouble3D;
 begin
@@ -2420,7 +2420,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TdDouble3D.Implicit( const V_:TDouble3D ) :TdDouble3D;
 const
@@ -2451,7 +2451,7 @@ begin
      Z := Z_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TSingleSiz3D.Negative( const V_:TSingleSiz3D ) :TSingleSiz3D;
 begin
@@ -2523,7 +2523,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TSingleSiz3D.Implicit( const V_:TPoint3D ) :TSingleSiz3D;
 begin
@@ -2588,7 +2588,7 @@ begin
      Z := Z_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TDoubleSiz3D.Negative( const V_:TDoubleSiz3D ) :TDoubleSiz3D;
 begin
@@ -2660,7 +2660,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TDoubleSiz3D.Implicit( const V_:TPoint3D ) :TDoubleSiz3D;
 begin
@@ -2716,7 +2716,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSingleArea3D.GetPoin( const I_:Integer ) :TSingle3D;
 begin
@@ -2866,7 +2866,7 @@ begin
      Max := Max_;
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TSingleArea3D.NeInf :TSingleArea3D;
 begin
@@ -2897,7 +2897,7 @@ begin
                                      Single.PositiveInfinity );
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSingleArea3D.ProjVec( const Vec_:TSingle3D ) :TSingleArea;
 var
@@ -2926,7 +2926,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TDoubleArea3D.GetPoin( const I_:Integer ) :TDouble3D;
 begin
@@ -3076,7 +3076,7 @@ begin
      Max := Max_;
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TDoubleArea3D.NeInf :TDoubleArea3D;
 begin
@@ -3107,7 +3107,7 @@ begin
                                      Double.PositiveInfinity );
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TDoubleArea3D.ProjVec( const Vec_:TDouble3D ) :TDoubleArea;
 var
@@ -3136,7 +3136,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSingleRay3D.GetUnitor :TSingleRay3D;
 begin
@@ -3152,7 +3152,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSingleRay3D.GoPos( const Len_:Single ) :TSingle3D;
 begin
@@ -3163,7 +3163,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TDoubleRay3D.GetUnitor :TDoubleRay3D;
 begin
@@ -3179,7 +3179,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TDoubleRay3D.GoPos( const Len_:Double ) :TDouble3D;
 begin
