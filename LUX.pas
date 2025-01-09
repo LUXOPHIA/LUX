@@ -66,7 +66,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      HHex4 = record helper for THex4
      private
      public
-       ///// メソッド
+       ///// M E T H O D
        function ToString :String;
      end;
 
@@ -88,22 +88,22 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _Values :TArray<_TValue_>;
        _MinI   :Integer;
        _MaxI   :Integer;
-       ///// アクセス
+       ///// A C C E S S O R
        function GetValues( I_:Integer ) :_TValue_;
        procedure SetValues( I_:Integer; const Value_:_TValue_ );
        procedure SetMinI( const MinI_:Integer );
        procedure SetMaxI( const MaxI_:Integer );
        function GetCount :Integer;
-       ///// メソッド
+       ///// M E T H O D
        procedure InitArray;
      public
        constructor Create( const MinI_,MaxI_:Integer );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Values[ I_:Integer ] :_TValue_ read GetValues write SetValues; default;
        property MinI                 :Integer  read   _MinI   write SetMinI  ;
        property MaxI                 :Integer  read   _MaxI   write SetMaxI  ;
        property Count                :Integer  read GetCount                 ;
-       ///// メソッド
+       ///// M E T H O D
        procedure SetRange( const I_:Integer ); overload;
        procedure SetRange( const MinI_,MaxI_:Integer ); overload;
      end;
@@ -116,17 +116,17 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _LowerN :Integer;
        _Count  :Integer;
        _UpperN :Integer;
-       ///// アクセス
+       ///// A C C E S S O R
        function GetValues( I_:Integer ) :_TValue_;
        procedure SetValues( I_:Integer; const Value_:_TValue_ );
        procedure SetLowerN( const LowerN_:Integer );
        procedure SetCount( const Count_:Integer );
        procedure SetUpperN( const UpperN_:Integer );
-       ///// メソッド
+       ///// M E T H O D
        procedure InitArray;
      public
        constructor Create( const LowerN_,Count_,UpperN_:Integer );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Values[ I_:Integer ] :_TValue_ read GetValues write SetValues; default;
        property LowerN               :Integer  read   _LowerN write SetLowerN;
        property Count                :Integer  read   _Count  write SetCount ;
@@ -153,7 +153,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      protected class var
        _Task :ITask;
      public
-       ///// メソッド
+       ///// M E T H O D
        class procedure Run( const Proc_:TThreadProcedure; const Delay_:Integer = 500 );
      end;
 
@@ -162,11 +162,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TIter< TValue_ > = class
      private
      protected
-       ///// アクセス
+       ///// A C C E S S O R
        function GetValue :TValue_; virtual; abstract;
        procedure SetValue( const Value_:TValue_ ); virtual; abstract;
      public
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Value :TValue_ read GetValue write SetValue;
      end;
 
@@ -180,9 +180,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        constructor Create( Stream_:TStream; Encoding_:TEncoding = nil; OwnsStream_:Boolean = False ); overload;
        constructor Create( const Filename_:String; Encoding_:TEncoding = nil ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property OffsetBOM :Integer read _OffsetBOM;
-       ///// メソッド
+       ///// M E T H O D
        function EndOfStream :Boolean;
        function ReadLine :String;
        function Read( var Buffer_; Count_:Longint ) :Longint;
@@ -196,21 +196,21 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _PN0      :Integer;
        _PN1      :Integer;
        _PN2      :Integer;
-       ///// アクセス
+       ///// A C C E S S O R
        function Get_TableBC( const Key_:_TYPE_ ) :Integer;
        procedure Set_TableBC( const Key_:_TYPE_; const Val_:Integer );
-       ///// メソッド
+       ///// M E T H O D
        function Equal( const A_,B_:_TYPE_ ) :Boolean;
      protected
        _Pattern  :TArray<_TYPE_>;
        _TableSF  :TArray<Integer>;
        _TableGS  :TArray<Integer>;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _TableBC[ const Key_:_TYPE_ ] :Integer read Get_TableBC write Set_TableBC;
-       ///// アクセス
+       ///// A C C E S S O R
        function GetPattern :TArray<_TYPE_>;
        procedure SetPattern( const Pattern_:TArray<_TYPE_> );
-       ///// メソッド
+       ///// M E T H O D
        procedure MakeTableBC;
        procedure MakeTableSF;
        procedure MakeTableGS;
@@ -221,9 +221,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create; overload;
        constructor Create( const Pattern_:TArray<_TYPE_> ); overload;
        destructor Destroy; override;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Pattern :TArray<_TYPE_> read GetPattern write SetPattern;
-       ///// メソッド
+       ///// M E T H O D
        function Match( const Source_:TArray<_TYPE_>; const StartI_,StopI_:Integer ) :Integer; overload;
        function Matches( const Source_:TArray<_TYPE_>; const StartI_,StopI_:Integer ) :TArray<Integer>; overload;
        function Match( const Source_:TArray<_TYPE_>; const StartI_:Integer = 0 ) :Integer; overload;
@@ -442,7 +442,7 @@ uses System.Math;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function HHex4.ToString :String;
 begin
@@ -465,7 +465,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TRangeArray<_TValue_>.GetValues( I_:Integer ) :_TValue_;
 begin
@@ -496,7 +496,7 @@ begin
      Result := _MaxI - _MinI + 1;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TRangeArray<_TValue_>.InitArray;
 begin
@@ -510,7 +510,7 @@ begin
      SetRange( MinI_, MaxI_ );
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TRangeArray<_TValue_>.SetRange( const I_:Integer );
 begin
@@ -529,7 +529,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TMarginArray<_TValue_>.GetValues( I_:Integer ) :_TValue_;
 begin
@@ -562,7 +562,7 @@ begin
      InitArray;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TMarginArray<_TValue_>.InitArray;
 begin
@@ -588,7 +588,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TInterfacedBase.QueryInterface( const IID_:TGUID; out Obj_ ) :HResult;
 begin
@@ -616,7 +616,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 class procedure TIdleTask.Run( const Proc_:TThreadProcedure; const Delay_:Integer = 500 );
 begin
@@ -660,7 +660,7 @@ begin
      Create( TFileStream.Create( Filename_, fmOpenRead or fmShareDenyWrite ), Encoding_, True );
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TFileReader.EndOfStream :Boolean;
 begin
@@ -701,7 +701,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSearchBM<_TYPE_>.Get_TableBC( const Key_:_TYPE_ ) :Integer;
 begin
@@ -715,7 +715,7 @@ begin
      __TableBC.AddOrSetValue( Key_, Val_ );
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSearchBM<_TYPE_>.Equal( const A_,B_:_TYPE_ ) :Boolean;
 begin
@@ -724,7 +724,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSearchBM<_TYPE_>.GetPattern :TArray<_TYPE_>;
 begin
@@ -744,7 +744,7 @@ begin
      MakeTableGS;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TSearchBM<_TYPE_>.MakeTableBC;
 var
@@ -861,7 +861,7 @@ begin
      inherited;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSearchBM<_TYPE_>.Match( const Source_:TArray<_TYPE_>; const StartI_,StopI_:Integer ) :Integer;
 var

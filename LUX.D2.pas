@@ -13,13 +13,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TByte2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Byte; overload; inline;
        procedure Sets( const X_:Integer; const V_:Byte ); overload; inline;
      public
        constructor Create( const V_:Byte ); overload;
        constructor Create( const X_,Y_:Byte ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Byte read Gets write Sets; default;
      case Byte of
       0:( _Xs :array [ 1..2 ] of Byte; );
@@ -103,11 +103,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TInteger2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Integer; overload; inline;
        procedure Sets( const X_:Integer; const V_:Integer ); overload; inline;
      public
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Integer read Gets write Sets; default;
      case Byte of
       0:( _Xs :array [ 1..2 ] of Integer; );
@@ -125,13 +125,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TInt64u2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Int64u; overload; inline;
        procedure Sets( const X_:Integer; const V_:Int64u ); overload; inline;
      public
        constructor Create( const V_:Int64u ); overload;
        constructor Create( const X_,Y_:Int64u ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Int64u read Gets write Sets; default;
      case Byte of
       0:( _Xs :array [ 1..2 ] of Int64u; );
@@ -145,13 +145,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TInt64s2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Int64s; overload; inline;
        procedure Sets( const X_:Integer; const V_:Int64s ); overload; inline;
      public
        constructor Create( const V_:Int64s ); overload;
        constructor Create( const X_,Y_:Int64s ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Int64s read Gets write Sets; default;
      case Byte of
       0:( _Xs :array [ 1..2 ] of Int64s; );
@@ -165,7 +165,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TSingle2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Single; overload; inline;
        procedure Sets( const X_:Integer; const V_:Single ); overload; inline;
        function GetSiz2 :Single; inline;
@@ -177,13 +177,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetOrthant :Byte;
      public
        constructor Create( const X_,Y_:Single );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Single    read Gets       write Sets     ; default;
        property Siz2                   :Single    read GetSiz2    write SetSiz2  ;
        property Size                   :Single    read GetSize    write SetSize  ;
        property Unitor                 :TSingle2D read GetUnitor  write SetUnitor;
        property Orthant                :Byte      read GetOrthant                ;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TSingle2D ) :TSingle2D; inline;
        class operator Positive( const V_:TSingle2D ) :TSingle2D; inline;
        class operator Add( const A_,B_:TSingle2D ) :TSingle2D; inline;
@@ -191,13 +191,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TSingle2D; const B_:Single ) :TSingle2D; inline;
        class operator Multiply( const A_:Single; const B_:TSingle2D ) :TSingle2D; inline;
        class operator Divide( const A_:TSingle2D; const B_:Single ) :TSingle2D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TPointF ) :TSingle2D;
        class operator Implicit( const V_:TSingle2D ) :TPointF;
-       ///// 定数
+       ///// C O N S T A N T
        class function IdentityX :TSingle2D; inline; static;
        class function IdentityY :TSingle2D; inline; static;
-       ///// メソッド
+       ///// M E T H O D
        function VectorTo( const P_:TSingle2D ) :TSingle2D;
        function UnitorTo( const P_:TSingle2D ) :TSingle2D;
        function DistanTo( const P_:TSingle2D ) :Single;
@@ -227,7 +227,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TDouble2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :Double; overload; inline;
        procedure Sets( const X_:Integer; const V_:Double ); overload; inline;
        function GetSiz2 :Double; inline;
@@ -239,13 +239,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetOrthant :Byte;
      public
        constructor Create( const X_,Y_:Double );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :Double    read Gets       write Sets     ; default;
        property Siz2                   :Double    read GetSiz2    write SetSiz2  ;
        property Size                   :Double    read GetSize    write SetSize  ;
        property Unitor                 :TDouble2D read GetUnitor  write SetUnitor;
        property Orthant                :Byte      read GetOrthant                ;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TDouble2D ) :TDouble2D; inline;
        class operator Positive( const V_:TDouble2D ) :TDouble2D; inline;
        class operator Add( const A_,B_:TDouble2D ) :TDouble2D; inline;
@@ -253,15 +253,15 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TDouble2D; const B_:Double ) :TDouble2D; inline;
        class operator Multiply( const A_:Double; const B_:TDouble2D ) :TDouble2D; inline;
        class operator Divide( const A_:TDouble2D; const B_:Double ) :TDouble2D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TPointF ) :TDouble2D;
        class operator Explicit( const V_:TDouble2D ) :TPointF;
        class operator Implicit( const V_:TSingle2D ) :TDouble2D;
        class operator Explicit( const V_:TDouble2D ) :TSingle2D;
-       ///// 定数
+       ///// C O N S T A N T
        class function IdentityX :TDouble2D; inline; static;
        class function IdentityY :TDouble2D; inline; static;
-       ///// メソッド
+       ///// M E T H O D
        function VectorTo( const P_:TDouble2D ) :TDouble2D;
        function UnitorTo( const P_:TDouble2D ) :TDouble2D;
        function DistanTo( const P_:TDouble2D ) :Double;
@@ -291,7 +291,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdSingle2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :TdSingle; overload; inline;
        procedure Sets( const X_:Integer; const V_:TdSingle ); overload; inline;
        function Geto :TSingle2D; inline;
@@ -306,14 +306,14 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetUnitor( const Unitor_:TdSingle2D ); inline;
      public
        constructor Create( const X_,Y_:TdSingle );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :TdSingle   read Gets      write Sets     ; default;
        property o                      :TSingle2D  read Geto      write Seto     ;
        property d                      :TSingle2D  read Getd      write Setd     ;
        property Siz2                   :TdSingle   read GetSiz2   write SetSiz2  ;
        property Size                   :TdSingle   read GetSize   write SetSize  ;
        property Unitor                 :TdSingle2D read GetUnitor write SetUnitor;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdSingle2D ) :TdSingle2D; inline;
        class operator Positive( const V_:TdSingle2D ) :TdSingle2D; inline;
        class operator Add( const A_,B_:TdSingle2D ) :TdSingle2D; inline;
@@ -321,7 +321,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdSingle2D; const B_:TdSingle ) :TdSingle2D; inline;
        class operator Multiply( const A_:TdSingle; const B_:TdSingle2D ) :TdSingle2D; inline;
        class operator Divide( const A_:TdSingle2D; const B_:TdSingle ) :TdSingle2D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const P_:TPointF ) :TdSingle2D;
        class operator Explicit( const P_:TdSingle2D ) :TPointF;
        class operator Implicit( const P_:TSingle2D ) :TdSingle2D;
@@ -345,7 +345,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdDouble2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const X_:Integer ) :TdDouble; overload; inline;
        procedure Sets( const X_:Integer; const V_:TdDouble ); overload; inline;
        function Geto :TDouble2D; inline;
@@ -360,14 +360,14 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetUnitor( const Unitor_:TdDouble2D ); inline;
      public
        constructor Create( const X_,Y_:TdDouble );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const X_:Integer ] :TdDouble   read Gets      write Sets     ; default;
        property o                      :TDouble2D  read Geto      write Seto     ;
        property d                      :TDouble2D  read Getd      write Setd     ;
        property Siz2                   :TdDouble   read GetSiz2   write SetSiz2  ;
        property Size                   :TdDouble   read GetSize   write SetSize  ;
        property Unitor                 :TdDouble2D read GetUnitor write SetUnitor;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdDouble2D ) :TdDouble2D; inline;
        class operator Positive( const V_:TdDouble2D ) :TdDouble2D; inline;
        class operator Add( const A_,B_:TdDouble2D ) :TdDouble2D; inline;
@@ -375,7 +375,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdDouble2D; const B_:TdDouble ) :TdDouble2D; inline;
        class operator Multiply( const A_:TdDouble; const B_:TdDouble2D ) :TdDouble2D; inline;
        class operator Divide( const A_:TdDouble2D; const B_:TdDouble ) :TdDouble2D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const P_:TPointF ) :TdDouble2D;
        class operator Explicit( const P_:TdDouble2D ) :TPointF;
        class operator Implicit( const P_:TDouble2D ) :TdDouble2D;
@@ -404,7 +404,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        Y :Single;
        /////
        constructor Create( const X_,Y_:Single );
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TSingleSiz2D ) :TSingleSiz2D; inline;
        class operator Positive( const V_:TSingleSiz2D ) :TSingleSiz2D; inline;
        class operator Add( const A_,B_:TSingleSiz2D ) :TSingleSiz2D; inline;
@@ -412,7 +412,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TSingleSiz2D; const B_:Single ) :TSingleSiz2D; inline;
        class operator Multiply( const A_:Single; const B_:TSingleSiz2D ) :TSingleSiz2D; inline;
        class operator Divide( const A_:TSingleSiz2D; const B_:Single ) :TSingleSiz2D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TPointF ) :TSingleSiz2D;
        class operator Implicit( const V_:TSingleSiz2D ) :TPointF;
        class operator Implicit( const V_:TSingle2D ) :TSingleSiz2D;
@@ -428,7 +428,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        Y :Double;
        /////
        constructor Create( const X_,Y_:Double );
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TDoubleSiz2D ) :TDoubleSiz2D; inline;
        class operator Positive( const V_:TDoubleSiz2D ) :TDoubleSiz2D; inline;
        class operator Add( const A_,B_:TDoubleSiz2D ) :TDoubleSiz2D; inline;
@@ -436,7 +436,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TDoubleSiz2D; const B_:Double ) :TDoubleSiz2D; inline;
        class operator Multiply( const A_:Double; const B_:TDoubleSiz2D ) :TDoubleSiz2D; inline;
        class operator Divide( const A_:TDoubleSiz2D; const B_:Double ) :TDoubleSiz2D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TPointF ) :TDoubleSiz2D;
        class operator Implicit( const V_:TDoubleSiz2D ) :TPointF;
        class operator Implicit( const V_:TDouble2D ) :TDoubleSiz2D;
@@ -447,7 +447,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdSingleSiz2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Geto :TSingleSiz2D; inline;
        procedure Seto( const o_:TSingleSiz2D ); inline;
        function Getd :TSingleSiz2D; inline;
@@ -457,10 +457,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        Y :TdSingle;
        /////
        constructor Create( const X_,Y_:TdSingle );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property o :TSingleSiz2D read Geto write Seto;
        property d :TSingleSiz2D read Getd write Setd;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdSingleSiz2D ) :TdSingleSiz2D; inline;
        class operator Positive( const V_:TdSingleSiz2D ) :TdSingleSiz2D; inline;
        class operator Add( const A_,B_:TdSingleSiz2D ) :TdSingleSiz2D; inline;
@@ -468,7 +468,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdSingleSiz2D; const B_:TdSingle ) :TdSingleSiz2D; inline;
        class operator Multiply( const A_:TdSingle; const B_:TdSingleSiz2D ) :TdSingleSiz2D; inline;
        class operator Divide( const A_:TdSingleSiz2D; const B_:TdSingle ) :TdSingleSiz2D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TdSingle2D ) :TdSingleSiz2D;
        class operator Implicit( const V_:TdSingleSiz2D ) :TdSingle2D;
      end;
@@ -477,7 +477,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdDoubleSiz2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Geto :TDoubleSiz2D; inline;
        procedure Seto( const o_:TDoubleSiz2D ); inline;
        function Getd :TDoubleSiz2D; inline;
@@ -487,10 +487,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        Y :TdDouble;
        /////
        constructor Create( const X_,Y_:TdDouble );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property o :TDoubleSiz2D read Geto write Seto;
        property d :TDoubleSiz2D read Getd write Setd;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdDoubleSiz2D ) :TdDoubleSiz2D; inline;
        class operator Positive( const V_:TdDoubleSiz2D ) :TdDoubleSiz2D; inline;
        class operator Add( const A_,B_:TdDoubleSiz2D ) :TdDoubleSiz2D; inline;
@@ -498,7 +498,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdDoubleSiz2D; const B_:TdDouble ) :TdDoubleSiz2D; inline;
        class operator Multiply( const A_:TdDouble; const B_:TdDoubleSiz2D ) :TdDoubleSiz2D; inline;
        class operator Divide( const A_:TdDoubleSiz2D; const B_:TdDouble ) :TdDoubleSiz2D; inline;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TdDouble2D ) :TdDoubleSiz2D;
        class operator Implicit( const V_:TdDoubleSiz2D ) :TdDouble2D;
      end;
@@ -525,7 +525,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdSingleCircle2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Geto :TSingleCircle2D; inline;
        procedure Seto( const o_:TSingleCircle2D ); inline;
        function Getd :TSingleCircle2D; inline;
@@ -533,7 +533,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        Center :TdSinglePos2D;
        Radius :TdSingle;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property o :TSingleCircle2D read Geto write Seto;
        property d :TSingleCircle2D read Getd write Setd;
      end;
@@ -542,7 +542,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdDoubleCircle2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Geto :TDoubleCircle2D; inline;
        procedure Seto( const o_:TDoubleCircle2D ); inline;
        function Getd :TDoubleCircle2D; inline;
@@ -550,7 +550,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        Center :TdDoublePos2D;
        Radius :TdDouble;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property o :TDoubleCircle2D read Geto write Seto;
        property d :TDoubleCircle2D read Getd write Setd;
      end;
@@ -577,7 +577,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdSingleEllipse2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Geto :TSingleEllipse2D; inline;
        procedure Seto( const o_:TSingleEllipse2D ); inline;
        function Getd :TSingleEllipse2D; inline;
@@ -585,7 +585,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        Center :TdSinglePos2D;
        Radius :TdSingleSiz2D;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property o :TSingleEllipse2D read Geto write Seto;
        property d :TSingleEllipse2D read Getd write Setd;
      end;
@@ -594,7 +594,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdDoubleEllipse2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Geto :TDoubleEllipse2D; inline;
        procedure Seto( const o_:TDoubleEllipse2D ); inline;
        function Getd :TDoubleEllipse2D; inline;
@@ -602,7 +602,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        Center :TdDoublePos2D;
        Radius :TdDoubleSiz2D;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property o :TDoubleEllipse2D read Geto write Seto;
        property d :TDoubleEllipse2D read Getd write Setd;
      end;
@@ -611,7 +611,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TSingleArea2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function GetPoin( const I_:Integer ) :TSingle2D;
        function GetCentX :Single;
        procedure SetCentX( const CentX_:Single );
@@ -633,7 +633,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create( const MinX_,MinY_,
                                  MaxX_,MaxY_:Single ); overload;
        constructor Create( const Min_,Max_:TSingle2D ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Poin[ const I_:Integer ] :TSingle2D   read GetPoin                ;
        property CentX                    :Single      read GetCentX write SetCentX;
        property CentY                    :Single      read GetCentY write SetCentY;
@@ -641,16 +641,16 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property SizeY                    :Single      read GetSizeY write SetSizeY;
        property ProjX                    :TSingleArea read GetProjX write SetProjX;
        property ProjY                    :TSingleArea read GetProjY write SetProjY;
-       ///// 定数
+       ///// C O N S T A N T
        class function NeInf :TSingleArea2D; static;
        class function NeMax :TSingleArea2D; static;
        class function Zero  :TSingleArea2D; static;
        class function PoMax :TSingleArea2D; static;
        class function PoInf :TSingleArea2D; static;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TSingleArea2D ) :TRectF;
        class operator Implicit( const V_:TRectF ) :TSingleArea2D;
-       ///// メソッド
+       ///// M E T H O D
        function Collision( const Area_:TSingleArea2D ) :Boolean;
        procedure Add( const Poin_:TSingle2D ); overload;
        procedure Add( const Poins_:TArray<TSingle2D> ); overload;
@@ -660,7 +660,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TDoubleArea2D = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function GetPoin( const I_:Integer ) :TDouble2D;
        function GetCentX :Double;
        procedure SetCentX( const CentX_:Double );
@@ -682,7 +682,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create( const MinX_,MinY_,
                                  MaxX_,MaxY_:Double ); overload;
        constructor Create( const Min_,Max_:TDouble2D ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Poin[ const I_:Integer ] :TDouble2D   read GetPoin                ;
        property CentX                    :Double      read GetCentX write SetCentX;
        property CentY                    :Double      read GetCentY write SetCentY;
@@ -690,16 +690,16 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property SizeY                    :Double      read GetSizeY write SetSizeY;
        property ProjX                    :TDoubleArea read GetProjX write SetProjX;
        property ProjY                    :TDoubleArea read GetProjY write SetProjY;
-       ///// 定数
+       ///// C O N S T A N T
        class function NeInf :TDoubleArea2D; static;
        class function NeMax :TDoubleArea2D; static;
        class function Zero  :TDoubleArea2D; static;
        class function PoMax :TDoubleArea2D; static;
        class function PoInf :TDoubleArea2D; static;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:TDoubleArea2D ) :TRectF;
        class operator Implicit( const V_:TRectF ) :TDoubleArea2D;
-       ///// メソッド
+       ///// M E T H O D
        function Collision( const Area_:TDoubleArea2D ) :Boolean;
        procedure Add( const Poin_:TDouble2D );overload;
        procedure Add( const Poins_:TArray<TDouble2D> ); overload;
@@ -768,7 +768,7 @@ uses System.SysUtils, System.Math;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TByte2D.Gets( const X_:Integer ) :Byte;
 begin
@@ -870,7 +870,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TInteger2D.Gets( const X_:Integer ) :Integer;
 begin
@@ -888,7 +888,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TInt64u2D.Gets( const X_:Integer ) :Int64u;
 begin
@@ -918,7 +918,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TInt64s2D.Gets( const X_:Integer ) :Int64s;
 begin
@@ -948,7 +948,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSingle2D.Gets( const X_:Integer ) :Single;
 begin
@@ -1009,7 +1009,7 @@ begin
      Y := Y_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TSingle2D.Negative( const V_:TSingle2D ) :TSingle2D;
 begin
@@ -1074,7 +1074,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TSingle2D.Implicit( const V_:TPointF ) :TSingle2D;
 begin
@@ -1094,7 +1094,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TSingle2D.IdentityX :TSingle2D;
 begin
@@ -1114,7 +1114,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSingle2D.VectorTo( const P_:TSingle2D ) :TSingle2D;
 begin
@@ -1197,7 +1197,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TDouble2D.Gets( const X_:Integer ) :Double;
 begin
@@ -1258,7 +1258,7 @@ begin
      Y := Y_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TDouble2D.Negative( const V_:TDouble2D ) :TDouble2D;
 begin
@@ -1323,7 +1323,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TDouble2D.Implicit( const V_:TPointF ) :TDouble2D;
 begin
@@ -1363,7 +1363,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TDouble2D.IdentityX :TDouble2D;
 begin
@@ -1383,7 +1383,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TDouble2D.VectorTo( const P_:TDouble2D ) :TDouble2D;
 begin
@@ -1466,7 +1466,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdSingle2D.Gets( const X_:Integer ) :TdSingle;
 begin
@@ -1542,7 +1542,7 @@ begin
      Y := Y_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdSingle2D.Negative( const V_:TdSingle2D ) :TdSingle2D;
 begin
@@ -1607,7 +1607,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TdSingle2D.Implicit( const P_:TPointF ) :TdSingle2D;
 begin
@@ -1649,7 +1649,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdDouble2D.Gets( const X_:Integer ) :TdDouble;
 begin
@@ -1725,7 +1725,7 @@ begin
      Y := Y_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdDouble2D.Negative( const V_:TdDouble2D ) :TdDouble2D;
 begin
@@ -1790,7 +1790,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TdDouble2D.Implicit( const P_:TPointF ) :TdDouble2D;
 begin
@@ -1840,7 +1840,7 @@ begin
      Y := Y_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TSingleSiz2D.Negative( const V_:TSingleSiz2D ) :TSingleSiz2D;
 begin
@@ -1905,7 +1905,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TSingleSiz2D.Implicit( const V_:TPointF ) :TSingleSiz2D;
 begin
@@ -1955,7 +1955,7 @@ begin
      Y := Y_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TDoubleSiz2D.Negative( const V_:TDoubleSiz2D ) :TDoubleSiz2D;
 begin
@@ -2020,7 +2020,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TDoubleSiz2D.Implicit( const V_:TPointF ) :TDoubleSiz2D;
 begin
@@ -2062,7 +2062,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdSingleSiz2D.Geto :TSingleSiz2D;
 begin
@@ -2096,7 +2096,7 @@ begin
      Y := Y_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdSingleSiz2D.Negative( const V_:TdSingleSiz2D ) :TdSingleSiz2D;
 begin
@@ -2161,7 +2161,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TdSingleSiz2D.Implicit( const V_:TdSingle2D ) :TdSingleSiz2D;
 begin
@@ -2185,7 +2185,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdDoubleSiz2D.Geto :TDoubleSiz2D;
 begin
@@ -2219,7 +2219,7 @@ begin
      Y := Y_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdDoubleSiz2D.Negative( const V_:TdDoubleSiz2D ) :TdDoubleSiz2D;
 begin
@@ -2284,7 +2284,7 @@ begin
      end;
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TdDoubleSiz2D.Implicit( const V_:TdDouble2D ) :TdDoubleSiz2D;
 begin
@@ -2320,7 +2320,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdSingleCircle2D.Geto :TSingleCircle2D;
 begin
@@ -2352,7 +2352,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdDoubleCircle2D.Geto :TDoubleCircle2D;
 begin
@@ -2396,7 +2396,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdSingleEllipse2D.Geto :TSingleEllipse2D;
 begin
@@ -2428,7 +2428,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdDoubleEllipse2D.Geto :TDoubleEllipse2D;
 begin
@@ -2460,7 +2460,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSingleArea2D.GetPoin( const I_:Integer ) :TSingle2D;
 begin
@@ -2590,7 +2590,7 @@ begin
      Max := Max_;
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TSingleArea2D.NeInf :TSingleArea2D;
 begin
@@ -2621,7 +2621,7 @@ begin
                                      Single.PositiveInfinity );
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TSingleArea2D.Implicit( const V_:TSingleArea2D ) :TRectF;
 begin
@@ -2639,7 +2639,7 @@ begin
      Result.Max.Y := V_.Top   ;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSingleArea2D.Collision( const Area_:TSingleArea2D ) :Boolean;
 begin
@@ -2671,7 +2671,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TDoubleArea2D.GetPoin( const I_:Integer ) :TDouble2D;
 begin
@@ -2805,7 +2805,7 @@ begin
      Max := Max_;
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TDoubleArea2D.NeInf :TDoubleArea2D;
 begin
@@ -2836,7 +2836,7 @@ begin
                                      Double.PositiveInfinity );
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TDoubleArea2D.Implicit( const V_:TDoubleArea2D ) :TRectF;
 begin
@@ -2854,7 +2854,7 @@ begin
      Result.Max.Y := V_.Top   ;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TDoubleArea2D.Collision( const Area_:TDoubleArea2D ) :Boolean;
 begin
