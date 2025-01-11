@@ -482,7 +482,7 @@ procedure TDelegates.Free;
 var
    E :TNotifyEvent;
 begin
-     for E in _Events do if Assigned( TMethod( E ).Data ) then TObject( TMethod( E ).Data ).Free;
+     for E in Copy( _Events ) do TObject( TMethod( E ).Data ).Free;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% THex4
