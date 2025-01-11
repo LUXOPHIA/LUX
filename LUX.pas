@@ -59,6 +59,19 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDelegates
+
+     TDelegates = record
+     private
+       _Events :TArray<TNotifyEvent>;
+     public
+       ///// M E T H O D
+       procedure Add( E_:TNotifyEvent );
+       procedure Del( const E_:TNotifyEvent );
+       procedure Run( const Sender_:TObject );
+       procedure Free;
+     end;
+
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% THex4
 
      THex4 = type Word;
@@ -435,6 +448,42 @@ implementation //###############################################################
 uses System.Math;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDelegates
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+procedure TDelegates.Add( E_:TNotifyEvent );
+begin
+     if TArray.IndexOf<TNotifyEvent>( _Events, E_ ) < 0 then _Events := _Events + [ E_ ];
+end;
+
+procedure TDelegates.Del( const E_:TNotifyEvent );
+var
+   I :Integer;
+begin
+     I := TArray.IndexOf<TNotifyEvent>( _Events, E_ );  if I < 0 then Exit;
+
+     Delete( _Events, I, 1 );
+end;
+
+procedure TDelegates.Run( const Sender_:TObject );
+var
+   E :TNotifyEvent;
+begin
+     for E in _Events do E( Sender_ );
+end;
+
+procedure TDelegates.Free;
+var
+   E :TNotifyEvent;
+begin
+     for E in _Events do if Assigned( TMethod( E ).Data ) then TObject( TMethod( E ).Data ).Free;
+end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% THex4
 
