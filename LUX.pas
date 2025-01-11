@@ -299,6 +299,8 @@ const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
   function LnXPlus1( const X_:Extended) :Extended; inline; overload;
 {$ENDIF}
 
+function Binomial( N_,K_:Integer ) :Integer;  // 0 <= N <= 33, 0 <= K <= N
+
 function Pow2( const X_:Int32u ) :Int32u; inline; overload;
 function Pow2( const X_:Int32s ) :Int32s; inline; overload;
 function Pow2( const X_:Int64u ) :Int64u; inline; overload;
@@ -1195,6 +1197,18 @@ begin
 end;
 
 {$ENDIF}
+
+//------------------------------------------------------------------------------
+
+function Binomial( N_,K_:Integer ) :Integer;  // 0 <= N <= 33, 0 <= K <= N
+var
+   I :Integer;
+begin
+     if K_ > N_ - K_ then K_ := N_ - K_;
+
+     Result := 1;
+     for I := 1 to K_ do Result := Result * ( N_ - K_ + I ) div I;
+end;
 
 //------------------------------------------------------------------------------
 
