@@ -14,8 +14,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TByte4D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :Byte; inline;
-       procedure Sets( const X_:Integer; const V_:Byte ); inline;
+       function Gets( const X_:Integer ) :Byte;
+       procedure Sets( const X_:Integer; const V_:Byte );
      public
        constructor Create( const V_:Byte ); overload;
        constructor Create( const X_,Y_,Z_,W_:Byte ); overload;
@@ -40,8 +40,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TWord4D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :Word; inline;
-       procedure Sets( const X_:Integer; const V_:Word ); inline;
+       function Gets( const X_:Integer ) :Word;
+       procedure Sets( const X_:Integer; const V_:Word );
      public
        constructor Create( const V_:Word ); overload;
        constructor Create( const X_,Y_,Z_,W_:Word ); overload;
@@ -66,8 +66,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TInteger4D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :Integer; inline;
-       procedure Sets( const X_:Integer; const V_:Integer ); inline;
+       function Gets( const X_:Integer ) :Integer;
+       procedure Sets( const X_:Integer; const V_:Integer );
      public
        constructor Create( const V_:Integer ); overload;
        constructor Create( const X_,Y_,Z_,W_:Integer ); overload;
@@ -92,8 +92,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TCardinal4D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :Cardinal; inline;
-       procedure Sets( const X_:Integer; const V_:Cardinal ); inline;
+       function Gets( const X_:Integer ) :Cardinal;
+       procedure Sets( const X_:Integer; const V_:Cardinal );
      public
        constructor Create( const V_:Cardinal ); overload;
        constructor Create( const X_,Y_,Z_,W_:Cardinal ); overload;
@@ -118,8 +118,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TInt64u4D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :Int64u; inline;
-       procedure Sets( const X_:Integer; const V_:Int64u ); inline;
+       function Gets( const X_:Integer ) :Int64u;
+       procedure Sets( const X_:Integer; const V_:Int64u );
      public
        constructor Create( const V_:Int64u ); overload;
        constructor Create( const X_,Y_,Z_,W_:Int64u ); overload;
@@ -142,8 +142,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TInt64s4D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :Int64s; inline;
-       procedure Sets( const X_:Integer; const V_:Int64s ); inline;
+       function Gets( const X_:Integer ) :Int64s;
+       procedure Sets( const X_:Integer; const V_:Int64s );
      public
        constructor Create( const V_:Int64s ); overload;
        constructor Create( const X_,Y_,Z_,W_:Int64s ); overload;
@@ -166,14 +166,14 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TSingle4D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :Single; inline;
-       procedure Sets( const X_:Integer; const V_:Single ); inline;
-       function GetSiz2 :Single; inline;
-       procedure SetSiz2( const Siz2_:Single ); inline;
-       function GetSize :Single; inline;
-       procedure SetSize( const Size_:Single ); inline;
-       function GetUnitor :TSingle4D; inline;
-       procedure SetUnitor( const Unitor_:TSingle4D ); inline;
+       function Gets( const X_:Integer ) :Single;
+       procedure Sets( const X_:Integer; const V_:Single );
+       function GetSiz2 :Single;
+       procedure SetSiz2( const Siz2_:Single );
+       function GetSize :Single;
+       procedure SetSize( const Size_:Single );
+       function GetUnitor :TSingle4D;
+       procedure SetUnitor( const Unitor_:TSingle4D );
      public
        constructor Create( const V_:Single ); overload;
        constructor Create( const X_,Y_,Z_,W_:Single ); overload;
@@ -199,10 +199,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Implicit( const V_:TVector3D ) :TSingle4D;
        class operator Explicit( const V_:TSingle4D ) :TVector3D;
        ///// C O N S T A N T
-       class function IdentityX :TSingle4D; inline; static;
-       class function IdentityY :TSingle4D; inline; static;
-       class function IdentityZ :TSingle4D; inline; static;
-       class function IdentityW :TSingle4D; inline; static;
+       class function IdentityX :TSingle4D; static;
+       class function IdentityY :TSingle4D; static;
+       class function IdentityZ :TSingle4D; static;
+       class function IdentityW :TSingle4D; static;
        ///// M E T H O D
        function VectorTo( const P_:TSingle4D ) :TSingle4D;
        function UnitorTo( const P_:TSingle4D ) :TSingle4D;
@@ -234,14 +234,14 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TDouble4D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :Double; inline;
-       procedure Sets( const X_:Integer; const V_:Double ); inline;
-       function GetSiz2 :Double; inline;
-       procedure SetSiz2( const Siz2_:Double ); inline;
-       function GetSize :Double; inline;
-       procedure SetSize( const Size_:Double ); inline;
-       function GetUnitor :TDouble4D; inline;
-       procedure SetUnitor( const Unitor_:TDouble4D ); inline;
+       function Gets( const X_:Integer ) :Double;
+       procedure Sets( const X_:Integer; const V_:Double );
+       function GetSiz2 :Double;
+       procedure SetSiz2( const Siz2_:Double );
+       function GetSize :Double;
+       procedure SetSize( const Size_:Double );
+       function GetUnitor :TDouble4D;
+       procedure SetUnitor( const Unitor_:TDouble4D );
      public
        constructor Create( const V_:Double ); overload;
        constructor Create( const X_,Y_,Z_,W_:Double ); overload;
@@ -267,10 +267,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Implicit( const V_:TVector3D ) :TDouble4D;
        class operator Explicit( const V_:TDouble4D ) :TVector3D;
        ///// C O N S T A N T
-       class function IdentityX :TDouble4D; inline; static;
-       class function IdentityY :TDouble4D; inline; static;
-       class function IdentityZ :TDouble4D; inline; static;
-       class function IdentityW :TDouble4D; inline; static;
+       class function IdentityX :TDouble4D; static;
+       class function IdentityY :TDouble4D; static;
+       class function IdentityZ :TDouble4D; static;
+       class function IdentityW :TDouble4D; static;
        ///// M E T H O D
        function VectorTo( const P_:TDouble4D ) :TDouble4D;
        function UnitorTo( const P_:TDouble4D ) :TDouble4D;
@@ -302,18 +302,18 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TdSingle4D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :TdSingle; inline;
-       procedure Sets( const X_:Integer; const V_:TdSingle ); inline;
-       function Geto :TSingle4D; inline;
-       procedure Seto( const o_:TSingle4D ); inline;
-       function Getd :TSingle4D; inline;
-       procedure Setd( const d_:TSingle4D ); inline;
-       function GetSiz2 :TdSingle; inline;
-       procedure SetSiz2( const Siz2_:TdSingle ); inline;
-       function GetSize :TdSingle; inline;
-       procedure SetSize( const Size_:TdSingle ); inline;
-       function GetUnitor :TdSingle4D; inline;
-       procedure SetUnitor( const Unitor_:TdSingle4D ); inline;
+       function Gets( const X_:Integer ) :TdSingle;
+       procedure Sets( const X_:Integer; const V_:TdSingle );
+       function Geto :TSingle4D;
+       procedure Seto( const o_:TSingle4D );
+       function Getd :TSingle4D;
+       procedure Setd( const d_:TSingle4D );
+       function GetSiz2 :TdSingle;
+       procedure SetSiz2( const Siz2_:TdSingle );
+       function GetSize :TdSingle;
+       procedure SetSize( const Size_:TdSingle );
+       function GetUnitor :TdSingle4D;
+       procedure SetUnitor( const Unitor_:TdSingle4D );
      public
        constructor Create( const X_,Y_,Z_,W_:TdSingle );
        ///// P R O P E R T Y
@@ -324,13 +324,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Size                   :TdSingle   read GetSize   write SetSize  ;
        property Unitor                 :TdSingle4D read GetUnitor write SetUnitor;
        ///// O P E R A T O R
-       class operator Negative( const V_:TdSingle4D ) :TdSingle4D; inline;
-       class operator Positive( const V_:TdSingle4D ) :TdSingle4D; inline;
-       class operator Add( const A_,B_:TdSingle4D ) :TdSingle4D; inline;
-       class operator Subtract( const A_,B_:TdSingle4D ) :TdSingle4D; inline;
-       class operator Multiply( const A_:TdSingle4D; const B_:TdSingle ) :TdSingle4D; inline;
-       class operator Multiply( const A_:TdSingle; const B_:TdSingle4D ) :TdSingle4D; inline;
-       class operator Divide( const A_:TdSingle4D; const B_:TdSingle ) :TdSingle4D; inline;
+       class operator Negative( const V_:TdSingle4D ) :TdSingle4D;
+       class operator Positive( const V_:TdSingle4D ) :TdSingle4D;
+       class operator Add( const A_,B_:TdSingle4D ) :TdSingle4D;
+       class operator Subtract( const A_,B_:TdSingle4D ) :TdSingle4D;
+       class operator Multiply( const A_:TdSingle4D; const B_:TdSingle ) :TdSingle4D;
+       class operator Multiply( const A_:TdSingle; const B_:TdSingle4D ) :TdSingle4D;
+       class operator Divide( const A_:TdSingle4D; const B_:TdSingle ) :TdSingle4D;
        ///// C A S T
        class operator Implicit( const V_:TSingle4D ) :TdSingle4D;
        class operator Implicit( const V_:TdSingle4D ) :TSingle4D;
@@ -356,18 +356,18 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TdDouble4D = record
      private
        ///// A C C E S S O R
-       function Gets( const X_:Integer ) :TdDouble; inline;
-       procedure Sets( const X_:Integer; const V_:TdDouble ); inline;
-       function Geto :TDouble4D; inline;
-       procedure Seto( const o_:TDouble4D ); inline;
-       function Getd :TDouble4D; inline;
-       procedure Setd( const d_:TDouble4D ); inline;
-       function GetSiz2 :TdDouble; inline;
-       procedure SetSiz2( const Siz2_:TdDouble ); inline;
-       function GetSize :TdDouble; inline;
-       procedure SetSize( const Size_:TdDouble ); inline;
-       function GetUnitor :TdDouble4D; inline;
-       procedure SetUnitor( const Unitor_:TdDouble4D ); inline;
+       function Gets( const X_:Integer ) :TdDouble;
+       procedure Sets( const X_:Integer; const V_:TdDouble );
+       function Geto :TDouble4D;
+       procedure Seto( const o_:TDouble4D );
+       function Getd :TDouble4D;
+       procedure Setd( const d_:TDouble4D );
+       function GetSiz2 :TdDouble;
+       procedure SetSiz2( const Siz2_:TdDouble );
+       function GetSize :TdDouble;
+       procedure SetSize( const Size_:TdDouble );
+       function GetUnitor :TdDouble4D;
+       procedure SetUnitor( const Unitor_:TdDouble4D );
      public
        constructor Create( const X_,Y_,Z_,W_:TdDouble );
        ///// P R O P E R T Y
@@ -378,13 +378,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Size                   :TdDouble   read GetSize   write SetSize  ;
        property Unitor                 :TdDouble4D read GetUnitor write SetUnitor;
        ///// O P E R A T O R
-       class operator Negative( const V_:TdDouble4D ) :TdDouble4D; inline;
-       class operator Positive( const V_:TdDouble4D ) :TdDouble4D; inline;
-       class operator Add( const A_,B_:TdDouble4D ) :TdDouble4D; inline;
-       class operator Subtract( const A_,B_:TdDouble4D ) :TdDouble4D; inline;
-       class operator Multiply( const A_:TdDouble4D; const B_:TdDouble ) :TdDouble4D; inline;
-       class operator Multiply( const A_:TdDouble; const B_:TdDouble4D ) :TdDouble4D; inline;
-       class operator Divide( const A_:TdDouble4D; const B_:TdDouble ) :TdDouble4D; inline;
+       class operator Negative( const V_:TdDouble4D ) :TdDouble4D;
+       class operator Positive( const V_:TdDouble4D ) :TdDouble4D;
+       class operator Add( const A_,B_:TdDouble4D ) :TdDouble4D;
+       class operator Subtract( const A_,B_:TdDouble4D ) :TdDouble4D;
+       class operator Multiply( const A_:TdDouble4D; const B_:TdDouble ) :TdDouble4D;
+       class operator Multiply( const A_:TdDouble; const B_:TdDouble4D ) :TdDouble4D;
+       class operator Divide( const A_:TdDouble4D; const B_:TdDouble ) :TdDouble4D;
        ///// C A S T
        class operator Implicit( const V_:TDouble4D ) :TdDouble4D;
        class operator Implicit( const V_:TdDouble4D ) :TDouble4D;
@@ -413,40 +413,40 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
-function DotProduct( const A_,B_:TSingleVec4D ) :Single; inline; overload;
-function DotProduct( const A_,B_:TDoubleVec4D ) :Double; inline; overload;
-function DotProduct( const A_,B_:TdSingleVec4D ) :TdSingle; inline; overload;
-function DotProduct( const A_,B_:TdDoubleVec4D ) :TdDouble; inline; overload;
+function DotProduct( const A_,B_:TSingleVec4D ) :Single; overload;
+function DotProduct( const A_,B_:TDoubleVec4D ) :Double; overload;
+function DotProduct( const A_,B_:TdSingleVec4D ) :TdSingle; overload;
+function DotProduct( const A_,B_:TdDoubleVec4D ) :TdDouble; overload;
 
-function CrossProduct( const A_,B_,C_:TSingleVec4D ) :TSingleVec4D; inline; overload;
-function CrossProduct( const A_,B_,C_:TDoubleVec4D ) :TDoubleVec4D; inline; overload;
-function CrossProduct( const A_,B_,C_:TdSingleVec4D ) :TdSingleVec4D; inline; overload;
-function CrossProduct( const A_,B_,C_:TdDoubleVec4D ) :TdDoubleVec4D; inline; overload;
+function CrossProduct( const A_,B_,C_:TSingleVec4D ) :TSingleVec4D; overload;
+function CrossProduct( const A_,B_,C_:TDoubleVec4D ) :TDoubleVec4D; overload;
+function CrossProduct( const A_,B_,C_:TdSingleVec4D ) :TdSingleVec4D; overload;
+function CrossProduct( const A_,B_,C_:TdDoubleVec4D ) :TdDoubleVec4D; overload;
 
-function Dista2( const A_,B_:TSinglePos4D ) :Single; inline; overload;
-function Dista2( const A_,B_:TDoublePos4D ) :Double; inline; overload;
-function Dista2( const A_,B_:TdSinglePos4D ) :TdSingle; inline; overload;
-function Dista2( const A_,B_:TdDoublePos4D ) :TdDouble; inline; overload;
+function Dista2( const A_,B_:TSinglePos4D ) :Single; overload;
+function Dista2( const A_,B_:TDoublePos4D ) :Double; overload;
+function Dista2( const A_,B_:TdSinglePos4D ) :TdSingle; overload;
+function Dista2( const A_,B_:TdDoublePos4D ) :TdDouble; overload;
 
-function Distan( const A_,B_:TSinglePos4D ) :Single; inline; overload;
-function Distan( const A_,B_:TDoublePos4D ) :Double; inline; overload;
-function Distan( const A_,B_:TdSinglePos4D ) :TdSingle; inline; overload;
-function Distan( const A_,B_:TdDoublePos4D ) :TdDouble; inline; overload;
+function Distan( const A_,B_:TSinglePos4D ) :Single; overload;
+function Distan( const A_,B_:TDoublePos4D ) :Double; overload;
+function Distan( const A_,B_:TdSinglePos4D ) :TdSingle; overload;
+function Distan( const A_,B_:TdDoublePos4D ) :TdDouble; overload;
 
-function Ave( const P1_,P2_:TSingle4D ) :TSingle4D; inline; overload;
-function Ave( const P1_,P2_:TDouble4D ) :TDouble4D; inline; overload;
-function Ave( const P1_,P2_:TdSingle4D ) :TdSingle4D; inline; overload;
-function Ave( const P1_,P2_:TdDouble4D ) :TdDouble4D; inline; overload;
+function Ave( const P1_,P2_:TSingle4D ) :TSingle4D; overload;
+function Ave( const P1_,P2_:TDouble4D ) :TDouble4D; overload;
+function Ave( const P1_,P2_:TdSingle4D ) :TdSingle4D; overload;
+function Ave( const P1_,P2_:TdDouble4D ) :TdDouble4D; overload;
 
-function Ave( const P1_,P2_,P3_:TSingle4D ) :TSingle4D; inline; overload;
-function Ave( const P1_,P2_,P3_:TDouble4D ) :TDouble4D; inline; overload;
-function Ave( const P1_,P2_,P3_:TdSingle4D ) :TdSingle4D; inline; overload;
-function Ave( const P1_,P2_,P3_:TdDouble4D ) :TdDouble4D; inline; overload;
+function Ave( const P1_,P2_,P3_:TSingle4D ) :TSingle4D; overload;
+function Ave( const P1_,P2_,P3_:TDouble4D ) :TDouble4D; overload;
+function Ave( const P1_,P2_,P3_:TdSingle4D ) :TdSingle4D; overload;
+function Ave( const P1_,P2_,P3_:TdDouble4D ) :TdDouble4D; overload;
 
-function Ave( const P1_,P2_,P3_,P4_:TSingle4D ) :TSingle4D; inline; overload;
-function Ave( const P1_,P2_,P3_,P4_:TDouble4D ) :TDouble4D; inline; overload;
-function Ave( const P1_,P2_,P3_,P4_:TdSingle4D ) :TdSingle4D; inline; overload;
-function Ave( const P1_,P2_,P3_,P4_:TdDouble4D ) :TdDouble4D; inline; overload;
+function Ave( const P1_,P2_,P3_,P4_:TSingle4D ) :TSingle4D; overload;
+function Ave( const P1_,P2_,P3_,P4_:TDouble4D ) :TDouble4D; overload;
+function Ave( const P1_,P2_,P3_,P4_:TdSingle4D ) :TdSingle4D; overload;
+function Ave( const P1_,P2_,P3_,P4_:TdDouble4D ) :TdDouble4D; overload;
 
 function PolySolveReal( const Ks_:TSingle4D; out Xs_:TSingle3D ) :Byte; overload;
 function PolySolveReal( const Ks_:TDouble4D; out Xs_:TDouble3D ) :Byte; overload;
