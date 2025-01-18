@@ -667,6 +667,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
+function Angle( const V0_,V1_:TSingle3D ) :Single; overload;  //= 0..Pi
+function Angle( const V0_,V1_:TDouble3D ) :Double; overload;  //= 0..Pi
+
 function DotProduct( const A_,B_:TSingleVec3D ) :Single; overload;
 function DotProduct( const A_,B_:TDoubleVec3D ) :Double; overload;
 
@@ -3189,6 +3192,18 @@ end;
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
+
+function Angle( const V0_,V1_:TSingle3D ) :Single;
+begin
+     Result := ArcCos( Clamp( DotProduct( V0_, V1_ ), -1, +1 ) );
+end;
+
+function Angle( const V0_,V1_:TDouble3D ) :Double;
+begin
+     Result := ArcCos( Clamp( DotProduct( V0_, V1_ ), -1, +1 ) );
+end;
+
+//------------------------------------------------------------------------------
 
 function DotProduct( const A_,B_:TSingleVec3D ) :Single;
 begin
