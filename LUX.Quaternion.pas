@@ -54,7 +54,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Implicit( const Q_:TSingleQ ) :TSingleM4;
        ///// M E T H O D
        class function Rotate( const V_:TSingle3D; const T_:Single ) :TSingleQ; overload; static;
-       class function Rotate( const V0_,V1_:TSingle3D ) :TSingleQ; overload; static;
+       class function Rotate( const V0_,V1_:TSingle3D; const T_:Single = 1 ) :TSingleQ; overload; static;
        function Trans( const V_:TSingle3D ) :TSingle3D;
      end;
 
@@ -106,7 +106,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Explicit( const Q_:TDoubleQ ) :TSingleQ;
        ///// M E T H O D
        class function Rotate( const V_:TDouble3D; const T_:Double ) :TDoubleQ; overload; static;
-       class function Rotate( const V0_,V1_:TDouble3D ) :TDoubleQ; overload; static;
+       class function Rotate( const V0_,V1_:TDouble3D; const T_:Double = 1 ) :TDoubleQ; overload; static;
        function Trans( const V_:TDouble3D ) :TDouble3D;
      end;
 
@@ -316,46 +316,41 @@ begin
 
           if SINGLE_EPS3 < T + 1 then
           begin
-               S := Sqrt( T + 1 ) / 2;
+               Result.R := Sqrt( T + 1 ) / 2;
 
-               Result.R := S;
-
-               S := 0.25 / S;
-
-               Result.X := ( _32 - _23 ) * S;
-               Result.Y := ( _13 - _31 ) * S;
-               Result.Z := ( _21 - _12 ) * S;
-          end
-          else
-          if ( _11 > _22 ) and ( _11 > _33 ) then
-          begin
-               S := Sqrt( ( _11 - ( _22 + _33 ) ) + 1 ) / 2;
-               Result.X := S;
-
-               S := 0.25 / S;
-               Result.R := ( _32 - _23 ) * S;
-               Result.Y := ( _12 + _21 ) * S;
-               Result.Z := ( _13 + _31 ) * S;
-          end
-          else if _22 > _33 then
-          begin
-               S := Sqrt( ( _22 - ( _33 + _11 ) ) + 1 ) / 2;
-               Result.Y := S;
-
-               S := 0.25 / S;
-               Result.R := ( _13 - _31 ) * S;
-               Result.X := ( _12 + _21 ) * S;
-               Result.Z := ( _23 + _32 ) * S;
+               S := 4 * Result.R;
+               Result.X := ( _32 - _23 ) / S;
+               Result.Y := ( _13 - _31 ) / S;
+               Result.Z := ( _21 - _12 ) / S;
           end
           else
           begin
-               S := Sqrt( ( _33 - ( _11 + _22 ) ) + 1 ) / 2;
-               Result.Z := S;
+               case MaxI( _11, _22, _33 ) of
+                 1: begin
+                         Result.X := Sqrt( _11 - _22 - _33 + 1 ) / 2;
 
-               S := 0.25 / S;
-               Result.R := ( _21 - _12 ) * S;
-               Result.X := ( _31 + _13 ) * S;
-               Result.Y := ( _32 + _23 ) * S;
+                         S := 4 * Result.X;
+                         Result.R := ( _32 - _23 ) / S;
+                         Result.Y := ( _12 + _21 ) / S;
+                         Result.Z := ( _13 + _31 ) / S;
+                    end;
+                 2: begin
+                         Result.Y := Sqrt( _22 - _33 - _11 + 1 ) / 2;
+
+                         S := 4 * Result.Y;
+                         Result.R := ( _13 - _31 ) / S;
+                         Result.X := ( _12 + _21 ) / S;
+                         Result.Z := ( _23 + _32 ) / S;
+                    end;
+                 3: begin
+                         Result.Z := Sqrt( _33 - _11 - _22 + 1 ) / 2;
+
+                         S := 4 * Result.Z;
+                         Result.R := ( _21 - _12 ) / S;
+                         Result.X := ( _31 + _13 ) / S;
+                         Result.Y := ( _32 + _23 ) / S;
+                    end;
+               end;
           end;
      end;
 end;
@@ -410,7 +405,7 @@ begin
      Result.I := V_ * Sin( T );
 end;
 
-class function TSingleQ.Rotate( const V0_,V1_:TSingle3D ) :TSingleQ;
+class function TSingleQ.Rotate( const V0_,V1_:TSingle3D; const T_:Single = 1 ) :TSingleQ;
 var
    C :Single;
    E, A :TSingle3D;
@@ -429,13 +424,13 @@ begin
 
           A := CrossProduct( V0_, E ).Unitor;
 
-          Result := Rotate( A, Pi );
+          Result := Rotate( A, T_ * Pi );
      end
      else
      begin
           A := CrossProduct( V0_, V1_ ).Unitor;
 
-          Result := Rotate( A, ArcCos( C ) );
+          Result := Rotate( A, T_ * ArcCos( C ) );
      end;
 end;
 
@@ -619,46 +614,41 @@ begin
 
           if DOUBLE_EPS3 < T + 1 then
           begin
-               S := Sqrt( T + 1 ) / 2;
+               Result.R := Sqrt( T + 1 ) / 2;
 
-               Result.R := S;
-
-               S := 0.25 / S;
-
-               Result.X := ( _32 - _23 ) * S;
-               Result.Y := ( _13 - _31 ) * S;
-               Result.Z := ( _21 - _12 ) * S;
-          end
-          else
-          if ( _11 > _22 ) and ( _11 > _33 ) then
-          begin
-               S := Sqrt( ( _11 - ( _22 + _33 ) ) + 1 ) / 2;
-               Result.X := S;
-
-               S := 0.25 / S;
-               Result.R := ( _32 - _23 ) * S;
-               Result.Y := ( _12 + _21 ) * S;
-               Result.Z := ( _13 + _31 ) * S;
-          end
-          else if _22 > _33 then
-          begin
-               S := Sqrt( ( _22 - ( _33 + _11 ) ) + 1 ) / 2;
-               Result.Y := S;
-
-               S := 0.25 / S;
-               Result.R := ( _13 - _31 ) * S;
-               Result.X := ( _12 + _21 ) * S;
-               Result.Z := ( _23 + _32 ) * S;
+               S := 4 * Result.R;
+               Result.X := ( _32 - _23 ) / S;
+               Result.Y := ( _13 - _31 ) / S;
+               Result.Z := ( _21 - _12 ) / S;
           end
           else
           begin
-               S := Sqrt( ( _33 - ( _11 + _22 ) ) + 1 ) / 2;
-               Result.Z := S;
+               case MaxI( _11, _22, _33 ) of
+                 1: begin
+                         Result.X := Sqrt( _11 - _22 - _33 + 1 ) / 2;
 
-               S := 0.25 / S;
-               Result.R := ( _21 - _12 ) * S;
-               Result.X := ( _31 + _13 ) * S;
-               Result.Y := ( _32 + _23 ) * S;
+                         S := 4 * Result.X;
+                         Result.R := ( _32 - _23 ) / S;
+                         Result.Y := ( _12 + _21 ) / S;
+                         Result.Z := ( _13 + _31 ) / S;
+                    end;
+                 2: begin
+                         Result.Y := Sqrt( _22 - _33 - _11 + 1 ) / 2;
+
+                         S := 4 * Result.Y;
+                         Result.R := ( _13 - _31 ) / S;
+                         Result.X := ( _12 + _21 ) / S;
+                         Result.Z := ( _23 + _32 ) / S;
+                    end;
+                 3: begin
+                         Result.Z := Sqrt( _33 - _11 - _22 + 1 ) / 2;
+
+                         S := 4 * Result.Z;
+                         Result.R := ( _21 - _12 ) / S;
+                         Result.X := ( _31 + _13 ) / S;
+                         Result.Y := ( _32 + _23 ) / S;
+                    end;
+               end;
           end;
      end;
 end;
@@ -725,7 +715,7 @@ begin
      Result.I := V_ * Sin( T );
 end;
 
-class function TDoubleQ.Rotate( const V0_,V1_:TDouble3D ) :TDoubleQ;
+class function TDoubleQ.Rotate( const V0_,V1_:TDouble3D; const T_:Double = 1 ) :TDoubleQ;
 var
    C :Double;
    E, A :TDouble3D;
@@ -744,13 +734,13 @@ begin
 
           A := CrossProduct( V0_, E ).Unitor;
 
-          Result := Rotate( A, Pi );
+          Result := Rotate( A, T_ * Pi );
      end
      else
      begin
           A := CrossProduct( V0_, V1_ ).Unitor;
 
-          Result := Rotate( A, ArcCos( C ) );
+          Result := Rotate( A, T_ * ArcCos( C ) );
      end;
 end;
 
