@@ -254,6 +254,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:Single; const B_:TSingle3D ) :TSingle3D;
        class operator Divide( const A_:TSingle3D; const B_:Single ) :TSingle3D;
        ///// C A S T
+       class operator Implicit( const V_:Single ) :TSingle3D;
        class operator Implicit( const V_:TInteger3D ) :TSingle3D;
        class operator Implicit( const V_:TSingle2D ) :TSingle3D;
        class operator Explicit( const V_:TSingle3D ) :TSingle2D;
@@ -329,6 +330,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:Double; const B_:TDouble3D ) :TDouble3D;
        class operator Divide( const A_:TDouble3D; const B_:Double ) :TDouble3D;
        ///// C A S T
+       class operator Implicit( const V_:Double ) :TDouble3D;
        class operator Implicit( const V_:TInteger3D ) :TDouble3D;
        class operator Implicit( const V_:TDouble2D ) :TDouble3D;
        class operator Explicit( const V_:TDouble3D ) :TDouble2D;
@@ -1581,6 +1583,16 @@ end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
 
+class operator TSingle3D.Implicit( const V_:Single ) :TSingle3D;
+begin
+     with Result do
+     begin
+          X := V_;
+          Y := V_;
+          Z := V_;
+     end;
+end;
+
 class operator TSingle3D.Implicit( const V_:TInteger3D ) :TSingle3D;
 begin
      with Result do
@@ -1918,6 +1930,16 @@ begin
 end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
+
+class operator TDouble3D.Implicit( const V_:Double ) :TDouble3D;
+begin
+     with Result do
+     begin
+          X := V_;
+          Y := V_;
+          Z := V_;
+     end;
+end;
 
 class operator TDouble3D.Implicit( const V_:TInteger3D ) :TDouble3D;
 begin
