@@ -355,21 +355,29 @@ function Max( const A_,B_,C_:Integer ) :Integer; overload;
 function Max( const A_,B_,C_:Single ) :Single; overload;
 function Max( const A_,B_,C_:Double ) :Double; overload;
 
-function MinI( const A_,B_:Integer ) :Byte; inline; overload;
-function MinI( const A_,B_:Single ) :Byte; inline; overload;
-function MinI( const A_,B_:Double ) :Byte; inline; overload;
+function MinI( const V1_,V2_:Integer ) :Byte; inline; overload;
+function MinI( const V1_,V2_:Single ) :Byte; inline; overload;
+function MinI( const V1_,V2_:Double ) :Byte; inline; overload;
 
-function MaxI( const A_,B_:Integer ) :Byte; inline; overload;
-function MaxI( const A_,B_:Single ) :Byte; inline; overload;
-function MaxI( const A_,B_:Double ) :Byte; inline; overload;
+function MaxI( const V1_,V2_:Integer ) :Byte; inline; overload;
+function MaxI( const V1_,V2_:Single ) :Byte; inline; overload;
+function MaxI( const V1_,V2_:Double ) :Byte; inline; overload;
 
-function MinI( const A_,B_,C_:Integer ) :Integer; inline; overload;
-function MinI( const A_,B_,C_:Single ) :Integer; inline; overload;
-function MinI( const A_,B_,C_:Double ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_:Integer ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_:Single ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_:Double ) :Integer; inline; overload;
 
-function MaxI( const A_,B_,C_:Integer ) :Integer; inline; overload;
-function MaxI( const A_,B_,C_:Single ) :Integer; inline; overload;
-function MaxI( const A_,B_,C_:Double ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_,V4_:Integer ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_,V4_:Single ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_,V4_:Double ) :Integer; inline; overload;
+
+function MaxI( const V1_,V2_,V3_:Integer ) :Integer; inline; overload;
+function MaxI( const V1_,V2_,V3_:Single ) :Integer; inline; overload;
+function MaxI( const V1_,V2_,V3_:Double ) :Integer; inline; overload;
+
+function MaxI( const V1_,V2_,V3_,V4_:Integer ) :Integer; inline; overload;
+function MaxI( const V1_,V2_,V3_,V4_:Single ) :Integer; inline; overload;
+function MaxI( const V1_,V2_,V3_,V4_:Double ) :Integer; inline; overload;
 
 function MinI( const Vs_:array of Integer ) :Integer; overload;
 function MinI( const Vs_:array of Single ) :Integer; overload;
@@ -1434,13 +1442,11 @@ function Min( const A_,B_,C_:Integer ) :Integer;
 begin
      if A_ <= B_ then
      begin
-          if A_ <= C_ then Result := A_
-                      else Result := C_;
+          if A_ <= C_ then Result := A_ else Result := C_;
      end
      else
      begin
-          if B_ <= C_ then Result := B_
-                      else Result := C_;
+          if B_ <= C_ then Result := B_ else Result := C_;
      end;
 end;
 
@@ -1448,13 +1454,11 @@ function Min( const A_,B_,C_:Single ) :Single;
 begin
      if A_ <= B_ then
      begin
-          if A_ <= C_ then Result := A_
-                      else Result := C_;
+          if A_ <= C_ then Result := A_ else Result := C_;
      end
      else
      begin
-          if B_ <= C_ then Result := B_
-                      else Result := C_;
+          if B_ <= C_ then Result := B_ else Result := C_;
      end;
 end;
 
@@ -1462,13 +1466,11 @@ function Min( const A_,B_,C_:Double ) :Double;
 begin
      if A_ <= B_ then
      begin
-          if A_ <= C_ then Result := A_
-                      else Result := C_;
+          if A_ <= C_ then Result := A_ else Result := C_;
      end
      else
      begin
-          if B_ <= C_ then Result := B_
-                      else Result := C_;
+          if B_ <= C_ then Result := B_ else Result := C_;
      end;
 end;
 
@@ -1478,14 +1480,12 @@ function Max( const A_,B_,C_:Integer ) :Integer;
 begin
      if A_ >= B_ then
      begin
-          if A_ >= C_ then Result := A_
-                      else Result := C_;
+          if A_ >= C_ then Result := A_ else Result := C_;
      end
      else
      begin
 
-          if B_ >= C_ then Result := B_
-                      else Result := C_;
+          if B_ >= C_ then Result := B_ else Result := C_;
      end;
 end;
 
@@ -1493,14 +1493,12 @@ function Max( const A_,B_,C_:Single ) :Single;
 begin
      if A_ >= B_ then
      begin
-          if A_ >= C_ then Result := A_
-                      else Result := C_;
+          if A_ >= C_ then Result := A_ else Result := C_;
      end
      else
      begin
 
-          if B_ >= C_ then Result := B_
-                      else Result := C_;
+          if B_ >= C_ then Result := B_ else Result := C_;
      end;
 end;
 
@@ -1508,142 +1506,281 @@ function Max( const A_,B_,C_:Double ) :Double;
 begin
      if A_ >= B_ then
      begin
-          if A_ >= C_ then Result := A_
-                      else Result := C_;
+          if A_ >= C_ then Result := A_ else Result := C_;
      end
      else
      begin
-
-          if B_ >= C_ then Result := B_
-                      else Result := C_;
+          if B_ >= C_ then Result := B_ else Result := C_;
      end;
 end;
 
 //------------------------------------------------------------------------------
 
-function MinI( const A_,B_:Integer ) :Byte;
+function MinI( const V1_,V2_:Integer ) :Byte;
 begin
-     if A_ <= B_ then Result := 1
-                 else Result := 2;
+     if V1_ <= V2_ then Result := 1 else Result := 2;
 end;
 
-function MinI( const A_,B_:Single ) :Byte;
+function MinI( const V1_,V2_:Single ) :Byte;
 begin
-     if A_ <= B_ then Result := 1
-                 else Result := 2;
+     if V1_ <= V2_ then Result := 1 else Result := 2;
 end;
 
-function MinI( const A_,B_:Double ) :Byte;
+function MinI( const V1_,V2_:Double ) :Byte;
 begin
-     if A_ <= B_ then Result := 1
-                 else Result := 2;
+     if V1_ <= V2_ then Result := 1 else Result := 2;
 end;
 
 //------------------------------------------------------------------------------
 
-function MaxI( const A_,B_:Integer ) :Byte;
+function MaxI( const V1_,V2_:Integer ) :Byte;
 begin
-     if A_ <= B_ then Result := 2
-                 else Result := 1;
+     if V1_ <= V2_ then Result := 2 else Result := 1;
 end;
 
-function MaxI( const A_,B_:Single ) :Byte;
+function MaxI( const V1_,V2_:Single ) :Byte;
 begin
-     if A_ <= B_ then Result := 2
-                 else Result := 1;
+     if V1_ <= V2_ then Result := 2 else Result := 1;
 end;
 
-function MaxI( const A_,B_:Double ) :Byte;
+function MaxI( const V1_,V2_:Double ) :Byte;
 begin
-     if A_ <= B_ then Result := 2
-                 else Result := 1;
+     if V1_ <= V2_ then Result := 2 else Result := 1;
 end;
 
 //------------------------------------------------------------------------------
 
-function MinI( const A_,B_,C_:Integer ) :Integer;
+function MinI( const V1_,V2_,V3_:Integer ) :Integer;
 begin
-     if A_ <= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ <= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then Result := 1 else Result := 3;
      end
      else
      begin
-          if B_ <= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then Result := 2 else Result := 3;
      end;
 end;
 
-function MinI( const A_,B_,C_:Single ) :Integer;
+function MinI( const V1_,V2_,V3_:Single ) :Integer;
 begin
-     if A_ <= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ <= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then Result := 1 else Result := 3;
      end
      else
      begin
-          if B_ <= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then Result := 2 else Result := 3;
      end;
 end;
 
-function MinI( const A_,B_,C_:Double ) :Integer;
+function MinI( const V1_,V2_,V3_:Double ) :Integer;
 begin
-     if A_ <= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ <= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then Result := 1 else Result := 3;
      end
      else
      begin
-          if B_ <= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then Result := 2 else Result := 3;
      end;
 end;
 
 //------------------------------------------------------------------------------
 
-function MaxI( const A_,B_,C_:Integer ) :Integer;
+function MinI( const V1_,V2_,V3_,V4_:Integer ) :Integer;
 begin
-     if A_ >= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ >= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then
+          begin
+               if V1_ <= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
      end
      else
      begin
-          if B_ >= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then
+          begin
+               if V2_ <= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
      end;
 end;
 
-function MaxI( const A_,B_,C_:Single ) :Integer;
+function MinI( const V1_,V2_,V3_,V4_:Single ) :Integer;
 begin
-     if A_ >= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ >= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then
+          begin
+               if V1_ <= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
      end
      else
      begin
-          if B_ >= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then
+          begin
+               if V2_ <= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
      end;
 end;
 
-function MaxI( const A_,B_,C_:Double ) :Integer;
+function MinI( const V1_,V2_,V3_,V4_:Double ) :Integer;
 begin
-     if A_ >= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ >= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then
+          begin
+               if V1_ <= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
      end
      else
      begin
-          if B_ >= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then
+          begin
+               if V2_ <= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
+     end;
+end;
+
+//------------------------------------------------------------------------------
+
+function MaxI( const V1_,V2_,V3_:Integer ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then Result := 1 else Result := 3;
+     end
+     else
+     begin
+          if V2_ >= V3_ then Result := 2 else Result := 3;
+     end;
+end;
+
+function MaxI( const V1_,V2_,V3_:Single ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then Result := 1 else Result := 3;
+     end
+     else
+     begin
+          if V2_ >= V3_ then Result := 2 else Result := 3;
+     end;
+end;
+
+function MaxI( const V1_,V2_,V3_:Double ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then Result := 1 else Result := 3;
+     end
+     else
+     begin
+          if V2_ >= V3_ then Result := 2 else Result := 3;
+     end;
+end;
+
+//------------------------------------------------------------------------------
+
+function MaxI( const V1_,V2_,V3_,V4_:Integer ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then
+          begin
+               if V1_ >= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
+     end
+     else
+     begin
+          if V2_ >= V3_ then
+          begin
+               if V2_ >= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
+     end;
+end;
+
+function MaxI( const V1_,V2_,V3_,V4_:Single ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then
+          begin
+               if V1_ >= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
+     end
+     else
+     begin
+          if V2_ >= V3_ then
+          begin
+               if V2_ >= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
+     end;
+end;
+
+function MaxI( const V1_,V2_,V3_,V4_:Double ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then
+          begin
+               if V1_ >= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
+     end
+     else
+     begin
+          if V2_ >= V3_ then
+          begin
+               if V2_ >= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
      end;
 end;
 
