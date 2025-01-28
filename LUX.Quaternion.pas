@@ -115,6 +115,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 function DotProduct( const A_,B_:TSingleQ ) :Single; overload;
 function DotProduct( const A_,B_:TDoubleQ ) :Double; overload;
 
+function CrossProduct( const A_,B_,C_:TSingleQ ) :TSingleQ; overload;
+function CrossProduct( const A_,B_,C_:TDoubleQ ) :TDoubleQ; overload;
+
 //%%%%%%%% General Function %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function Ave( const Q1_,Q2_:TSingleQ ) :TSingleQ; overload;
@@ -761,6 +764,52 @@ end;
 function DotProduct( const A_,B_:TDoubleQ ) :Double;
 begin
      Result := A_.R * B_.R + A_.X * B_.X + A_.Y * B_.Y + A_.Z * B_.Z;
+end;
+
+//------------------------------------------------------------------------------
+
+function CrossProduct( const A_,B_,C_:TSingleQ ) :TSingleQ;
+begin
+     with Result do
+     begin
+          R := A_.Z * B_.Y * C_.X - A_.X * B_.Y * C_.Z
+             + B_.Z * C_.Y * A_.X - B_.X * C_.Y * A_.Z
+             + C_.Z * A_.Y * B_.X - C_.X * A_.Y * B_.Z;
+
+          X := A_.Y * B_.Z * C_.R - A_.R * B_.Z * C_.Y
+             + B_.Y * C_.Z * A_.R - B_.R * C_.Z * A_.Y
+             + C_.Y * A_.Z * B_.R - C_.R * A_.Z * B_.Y;
+
+          Y := A_.X * B_.R * C_.Z - A_.Z * B_.R * C_.X
+             + B_.X * C_.R * A_.Z - B_.Z * C_.R * A_.X
+             + C_.X * A_.R * B_.Z - C_.Z * A_.R * B_.X;
+
+          Z := A_.R * B_.X * C_.Y - A_.Y * B_.X * C_.R
+             + B_.R * C_.X * A_.Y - B_.Y * C_.X * A_.R
+             + C_.R * A_.X * B_.Y - C_.Y * A_.X * B_.R;
+     end;
+end;
+
+function CrossProduct( const A_,B_,C_:TDoubleQ ) :TDoubleQ;
+begin
+     with Result do
+     begin
+          R := A_.Z * B_.Y * C_.X - A_.X * B_.Y * C_.Z
+             + B_.Z * C_.Y * A_.X - B_.X * C_.Y * A_.Z
+             + C_.Z * A_.Y * B_.X - C_.X * A_.Y * B_.Z;
+
+          X := A_.Y * B_.Z * C_.R - A_.R * B_.Z * C_.Y
+             + B_.Y * C_.Z * A_.R - B_.R * C_.Z * A_.Y
+             + C_.Y * A_.Z * B_.R - C_.R * A_.Z * B_.Y;
+
+          Y := A_.X * B_.R * C_.Z - A_.Z * B_.R * C_.X
+             + B_.X * C_.R * A_.Z - B_.Z * C_.R * A_.X
+             + C_.X * A_.R * B_.Z - C_.Z * A_.R * B_.X;
+
+          Z := A_.R * B_.X * C_.Y - A_.Y * B_.X * C_.R
+             + B_.R * C_.X * A_.Y - B_.Y * C_.X * A_.R
+             + C_.R * A_.X * B_.Y - C_.Y * A_.X * B_.R;
+     end;
 end;
 
 //------------------------------------------------------------------------------
