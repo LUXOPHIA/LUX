@@ -19,8 +19,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetY( const Y_:Single );
        function GetZ :Single;
        procedure SetZ( const Z_:Single );
-       function GetAbs2 :Single;
-       function GetAbso :Single;
+       function GetSiz2 :Single;
+       function GetSize :Single;
        function GetInv :TSingleQ;
        function GetConj :TSingleQ;
        function GetUnitor :TSingleQ;
@@ -34,8 +34,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property X      :Single   read GetX      write SetX;
        property Y      :Single   read GetY      write SetY;
        property Z      :Single   read GetZ      write SetZ;
-       property Abs2   :Single   read GetAbs2             ;
-       property Abso   :Single   read GetAbso             ;
+       property Siz2   :Single   read GetSiz2             ;
+       property Size   :Single   read GetSize             ;
        property Inv    :TSingleQ read GetInv              ;
        property Conj   :TSingleQ read GetConj             ;
        property Unitor :TSingleQ read GetUnitor           ;
@@ -56,6 +56,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function Rotate( const V_:TSingle3D; const T_:Single ) :TSingleQ; overload; static;
        class function Rotate( const V0_,V1_:TSingle3D; const T_:Single = 1 ) :TSingleQ; overload; static;
        function Trans( const V_:TSingle3D ) :TSingle3D;
+       function Normalize :Boolean;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleQ
@@ -69,8 +70,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetY( const Y_:Double );
        function GetZ :Double;
        procedure SetZ( const Z_:Double );
-       function GetAbs2 :Double;
-       function GetAbso :Double;
+       function GetSiz2 :Double;
+       function GetSize :Double;
        function GetInv :TDoubleQ;
        function GetConj :TDoubleQ;
        function GetUnitor :TDoubleQ;
@@ -84,8 +85,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property X      :Double   read GetX    write SetX;
        property Y      :Double   read GetY    write SetY;
        property Z      :Double   read GetZ    write SetZ;
-       property Abs2   :Double   read GetAbs2           ;
-       property Abso   :Double   read GetAbso           ;
+       property Siz2   :Double   read GetSiz2           ;
+       property Size   :Double   read GetSize           ;
        property Inv    :TDoubleQ read GetInv            ;
        property Conj   :TDoubleQ read GetConj           ;
        property Unitor :TDoubleQ read GetUnitor         ;
@@ -108,6 +109,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function Rotate( const V_:TDouble3D; const T_:Double ) :TDoubleQ; overload; static;
        class function Rotate( const V0_,V1_:TDouble3D; const T_:Double = 1 ) :TDoubleQ; overload; static;
        function Trans( const V_:TDouble3D ) :TDouble3D;
+       function Normalize :Boolean;
      end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$Åy R O U T I N E Åz
@@ -184,19 +186,19 @@ end;
 
 //------------------------------------------------------------------------------
 
-function TSingleQ.GetAbs2 :Single;
+function TSingleQ.GetSiz2 :Single;
 begin
      Result := Sqr( R ) + Sqr( X ) + Sqr( Y ) + Sqr( Z );
 end;
 
-function TSingleQ.GetAbso :Single;
+function TSingleQ.GetSize :Single;
 begin
-     Result := Sqrt( Abs2 );
+     Result := Sqrt( Siz2 );
 end;
 
 function TSingleQ.GetInv :TSingleQ;
 begin
-     Result := Conj / Abs2;
+     Result := Conj / Siz2;
 end;
 
 function TSingleQ.GetConj :TSingleQ;
@@ -306,7 +308,7 @@ begin
      begin
           R := R_;
           I := TSingle3D.Create( 0 );
-     end ;
+     end;
 end;
 
 class operator TSingleQ.Implicit( const M_:TSingleM4 ) :TSingleQ;
@@ -444,6 +446,19 @@ begin
      Result := ( Self * TSingleQ.Create( 0, V_ ) * Self.Inv ).I;
 end;
 
+//------------------------------------------------------------------------------
+
+function TSingleQ.Normalize :Boolean;
+var
+   L :Single;
+begin
+     L := Size;
+
+     Result := ( SINGLE_EPS3 < L );
+
+     if Result then Self := Self / L;
+end;
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleQ
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
@@ -482,19 +497,19 @@ end;
 
 //------------------------------------------------------------------------------
 
-function TDoubleQ.GetAbs2 :Double;
+function TDoubleQ.GetSiz2 :Double;
 begin
      Result := Sqr( R ) + Sqr( X ) + Sqr( Y ) + Sqr( Z );
 end;
 
-function TDoubleQ.GetAbso :Double;
+function TDoubleQ.GetSize :Double;
 begin
-     Result := Sqrt( Abs2 );
+     Result := Sqrt( Siz2 );
 end;
 
 function TDoubleQ.GetInv :TDoubleQ;
 begin
-     Result := Conj / Abs2;
+     Result := Conj / Siz2;
 end;
 
 function TDoubleQ.GetConj :TDoubleQ;
@@ -754,6 +769,19 @@ begin
      Result := ( Self * TDoubleQ.Create( 0, V_ ) * Self.Inv ).I;
 end;
 
+//------------------------------------------------------------------------------
+
+function TDoubleQ.Normalize :Boolean;
+var
+   L :Double;
+begin
+     L := Size;
+
+     Result := ( DOUBLE_EPS3 < L );
+
+     if Result then Self := Self / L;
+end;
+
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$Åy R O U T I N E Åz
 
 function DotProduct( const A_,B_:TSingleQ ) :Single;
@@ -850,13 +878,13 @@ function Ln( const Q_:TSingleQ ) :TSingleQ;
 var
    A, L, T :Single;
 begin
-     A := Q_.Abso;
+     A := Q_.Size;
 
      Result.R := Ln( A );
 
      L := Q_.I.Size;
 
-     if Abs( L ) < SINGLE_EPS3 then Result.I := TSingle3D.Create( 0 )
+     if Abs( L ) < SINGLE_EPS3 then Result.I := 0
      else
      begin
           T := ArcTan2( L, Q_.R );
@@ -869,13 +897,13 @@ function Ln( const Q_:TDoubleQ ) :TDoubleQ;
 var
    A, L, T :Double;
 begin
-     A := Q_.Abso;
+     A := Q_.Size;
 
      Result.R := Ln( A );
 
      L := Q_.I.Size;
 
-     if Abs( L ) < DOUBLE_EPS3 then Result.I := TDouble3D.Create( 0 )
+     if Abs( L ) < DOUBLE_EPS3 then Result.I := 0
      else
      begin
           T := ArcTan2( L, Q_.R );
