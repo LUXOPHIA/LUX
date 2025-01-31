@@ -981,7 +981,9 @@ var
    I :Integer;
 begin
      Result := 0;
+
      for I := 0 to High( Qs_ ) do Result := Result + Ts_[ I ] * Ln( Qs_[ I ] );
+
      Result := Exp( Result );
 end;
 
@@ -990,7 +992,9 @@ var
    I :Integer;
 begin
      Result := 0;
+
      for I := 0 to High( Qs_ ) do Result := Result + Ts_[ I ] * Ln( Qs_[ I ] );
+
      Result := Exp( Result );
 end;
 
