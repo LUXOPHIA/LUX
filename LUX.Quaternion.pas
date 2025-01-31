@@ -209,7 +209,7 @@ end;
 
 function TSingleQ.GetUnitor :TSingleQ;
 begin
-     Result := Self / Abso;
+     Result := Self / Size;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -520,7 +520,7 @@ end;
 
 function TDoubleQ.GetUnitor :TDoubleQ;
 begin
-     Result := Self / Abso;
+     Result := Self / Size;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
