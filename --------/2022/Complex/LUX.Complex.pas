@@ -999,7 +999,7 @@ end;
 
 function Pow( const X_:TSingleC; const N_:Single ) :TSingleC;
 var
-   S, A :Single;
+   S, A: Single;
 begin
      S := Power( X_.Size, N_ );
      A := X_.Angle * N_;
@@ -1010,7 +1010,7 @@ end;
 
 function Pow( const X_:TDoubleC; const N_:Double ) :TDoubleC;
 var
-   S, A :Double;
+   S, A: Double;
 begin
      S := Power( X_.Size, N_ );
      A := X_.Angle * N_;
@@ -1023,7 +1023,7 @@ end;
 
 function Roo2( const X_:TSingleC ) :TSingleC;
 var
-   S, A :Single;
+   S, A: Single;
 begin
      S := Roo2( X_.Size );
      A := X_.Angle / 2;
@@ -1034,7 +1034,7 @@ end;
 
 function Roo2( const X_:TDoubleC ) :TDoubleC;
 var
-   S, A :Double;
+   S, A: Double;
 begin
      S := Roo2( X_.Size );
      A := X_.Angle / 2;

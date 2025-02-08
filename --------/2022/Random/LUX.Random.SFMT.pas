@@ -393,7 +393,7 @@ end;
  *)
 class function TRandomSMT.sfmt_to_real1( v:Int32u ) :Flo64s;
 begin
-     Result := v * ( 1.0 / 4294967295.0 );  // divided by 2^32-1
+     Result := v * ( 1.0 / 4294967295.0 ); // divided by 2^32-1
 end;
 
 (**

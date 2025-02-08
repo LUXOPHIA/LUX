@@ -1475,7 +1475,6 @@ end;
 function PolySolveReal( const Ks_:TSingle5D; out Xs_:TSingle4D ) :Byte;
 var
    B :Single;
-//······································
 //････････････････････････････････････････････････････････････････････
      procedure AddX( const Y_:Single );
      begin
@@ -1483,7 +1482,6 @@ var
 
           Xs_[ Result ] := Y_ - B;
      end;
-//······································
 //････････････････････････････････････････････････････････････････････
 var
    A0, A1, A2, A3, B2, P, Q, R, D, D2, Y0, Y1, Z, Z2, U, U2, QU :Single;
@@ -1576,7 +1574,6 @@ end;
 function PolySolveReal( const Ks_:TDouble5D; out Xs_:TDouble4D ) :Byte;
 var
    B :Double;
-//······································
 //････････････････････････････････････････････････････････････････････
      procedure AddX( const Y_:Double );
      begin
@@ -1584,7 +1581,6 @@ var
 
           Xs_[ Result ] := Y_ - B;
      end;
-//······································
 //････････････････････････････････････････････････････････････････････
 var
    A0, A1, A2, A3, B2, P, Q, R, D, D2, Y0, Y1, Z, Z2, U, U2, QU :Double;
