@@ -918,7 +918,7 @@ function Exp( const Q_:TSingleQ ) :TSingleQ;
 var
    L2, L, E, C, S: Single;
 begin
-     L2 := Q_.I.Siz2;
+     L2 := Q_.I.Size2;
 
      E := Exp( Q_.R );
 
@@ -942,7 +942,7 @@ function Exp( const Q_:TDoubleQ ) :TDoubleQ;
 var
    L2, L, E, C, S: Double;
 begin
-     L2 := Q_.I.Siz2;
+     L2 := Q_.I.Size2;
 
      E := Exp( Q_.R );
 
