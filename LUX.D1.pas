@@ -4,16 +4,16 @@ interface //####################################################################
 
 uses LUX;
 
-type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【型】
+type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
-     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
+     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingle
 
      TSingle = record
      private
      public
-       ///// 型変換
+       ///// C A S T
        class function RandBS1 :Single; static;
        class function RandBS2 :Single; static;
        class function RandBS4 :Single; static;
@@ -26,7 +26,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TDouble = record
      private
      public
-       ///// 型変換
+       ///// C A S T
        class function RandBS1 :Double; static;
        class function RandBS2 :Double; static;
        class function RandBS4 :Double; static;
@@ -43,7 +43,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        d :Single;
        /////
        constructor Create( const o_,d_:Single );
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Positive( const V_:TdSingle ) :TdSingle;
        class operator Negative( const V_:TdSingle ) :TdSingle;
        class operator Add( const A_,B_:TdSingle ) :TdSingle;
@@ -57,7 +57,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator GreaterThanOrEqual( const A_,B_:TdSingle ) :Boolean;
        class operator LessThan( const A_,B_:TdSingle ) :Boolean;
        class operator LessThanOrEqual( const A_,B_:TdSingle ) :Boolean;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:Integer ) :TdSingle;
        class operator Implicit( const V_:Int64 ) :TdSingle;
        class operator Implicit( const V_:Single ) :TdSingle;
@@ -74,7 +74,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        d :Double;
        /////
        constructor Create( const o_,d_:Double );
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Positive( const V_:TdDouble ) :TdDouble;
        class operator Negative( const V_:TdDouble ) :TdDouble;
        class operator Add( const A_,B_:TdDouble ) :TdDouble;
@@ -88,7 +88,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator GreaterThanOrEqual( const A_,B_:TdDouble ) :Boolean;
        class operator LessThan( const A_,B_:TdDouble ) :Boolean;
        class operator LessThanOrEqual( const A_,B_:TdDouble ) :Boolean;
-       ///// 型変換
+       ///// C A S T
        class operator Implicit( const V_:Integer ) :TdDouble;
        class operator Implicit( const V_:Int64 ) :TdDouble;
        class operator Implicit( const V_:Double ) :TdDouble;
@@ -108,13 +108,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        /////
        constructor Create( const Min_,Max_:Single );  overload;
        constructor Create( const V1_,V2_,V3_:Single );  overload;
-       ///// 定数
+       ///// C O N S T A N T
        class function NeInf :TSingleArea; inline; static;
        class function NeMax :TSingleArea; inline; static;
        class function Zero  :TSingleArea; inline; static;
        class function PoMax :TSingleArea; inline; static;
        class function PoInf :TSingleArea; inline; static;
-       ///// メソッド
+       ///// M E T H O D
        function Collision( const Area_:TSingleArea ) :Boolean;
      end;
 
@@ -128,17 +128,17 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        /////
        constructor Create( const Min_,Max_:Double );  overload;
        constructor Create( const V1_,V2_,V3_:Double );  overload;
-       ///// 定数
+       ///// C O N S T A N T
        class function NeInf :TDoubleArea; inline; static;
        class function NeMax :TDoubleArea; inline; static;
        class function Zero  :TDoubleArea; inline; static;
        class function PoMax :TDoubleArea; inline; static;
        class function PoInf :TDoubleArea; inline; static;
-       ///// メソッド
+       ///// M E T H O D
        function Collision( const Area_:TDoubleArea ) :Boolean;
      end;
 
-     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
+     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TIter1D< TValue_ >
 
@@ -150,7 +150,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _TailI :Integer;
        _StepX :Integer;
        _Count :Integer;
-       ///// アクセス
+       ///// A C C E S S O R
        function GetHeadI :Integer; virtual;
        procedure SetHeadI( const HeadI_:Integer ); virtual;
        function GetTailI :Integer; virtual;
@@ -162,13 +162,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        constructor Create( const HeadI_:Integer = 0; const StepX_:Integer = 1 );
        procedure AfterConstruction; override;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property HeadI :Integer read _HeadI write SetHeadI;
        property TailI :Integer read _TailI write SetTailI;
        property StepN :Integer read _StepX write SetStepX;
        property StepX :Integer read _StepX write SetStepX;
        property Count :Integer read _Count write SetCount;
-       ///// メソッド
+       ///// M E T H O D
        procedure GoHead; virtual; abstract;
        procedure GoPrev; overload; virtual; abstract;
        procedure GoNext; overload; virtual; abstract;
@@ -183,7 +183,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        _Iter :TIter1D< TIter_ >;
-       ///// アクセス
+       ///// A C C E S S O R
        function GetHeadI :Integer; override;
        procedure SetHeadI( const HeadI_:Integer ); override;
        function GetTailI :Integer; override;
@@ -195,9 +195,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        constructor Create( const Iter_:TIter1D< TIter_ > );
        destructor Destroy; override;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Iter :TIter1D< TIter_ > read _Iter write _Iter;
-       ///// メソッド
+       ///// M E T H O D
        procedure GoHead; override;
        procedure GoPrev; overload; override;
        procedure GoNext; overload; override;
@@ -211,7 +211,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TDoubleIter1D = class( TTransIter1D< Double, Single > )
      private
      protected
-       ///// アクセス
+       ///// A C C E S S O R
        function GetValue :Double; override;
        procedure SetValue( const Value_:Double ); override;
      public
@@ -223,11 +223,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        _Parent :TParent_;
-       ///// アクセス
+       ///// A C C E S S O R
        procedure SetParent( const Parent_:TParent_ ); virtual;
      public
        constructor Create( const Parent_:TParent_; const HeadI_:Integer = 0; const StepX_:Integer = 1 );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Parent :TParent_ read _Parent write SetParent;
      end;
 
@@ -242,7 +242,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _CurrentP :PElement_;
      public
        constructor Create( const Parent_:TArray<TElement_>; const HeadI_:Integer = 0; const StepX_:Integer = 1 );
-       ///// メソッド
+       ///// M E T H O D
        procedure GoHead; override;
        procedure GoPrev; overload; override;
        procedure GoNext; overload; override;
@@ -256,17 +256,17 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TArrayIter< TValue_ >  = class( TArrayIter< TValue_, TValue_ > )
      private
      protected
-       ///// アクセス
+       ///// A C C E S S O R
        function GetValue :TValue_; override;
        procedure SetValue( const Value_:TValue_ ); override;
      public
      end;
 
-//const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【定数】
+//const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
 
-//var //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【変数】
+//var //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 V A R I A B L E 】
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 function Pow2( const X_:TdSingle ) :TdSingle; overload;
 function Pow2( const X_:TdDouble ) :TdDouble; overload;
@@ -332,7 +332,7 @@ implementation //###############################################################
 
 uses System.SysUtils, System.Math;
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingle
 
@@ -388,7 +388,7 @@ begin
      d := d_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdSingle.Positive( const V_:TdSingle ) :TdSingle;
 begin
@@ -491,7 +491,7 @@ begin
      Result := ( A_.o <= B_.o );
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TdSingle.Implicit( const V_:Integer ) :TdSingle;
 begin
@@ -532,7 +532,7 @@ begin
      d := d_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdDouble.Positive( const V_:TdDouble ) :TdDouble;
 begin
@@ -635,7 +635,7 @@ begin
      Result := ( A_.o <= B_.o );
 end;
 
-///////////////////////////////////////////////////////////////////////// 型変換
+//////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TdDouble.Implicit( const V_:Integer ) :TdDouble;
 begin
@@ -734,7 +734,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TSingleArea.NeInf :TSingleArea;
 begin
@@ -765,7 +765,7 @@ begin
                                    Single.PositiveInfinity );
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSingleArea.Collision( const Area_:TSingleArea ) :Boolean;
 begin
@@ -824,7 +824,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////////// 定数
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TDoubleArea.NeInf :TDoubleArea;
 begin
@@ -855,14 +855,14 @@ begin
                                    Double.PositiveInfinity );
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TDoubleArea.Collision( const Area_:TDoubleArea ) :Boolean;
 begin
      Result := ( Area_.Min <= Max ) and ( Min <= Area_.Max );
 end;
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TIter1D< TValue_ >
 
@@ -875,7 +875,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TIter1D< TValue_ >.GetHeadI :Integer;
 begin
@@ -940,7 +940,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TTransIter1D< TValue_, TIter_ >.GetHeadI :Integer;
 begin
@@ -998,7 +998,7 @@ begin
      inherited;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TTransIter1D< TValue_, TIter_ >.GoHead;
 begin
@@ -1036,7 +1036,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TDoubleIter1D.GetValue :Double;
 begin
@@ -1056,7 +1056,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 procedure TIter1D< TValue_, TParent_ >.SetParent( const Parent_:TParent_ );
 begin
@@ -1087,7 +1087,7 @@ begin
      TailI := High( _Parent );
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TArrayIter< TValue_, TElement_ >.GoHead;
 begin
@@ -1125,7 +1125,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TArrayIter< TValue_ >.GetValue :TValue_;
 begin
@@ -1139,7 +1139,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 function Pow2( const X_:TdSingle ) :TdSingle;
 begin
@@ -1568,11 +1568,5 @@ begin
           d := X_.d * N_.o * Power( X_.o, N_.o - 1 );
      end;
 end;
-
-//############################################################################## □
-
-initialization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 初期化
-
-finalization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 最終化
 
 end. //######################################################################### ■

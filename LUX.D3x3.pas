@@ -7,15 +7,15 @@ uses LUX,
      LUX.D2, LUX.D2x2,
      LUX.D3;
 
-type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【型】
+type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
-     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
+     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleM3
 
      TSingleM3 = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const Y_,X_:Integer ) :Single;
        procedure Sets( const Y_,X_:Integer; const M_:Single );
        function GetAxisX :TSingle3D;
@@ -29,13 +29,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create( const _11_,_12_,_13_,
                                  _21_,_22_,_23_,
                                  _31_,_32_,_33_:Single );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const Y_,X_:Integer ] :Single    read Gets     write Sets    ; default;
        property AxisX                     :TSingle3D read GetAxisX write SetAxisX;
        property AxisY                     :TSingle3D read GetAxisY write SetAxisY;
        property AxisZ                     :TSingle3D read GetAxisZ write SetAxisZ;
        property Sum                       :Single    read GetSum;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TSingleM3 ) :TSingleM3;
        class operator Positive( const V_:TSingleM3 ) :TSingleM3;
        class operator Add( const A_,B_:TSingleM3 ) :TSingleM3;
@@ -46,7 +46,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TSingle3D; const B_:TSingleM3 ) :TSingle3D;
        class operator Multiply( const A_:TSingleM3; const B_:TSingle3D ) :TSingle3D;
        class operator Divide( const A_:TSingleM3; const B_:Single ) :TSingleM3;
-       ///// メソッド
+       ///// M E T H O D
        function Transpose :TSingleM3;
        function Det :Single;
        function Adjugate :TSingleM3;
@@ -64,7 +64,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TDoubleM3 = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const Y_,X_:Integer ) :Double;
        procedure Sets( const Y_,X_:Integer; const M_:Double );
        function GetAxisX :TDouble3D;
@@ -77,12 +77,12 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create( const _11_,_12_,_13_,
                                  _21_,_22_,_23_,
                                  _31_,_32_,_33_:Double );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const Y_,X_:Integer ] :Double    read Gets     write Sets    ; default;
        property AxisX                     :TDouble3D read GetAxisX write SetAxisX;
        property AxisY                     :TDouble3D read GetAxisY write SetAxisY;
        property AxisZ                     :TDouble3D read GetAxisZ write SetAxisZ;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TDoubleM3 ) :TDoubleM3;
        class operator Positive( const V_:TDoubleM3 ) :TDoubleM3;
        class operator Add( const A_,B_:TDoubleM3 ) :TDoubleM3;
@@ -93,7 +93,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TDouble3D; const B_:TDoubleM3 ) :TDouble3D;
        class operator Multiply( const A_:TDoubleM3; const B_:TDouble3D ) :TDouble3D;
        class operator Divide( const A_:TDoubleM3; const B_:Double ) :TDoubleM3;
-       ///// メソッド
+       ///// M E T H O D
        function Transpose :TDoubleM3;
        function Det :Double;
        function Adjugate :TDoubleM3;
@@ -111,7 +111,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdSingleM3 = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const Y_,X_:Integer ) :TdSingle;
        procedure Sets( const Y_,X_:Integer; const M_:TdSingle );
        function GetAxisX :TdSingle3D;
@@ -125,13 +125,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create( const _11_,_12_,_13_,
                                  _21_,_22_,_23_,
                                  _31_,_32_,_33_:TdSingle );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const Y_,X_:Integer ] :TdSingle   read Gets     write Sets    ; default;
        property AxisX                     :TdSingle3D read GetAxisX write SetAxisX;
        property AxisY                     :TdSingle3D read GetAxisY write SetAxisY;
        property AxisZ                     :TdSingle3D read GetAxisZ write SetAxisZ;
        property Sum   :TdSingle    read GetSum;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdSingleM3 ) :TdSingleM3;
        class operator Positive( const V_:TdSingleM3 ) :TdSingleM3;
        class operator Add( const A_,B_:TdSingleM3 ) :TdSingleM3;
@@ -142,7 +142,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdSingle3D; const B_:TdSingleM3 ) :TdSingle3D;
        class operator Multiply( const A_:TdSingleM3; const B_:TdSingle3D ) :TdSingle3D;
        class operator Divide( const A_:TdSingleM3; const B_:TdSingle ) :TdSingleM3;
-       ///// メソッド
+       ///// M E T H O D
        function Transpose :TdSingleM3;
        function Det :TdSingle;
        function Adjugate :TdSingleM3;
@@ -160,7 +160,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdDoubleM3 = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const Y_,X_:Integer ) :TdDouble;
        procedure Sets( const Y_,X_:Integer; const M_:TdDouble );
        function GetAxisX :TdDouble3D;
@@ -173,12 +173,12 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create( const _11_,_12_,_13_,
                                  _21_,_22_,_23_,
                                  _31_,_32_,_33_:TdDouble );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const Y_,X_:Integer ] :TdDouble   read Gets     write Sets    ; default;
        property AxisX                     :TdDouble3D read GetAxisX write SetAxisX;
        property AxisY                     :TdDouble3D read GetAxisY write SetAxisY;
        property AxisZ                     :TdDouble3D read GetAxisZ write SetAxisZ;
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdDoubleM3 ) :TdDoubleM3;
        class operator Positive( const V_:TdDoubleM3 ) :TdDoubleM3;
        class operator Add( const A_,B_:TdDoubleM3 ) :TdDoubleM3;
@@ -189,7 +189,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdDouble3D; const B_:TdDoubleM3 ) :TdDouble3D;
        class operator Multiply( const A_:TdDoubleM3; const B_:TdDouble3D ) :TdDouble3D;
        class operator Divide( const A_:TdDoubleM3; const B_:TdDouble ) :TdDoubleM3;
-       ///// メソッド
+       ///// M E T H O D
        function Transpose :TdDoubleM3;
        function Det :TdDouble;
        function Adjugate :TdDoubleM3;
@@ -203,26 +203,26 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
           _13, _23, _33 :TdDouble;                   );
      end;
 
-     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
+     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
-//const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【定数】
+//const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
 
-//var //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【変数】
+//var //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 V A R I A B L E 】
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 function ArrowRot( const P0_,P1_:TSingle3D ) :TSingleM3; overload;
 function ArrowRot( const P0_,P1_:TDouble3D ) :TDoubleM3; overload;
 
 implementation //############################################################### ■
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleM3
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSingleM3.Gets( const Y_,X_:Integer ) :Single;
 begin
@@ -314,7 +314,7 @@ begin
      _31 := _31_;  _32 := _32_;  _33 := _33_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TSingleM3.Positive( const V_:TSingleM3 ) :TSingleM3;
 begin
@@ -442,7 +442,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSingleM3.Transpose :TSingleM3;
 begin
@@ -512,7 +512,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TDoubleM3.Gets( const Y_,X_:Integer ) :Double;
 begin
@@ -597,7 +597,7 @@ begin
      _31 := _31_;  _32 := _32_;  _33 := _33_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TDoubleM3.Positive( const V_:TDoubleM3 ) :TDoubleM3;
 begin
@@ -725,7 +725,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TDoubleM3.Transpose :TDoubleM3;
 begin
@@ -796,7 +796,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdSingleM3.Gets( const Y_,X_:Integer ) :TdSingle;
 begin
@@ -888,7 +888,7 @@ begin
      _31 := _31_;  _32 := _32_;  _33 := _33_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdSingleM3.Positive( const V_:TdSingleM3 ) :TdSingleM3;
 begin
@@ -1016,7 +1016,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TdSingleM3.Transpose :TdSingleM3;
 begin
@@ -1086,7 +1086,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdDoubleM3.Gets( const Y_,X_:Integer ) :TdDouble;
 begin
@@ -1171,7 +1171,7 @@ begin
      _31 := _31_;  _32 := _32_;  _33 := _33_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdDoubleM3.Positive( const V_:TdDoubleM3 ) :TdDoubleM3;
 begin
@@ -1299,7 +1299,7 @@ begin
      end;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TdDoubleM3.Transpose :TdDoubleM3;
 begin
@@ -1365,9 +1365,9 @@ begin
                    + _13 * A._31 );
 end;
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 function ArrowRot( const P0_,P1_:TSingle3D ) :TSingleM3;
 var
@@ -1422,11 +1422,5 @@ begin
           _31 := AX.Z;  _32 := AY.Z;  _33 := AZ.Z;
      end;
 end;
-
-//############################################################################## □
-
-initialization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 初期化
-
-finalization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 最終化
 
 end. //######################################################################### ■

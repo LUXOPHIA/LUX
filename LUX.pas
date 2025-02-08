@@ -4,7 +4,7 @@ interface //####################################################################
 
 uses System.Types, System.SysUtils, System.Classes, System.Math.Vectors, System.Generics.Collections, System.Threading;
 
-type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【型】
+type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
      Int08u = Byte    ;  Int8u = Int08u;
      Int08s = Shortint;  Int8s = Int08s;
@@ -47,17 +47,30 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TConstFunc<TA,TB,TC,   TResult> = reference to function( const A:TA; const B:TB; const C:TC             ) :TResult;
      TConstFunc<TA,TB,TC,TD,TResult> = reference to function( const A:TA; const B:TB; const C:TC; const D:TD ) :TResult;
 
-     TConstProc1<T>         = reference to procedure( const A:T       );
-     TConstProc2<T,TResult> = reference to procedure( const A,B:T     );
-     TConstProc3<T,TResult> = reference to procedure( const A,B,C:T   );
-     TConstProc4<T,TResult> = reference to procedure( const A,B,C,D:T );
+     TConstProc1<T> = reference to procedure( const A:T       );
+     TConstProc2<T> = reference to procedure( const A,B:T     );
+     TConstProc3<T> = reference to procedure( const A,B,C:T   );
+     TConstProc4<T> = reference to procedure( const A,B,C,D:T );
 
      TConstFunc1<T,TResult> = reference to function( const A:T       ) :TResult;
      TConstFunc2<T,TResult> = reference to function( const A,B:T     ) :TResult;
      TConstFunc3<T,TResult> = reference to function( const A,B,C:T   ) :TResult;
      TConstFunc4<T,TResult> = reference to function( const A,B,C,D:T ) :TResult;
 
-     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
+     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDelegates
+
+     TDelegates = record
+     private
+       _Events :TArray<TNotifyEvent>;
+     public
+       ///// M E T H O D
+       procedure Add( E_:TNotifyEvent );
+       procedure Del( const E_:TNotifyEvent );
+       procedure Run( const Sender_:TObject );
+       procedure Free;
+     end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% THex4
 
@@ -66,7 +79,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      HHex4 = record helper for THex4
      private
      public
-       ///// メソッド
+       ///// M E T H O D
        function ToString :String;
      end;
 
@@ -88,22 +101,22 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _Values :TArray<_TValue_>;
        _MinI   :Integer;
        _MaxI   :Integer;
-       ///// アクセス
+       ///// A C C E S S O R
        function GetValues( I_:Integer ) :_TValue_;
        procedure SetValues( I_:Integer; const Value_:_TValue_ );
        procedure SetMinI( const MinI_:Integer );
        procedure SetMaxI( const MaxI_:Integer );
        function GetCount :Integer;
-       ///// メソッド
+       ///// M E T H O D
        procedure InitArray;
      public
        constructor Create( const MinI_,MaxI_:Integer );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Values[ I_:Integer ] :_TValue_ read GetValues write SetValues; default;
        property MinI                 :Integer  read   _MinI   write SetMinI  ;
        property MaxI                 :Integer  read   _MaxI   write SetMaxI  ;
        property Count                :Integer  read GetCount                 ;
-       ///// メソッド
+       ///// M E T H O D
        procedure SetRange( const I_:Integer ); overload;
        procedure SetRange( const MinI_,MaxI_:Integer ); overload;
      end;
@@ -116,24 +129,24 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _LowerN :Integer;
        _Count  :Integer;
        _UpperN :Integer;
-       ///// アクセス
+       ///// A C C E S S O R
        function GetValues( I_:Integer ) :_TValue_;
        procedure SetValues( I_:Integer; const Value_:_TValue_ );
        procedure SetLowerN( const LowerN_:Integer );
        procedure SetCount( const Count_:Integer );
        procedure SetUpperN( const UpperN_:Integer );
-       ///// メソッド
+       ///// M E T H O D
        procedure InitArray;
      public
        constructor Create( const LowerN_,Count_,UpperN_:Integer );
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Values[ I_:Integer ] :_TValue_ read GetValues write SetValues; default;
        property LowerN               :Integer  read   _LowerN write SetLowerN;
        property Count                :Integer  read   _Count  write SetCount ;
        property UpperN               :Integer  read   _UpperN write SetUpperN;
      end;
 
-     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
+     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TInterfacedBase
 
@@ -153,7 +166,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      protected class var
        _Task :ITask;
      public
-       ///// メソッド
+       ///// M E T H O D
        class procedure Run( const Proc_:TThreadProcedure; const Delay_:Integer = 500 );
      end;
 
@@ -162,11 +175,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TIter< TValue_ > = class
      private
      protected
-       ///// アクセス
+       ///// A C C E S S O R
        function GetValue :TValue_; virtual; abstract;
        procedure SetValue( const Value_:TValue_ ); virtual; abstract;
      public
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Value :TValue_ read GetValue write SetValue;
      end;
 
@@ -180,9 +193,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        constructor Create( Stream_:TStream; Encoding_:TEncoding = nil; OwnsStream_:Boolean = False ); overload;
        constructor Create( const Filename_:String; Encoding_:TEncoding = nil ); overload;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property OffsetBOM :Integer read _OffsetBOM;
-       ///// メソッド
+       ///// M E T H O D
        function EndOfStream :Boolean;
        function ReadLine :String;
        function Read( var Buffer_; Count_:Longint ) :Longint;
@@ -196,21 +209,21 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _PN0      :Integer;
        _PN1      :Integer;
        _PN2      :Integer;
-       ///// アクセス
+       ///// A C C E S S O R
        function Get_TableBC( const Key_:_TYPE_ ) :Integer;
        procedure Set_TableBC( const Key_:_TYPE_; const Val_:Integer );
-       ///// メソッド
+       ///// M E T H O D
        function Equal( const A_,B_:_TYPE_ ) :Boolean;
      protected
        _Pattern  :TArray<_TYPE_>;
        _TableSF  :TArray<Integer>;
        _TableGS  :TArray<Integer>;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _TableBC[ const Key_:_TYPE_ ] :Integer read Get_TableBC write Set_TableBC;
-       ///// アクセス
+       ///// A C C E S S O R
        function GetPattern :TArray<_TYPE_>;
        procedure SetPattern( const Pattern_:TArray<_TYPE_> );
-       ///// メソッド
+       ///// M E T H O D
        procedure MakeTableBC;
        procedure MakeTableSF;
        procedure MakeTableGS;
@@ -221,9 +234,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create; overload;
        constructor Create( const Pattern_:TArray<_TYPE_> ); overload;
        destructor Destroy; override;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Pattern :TArray<_TYPE_> read GetPattern write SetPattern;
-       ///// メソッド
+       ///// M E T H O D
        function Match( const Source_:TArray<_TYPE_>; const StartI_,StopI_:Integer ) :Integer; overload;
        function Matches( const Source_:TArray<_TYPE_>; const StartI_,StopI_:Integer ) :TArray<Integer>; overload;
        function Match( const Source_:TArray<_TYPE_>; const StartI_:Integer = 0 ) :Integer; overload;
@@ -234,7 +247,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function Matches( const StartI_,StopI_:Integer; const OnReadBlock_:TOnReadBlock ) :TArray<Integer>; overload;
      end;
 
-const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【定数】
+const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
 
       SINGLE_EPS = 1.1920928955078125E-7;
       DOUBLE_EPS = 2.220446049250313080847263336181640625E-16;
@@ -267,9 +280,9 @@ const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
       CRLF = #13#10;
 
-//var //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【変数】
+//var //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 V A R I A B L E 】
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 {$IF SizeOf( Extended ) = 10 }
   function Int( const X_:Extended ) :Extended; inline; overload;
@@ -285,6 +298,8 @@ const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
   function ExpMinus1( const X_:Extended) :Extended; inline; overload;
   function LnXPlus1( const X_:Extended) :Extended; inline; overload;
 {$ENDIF}
+
+function Binomial( N_,K_:Integer ) :Integer;  // 0 <= N <= 33, 0 <= K <= N
 
 function Pow2( const X_:Int32u ) :Int32u; inline; overload;
 function Pow2( const X_:Int32s ) :Int32s; inline; overload;
@@ -340,21 +355,29 @@ function Max( const A_,B_,C_:Integer ) :Integer; overload;
 function Max( const A_,B_,C_:Single ) :Single; overload;
 function Max( const A_,B_,C_:Double ) :Double; overload;
 
-function MinI( const A_,B_:Integer ) :Byte; inline; overload;
-function MinI( const A_,B_:Single ) :Byte; inline; overload;
-function MinI( const A_,B_:Double ) :Byte; inline; overload;
+function MinI( const V1_,V2_:Integer ) :Byte; inline; overload;
+function MinI( const V1_,V2_:Single ) :Byte; inline; overload;
+function MinI( const V1_,V2_:Double ) :Byte; inline; overload;
 
-function MaxI( const A_,B_:Integer ) :Byte; inline; overload;
-function MaxI( const A_,B_:Single ) :Byte; inline; overload;
-function MaxI( const A_,B_:Double ) :Byte; inline; overload;
+function MaxI( const V1_,V2_:Integer ) :Byte; inline; overload;
+function MaxI( const V1_,V2_:Single ) :Byte; inline; overload;
+function MaxI( const V1_,V2_:Double ) :Byte; inline; overload;
 
-function MinI( const A_,B_,C_:Integer ) :Integer; inline; overload;
-function MinI( const A_,B_,C_:Single ) :Integer; inline; overload;
-function MinI( const A_,B_,C_:Double ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_:Integer ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_:Single ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_:Double ) :Integer; inline; overload;
 
-function MaxI( const A_,B_,C_:Integer ) :Integer; inline; overload;
-function MaxI( const A_,B_,C_:Single ) :Integer; inline; overload;
-function MaxI( const A_,B_,C_:Double ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_,V4_:Integer ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_,V4_:Single ) :Integer; inline; overload;
+function MinI( const V1_,V2_,V3_,V4_:Double ) :Integer; inline; overload;
+
+function MaxI( const V1_,V2_,V3_:Integer ) :Integer; inline; overload;
+function MaxI( const V1_,V2_,V3_:Single ) :Integer; inline; overload;
+function MaxI( const V1_,V2_,V3_:Double ) :Integer; inline; overload;
+
+function MaxI( const V1_,V2_,V3_,V4_:Integer ) :Integer; inline; overload;
+function MaxI( const V1_,V2_,V3_,V4_:Single ) :Integer; inline; overload;
+function MaxI( const V1_,V2_,V3_,V4_:Double ) :Integer; inline; overload;
 
 function MinI( const Vs_:array of Integer ) :Integer; overload;
 function MinI( const Vs_:array of Single ) :Integer; overload;
@@ -434,7 +457,43 @@ implementation //###############################################################
 
 uses System.Math;
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDelegates
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+procedure TDelegates.Add( E_:TNotifyEvent );
+begin
+     if TArray.IndexOf<TNotifyEvent>( _Events, E_ ) < 0 then _Events := _Events + [ E_ ];
+end;
+
+procedure TDelegates.Del( const E_:TNotifyEvent );
+var
+   I :Integer;
+begin
+     I := TArray.IndexOf<TNotifyEvent>( _Events, E_ );  if I < 0 then Exit;
+
+     Delete( _Events, I, 1 );
+end;
+
+procedure TDelegates.Run( const Sender_:TObject );
+var
+   E :TNotifyEvent;
+begin
+     for E in _Events do E( Sender_ );
+end;
+
+procedure TDelegates.Free;
+var
+   E :TNotifyEvent;
+begin
+     for E in Copy( _Events ) do TObject( TMethod( E ).Data ).Free;
+end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% THex4
 
@@ -442,7 +501,7 @@ uses System.Math;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function HHex4.ToString :String;
 begin
@@ -465,7 +524,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TRangeArray<_TValue_>.GetValues( I_:Integer ) :_TValue_;
 begin
@@ -496,7 +555,7 @@ begin
      Result := _MaxI - _MinI + 1;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TRangeArray<_TValue_>.InitArray;
 begin
@@ -510,7 +569,7 @@ begin
      SetRange( MinI_, MaxI_ );
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TRangeArray<_TValue_>.SetRange( const I_:Integer );
 begin
@@ -529,7 +588,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TMarginArray<_TValue_>.GetValues( I_:Integer ) :_TValue_;
 begin
@@ -562,7 +621,7 @@ begin
      InitArray;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TMarginArray<_TValue_>.InitArray;
 begin
@@ -580,7 +639,7 @@ begin
      InitArray;
 end;
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TInterfacedBase
 
@@ -588,7 +647,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TInterfacedBase.QueryInterface( const IID_:TGUID; out Obj_ ) :HResult;
 begin
@@ -616,7 +675,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 class procedure TIdleTask.Run( const Proc_:TThreadProcedure; const Delay_:Integer = 500 );
 begin
@@ -660,7 +719,7 @@ begin
      Create( TFileStream.Create( Filename_, fmOpenRead or fmShareDenyWrite ), Encoding_, True );
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TFileReader.EndOfStream :Boolean;
 begin
@@ -701,7 +760,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSearchBM<_TYPE_>.Get_TableBC( const Key_:_TYPE_ ) :Integer;
 begin
@@ -715,7 +774,7 @@ begin
      __TableBC.AddOrSetValue( Key_, Val_ );
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSearchBM<_TYPE_>.Equal( const A_,B_:_TYPE_ ) :Boolean;
 begin
@@ -724,7 +783,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSearchBM<_TYPE_>.GetPattern :TArray<_TYPE_>;
 begin
@@ -744,7 +803,7 @@ begin
      MakeTableGS;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TSearchBM<_TYPE_>.MakeTableBC;
 var
@@ -861,7 +920,7 @@ begin
      inherited;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSearchBM<_TYPE_>.Match( const Source_:TArray<_TYPE_>; const StartI_,StopI_:Integer ) :Integer;
 var
@@ -1081,7 +1140,7 @@ begin
      end;
 end;
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 {$IF SizeOf( Extended ) = 10 }
 
@@ -1146,6 +1205,18 @@ begin
 end;
 
 {$ENDIF}
+
+//------------------------------------------------------------------------------
+
+function Binomial( N_,K_:Integer ) :Integer;  // 0 <= N <= 33, 0 <= K <= N
+var
+   I :Integer;
+begin
+     if K_ > N_ - K_ then K_ := N_ - K_;
+
+     Result := 1;
+     for I := 1 to K_ do Result := Result * ( N_ - K_ + I ) div I;
+end;
 
 //------------------------------------------------------------------------------
 
@@ -1371,13 +1442,11 @@ function Min( const A_,B_,C_:Integer ) :Integer;
 begin
      if A_ <= B_ then
      begin
-          if A_ <= C_ then Result := A_
-                      else Result := C_;
+          if A_ <= C_ then Result := A_ else Result := C_;
      end
      else
      begin
-          if B_ <= C_ then Result := B_
-                      else Result := C_;
+          if B_ <= C_ then Result := B_ else Result := C_;
      end;
 end;
 
@@ -1385,13 +1454,11 @@ function Min( const A_,B_,C_:Single ) :Single;
 begin
      if A_ <= B_ then
      begin
-          if A_ <= C_ then Result := A_
-                      else Result := C_;
+          if A_ <= C_ then Result := A_ else Result := C_;
      end
      else
      begin
-          if B_ <= C_ then Result := B_
-                      else Result := C_;
+          if B_ <= C_ then Result := B_ else Result := C_;
      end;
 end;
 
@@ -1399,13 +1466,11 @@ function Min( const A_,B_,C_:Double ) :Double;
 begin
      if A_ <= B_ then
      begin
-          if A_ <= C_ then Result := A_
-                      else Result := C_;
+          if A_ <= C_ then Result := A_ else Result := C_;
      end
      else
      begin
-          if B_ <= C_ then Result := B_
-                      else Result := C_;
+          if B_ <= C_ then Result := B_ else Result := C_;
      end;
 end;
 
@@ -1415,14 +1480,12 @@ function Max( const A_,B_,C_:Integer ) :Integer;
 begin
      if A_ >= B_ then
      begin
-          if A_ >= C_ then Result := A_
-                      else Result := C_;
+          if A_ >= C_ then Result := A_ else Result := C_;
      end
      else
      begin
 
-          if B_ >= C_ then Result := B_
-                      else Result := C_;
+          if B_ >= C_ then Result := B_ else Result := C_;
      end;
 end;
 
@@ -1430,14 +1493,12 @@ function Max( const A_,B_,C_:Single ) :Single;
 begin
      if A_ >= B_ then
      begin
-          if A_ >= C_ then Result := A_
-                      else Result := C_;
+          if A_ >= C_ then Result := A_ else Result := C_;
      end
      else
      begin
 
-          if B_ >= C_ then Result := B_
-                      else Result := C_;
+          if B_ >= C_ then Result := B_ else Result := C_;
      end;
 end;
 
@@ -1445,142 +1506,281 @@ function Max( const A_,B_,C_:Double ) :Double;
 begin
      if A_ >= B_ then
      begin
-          if A_ >= C_ then Result := A_
-                      else Result := C_;
+          if A_ >= C_ then Result := A_ else Result := C_;
      end
      else
      begin
-
-          if B_ >= C_ then Result := B_
-                      else Result := C_;
+          if B_ >= C_ then Result := B_ else Result := C_;
      end;
 end;
 
 //------------------------------------------------------------------------------
 
-function MinI( const A_,B_:Integer ) :Byte;
+function MinI( const V1_,V2_:Integer ) :Byte;
 begin
-     if A_ <= B_ then Result := 1
-                 else Result := 2;
+     if V1_ <= V2_ then Result := 1 else Result := 2;
 end;
 
-function MinI( const A_,B_:Single ) :Byte;
+function MinI( const V1_,V2_:Single ) :Byte;
 begin
-     if A_ <= B_ then Result := 1
-                 else Result := 2;
+     if V1_ <= V2_ then Result := 1 else Result := 2;
 end;
 
-function MinI( const A_,B_:Double ) :Byte;
+function MinI( const V1_,V2_:Double ) :Byte;
 begin
-     if A_ <= B_ then Result := 1
-                 else Result := 2;
+     if V1_ <= V2_ then Result := 1 else Result := 2;
 end;
 
 //------------------------------------------------------------------------------
 
-function MaxI( const A_,B_:Integer ) :Byte;
+function MaxI( const V1_,V2_:Integer ) :Byte;
 begin
-     if A_ <= B_ then Result := 2
-                 else Result := 1;
+     if V1_ <= V2_ then Result := 2 else Result := 1;
 end;
 
-function MaxI( const A_,B_:Single ) :Byte;
+function MaxI( const V1_,V2_:Single ) :Byte;
 begin
-     if A_ <= B_ then Result := 2
-                 else Result := 1;
+     if V1_ <= V2_ then Result := 2 else Result := 1;
 end;
 
-function MaxI( const A_,B_:Double ) :Byte;
+function MaxI( const V1_,V2_:Double ) :Byte;
 begin
-     if A_ <= B_ then Result := 2
-                 else Result := 1;
+     if V1_ <= V2_ then Result := 2 else Result := 1;
 end;
 
 //------------------------------------------------------------------------------
 
-function MinI( const A_,B_,C_:Integer ) :Integer;
+function MinI( const V1_,V2_,V3_:Integer ) :Integer;
 begin
-     if A_ <= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ <= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then Result := 1 else Result := 3;
      end
      else
      begin
-          if B_ <= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then Result := 2 else Result := 3;
      end;
 end;
 
-function MinI( const A_,B_,C_:Single ) :Integer;
+function MinI( const V1_,V2_,V3_:Single ) :Integer;
 begin
-     if A_ <= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ <= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then Result := 1 else Result := 3;
      end
      else
      begin
-          if B_ <= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then Result := 2 else Result := 3;
      end;
 end;
 
-function MinI( const A_,B_,C_:Double ) :Integer;
+function MinI( const V1_,V2_,V3_:Double ) :Integer;
 begin
-     if A_ <= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ <= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then Result := 1 else Result := 3;
      end
      else
      begin
-          if B_ <= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then Result := 2 else Result := 3;
      end;
 end;
 
 //------------------------------------------------------------------------------
 
-function MaxI( const A_,B_,C_:Integer ) :Integer;
+function MinI( const V1_,V2_,V3_,V4_:Integer ) :Integer;
 begin
-     if A_ >= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ >= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then
+          begin
+               if V1_ <= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
      end
      else
      begin
-          if B_ >= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then
+          begin
+               if V2_ <= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
      end;
 end;
 
-function MaxI( const A_,B_,C_:Single ) :Integer;
+function MinI( const V1_,V2_,V3_,V4_:Single ) :Integer;
 begin
-     if A_ >= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ >= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then
+          begin
+               if V1_ <= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
      end
      else
      begin
-          if B_ >= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then
+          begin
+               if V2_ <= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
      end;
 end;
 
-function MaxI( const A_,B_,C_:Double ) :Integer;
+function MinI( const V1_,V2_,V3_,V4_:Double ) :Integer;
 begin
-     if A_ >= B_ then
+     if V1_ <= V2_ then
      begin
-          if A_ >= C_ then Result := 1
-                      else Result := 3;
+          if V1_ <= V3_ then
+          begin
+               if V1_ <= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
      end
      else
      begin
-          if B_ >= C_ then Result := 2
-                      else Result := 3;
+          if V2_ <= V3_ then
+          begin
+               if V2_ <= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ <= V4_ then Result := 3 else Result := 4;
+          end;
+     end;
+end;
+
+//------------------------------------------------------------------------------
+
+function MaxI( const V1_,V2_,V3_:Integer ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then Result := 1 else Result := 3;
+     end
+     else
+     begin
+          if V2_ >= V3_ then Result := 2 else Result := 3;
+     end;
+end;
+
+function MaxI( const V1_,V2_,V3_:Single ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then Result := 1 else Result := 3;
+     end
+     else
+     begin
+          if V2_ >= V3_ then Result := 2 else Result := 3;
+     end;
+end;
+
+function MaxI( const V1_,V2_,V3_:Double ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then Result := 1 else Result := 3;
+     end
+     else
+     begin
+          if V2_ >= V3_ then Result := 2 else Result := 3;
+     end;
+end;
+
+//------------------------------------------------------------------------------
+
+function MaxI( const V1_,V2_,V3_,V4_:Integer ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then
+          begin
+               if V1_ >= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
+     end
+     else
+     begin
+          if V2_ >= V3_ then
+          begin
+               if V2_ >= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
+     end;
+end;
+
+function MaxI( const V1_,V2_,V3_,V4_:Single ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then
+          begin
+               if V1_ >= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
+     end
+     else
+     begin
+          if V2_ >= V3_ then
+          begin
+               if V2_ >= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
+     end;
+end;
+
+function MaxI( const V1_,V2_,V3_,V4_:Double ) :Integer;
+begin
+     if V1_ >= V2_ then
+     begin
+          if V1_ >= V3_ then
+          begin
+               if V1_ >= V4_ then Result := 1 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
+     end
+     else
+     begin
+          if V2_ >= V3_ then
+          begin
+               if V2_ >= V4_ then Result := 2 else Result := 4;
+          end
+          else
+          begin
+               if V3_ >= V4_ then Result := 3 else Result := 4;
+          end;
      end;
 end;
 
@@ -2164,14 +2364,12 @@ begin
      PP := P_;  Dec( PP );  FreeMem( PP^ );
 end;
 
-//############################################################################## □
-
-initialization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 初期化
+initialization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      Randomize;
 
      SetCurrentDir( ExtractFilePath( ParamStr( 0 ) ) );
 
-finalization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 最終化
+finalization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 end. //######################################################################### ■
