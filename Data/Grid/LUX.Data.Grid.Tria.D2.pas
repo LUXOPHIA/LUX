@@ -18,7 +18,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _Poins  :TArray2<_TPoin_>;  upPoins :Boolean;
        _CellsN :Integer;
        _DivN   :Integer;
-       ///// アクセス
+       ///// A C C E S S O R
        function GetPoins( const X_,Y_:Integer ) :_TPoin_; virtual;
        function GetCellsN :Integer; virtual;
        procedure SetCellsN( const CellsN_:Integer ); virtual;
@@ -27,19 +27,19 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetEdgesN :Integer; virtual;
        function GetAllFacesN :Integer; virtual;
        function GetAllPoinsN :Integer; virtual;
-       ///// メソッド
+       ///// M E T H O D
        procedure MakePoins; virtual;
      public
        constructor Create;
        destructor Destroy; override;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property Poins[ const X,Y:Integer ] :_TPoin_ read GetPoins                 ;
        property CellsN                     :Integer read GetCellsN write SetCellsN;
        property DivN                       :Integer read GetDivN   write SetDivN  ;
        property EdgesN                     :Integer read GetEdgesN                ;
        property AllCellsN                  :Integer read GetAllFacesN             ;
        property AllPoinsN                  :Integer read GetAllPoinsN             ;
-       ///// メソッド
+       ///// M E T H O D
        procedure ForPoins( const Proc_:TConstProc3<Integer> );
        procedure ParaForPoins( const Proc_:TConstProc3<Integer> );
        procedure ForFaces( const Proc_:TConstProc3<TInteger3D> );
@@ -116,7 +116,7 @@ begin
      Result := ( EdgesN + 1 ) * ( EdgesN + 2 ) div 2;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TTriaGrid<_TPoin_>.MakePoins;
 begin
@@ -139,7 +139,7 @@ begin
      inherited;
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TTriaGrid<_TPoin_>.ForPoins( const Proc_:TConstProc3<Integer> );
 var
