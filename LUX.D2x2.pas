@@ -4,15 +4,15 @@ interface //####################################################################
 
 uses LUX, LUX.D1, LUX.D2;
 
-type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【型】
+type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
-     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
+     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleM2
 
      TSingleM2 = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const Y_,X_:Integer ) :Single;
        procedure Sets( const Y_,X_:Integer; const M_:Single );
        function GetAxisX :TSingle2D;
@@ -22,7 +22,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        constructor Create( const _11_,_12_,
                                  _21_,_22_:Single );
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TSingleM2 ) :TSingleM2;
        class operator Positive( const V_:TSingleM2 ) :TSingleM2;
        class operator Add( const A_,B_:TSingleM2 ) :TSingleM2;
@@ -33,11 +33,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TSingle2D; const B_:TSingleM2 ) :TSingle2D;
        class operator Multiply( const A_:TSingleM2; const B_:TSingle2D ) :TSingle2D;
        class operator Divide( const A_:TSingleM2; const B_:Single ) :TSingleM2;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const Y_,X_:Integer ] :Single    read Gets     write Sets    ; default;
        property AxisX                     :TSingle2D read GetAxisX write SetAxisX;
        property AxisY                     :TSingle2D read GetAxisY write SetAxisY;
-       ///// メソッド
+       ///// M E T H O D
        function Det :Single;
        function Adjugate :TSingleM2;
        function Inverse :TSingleM2;
@@ -54,7 +54,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TDoubleM2 = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const Y_,X_:Integer ) :Double;
        procedure Sets( const Y_,X_:Integer; const M_:Double );
        function GetAxisX :TDouble2D;
@@ -64,7 +64,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        constructor Create( const _11_,_12_,
                                  _21_,_22_:Double );
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TDoubleM2 ) :TDoubleM2;
        class operator Positive( const V_:TDoubleM2 ) :TDoubleM2;
        class operator Add( const A_,B_:TDoubleM2 ) :TDoubleM2;
@@ -75,11 +75,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TDouble2D; const B_:TDoubleM2 ) :TDouble2D;
        class operator Multiply( const A_:TDoubleM2; const B_:TDouble2D ) :TDouble2D;
        class operator Divide( const A_:TDoubleM2; const B_:Double ) :TDoubleM2;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const Y_,X_:Integer ] :Double    read Gets     write Sets    ; default;
        property AxisX                     :TDouble2D read GetAxisX write SetAxisX;
        property AxisY                     :TDouble2D read GetAxisY write SetAxisY;
-       ///// メソッド
+       ///// M E T H O D
        function Det :Double;
        function Adjugate :TDoubleM2;
        function Inverse :TDoubleM2;
@@ -96,7 +96,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdSingleM2 = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const Y_,X_:Integer ) :TdSingle;
        procedure Sets( const Y_,X_:Integer; const M_:TdSingle );
        function GetAxisX :TdSingle2D;
@@ -106,7 +106,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        constructor Create( const _11_,_12_,
                                  _21_,_22_:TdSingle );
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdSingleM2 ) :TdSingleM2;
        class operator Positive( const V_:TdSingleM2 ) :TdSingleM2;
        class operator Add( const A_,B_:TdSingleM2 ) :TdSingleM2;
@@ -117,11 +117,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdSingle2D; const B_:TdSingleM2 ) :TdSingle2D;
        class operator Multiply( const A_:TdSingleM2; const B_:TdSingle2D ) :TdSingle2D;
        class operator Divide( const A_:TdSingleM2; const B_:TdSingle ) :TdSingleM2;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const Y_,X_:Integer ] :TdSingle   read Gets     write Sets    ; default;
        property AxisX                     :TdSingle2D read GetAxisX write SetAxisX;
        property AxisY                     :TdSingle2D read GetAxisY write SetAxisY;
-       ///// メソッド
+       ///// M E T H O D
        function Det :TdSingle;
        function Adjugate :TdSingleM2;
        function Inverse :TdSingleM2;
@@ -138,7 +138,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TdDoubleM2 = record
      private
-       ///// アクセス
+       ///// A C C E S S O R
        function Gets( const Y_,X_:Integer ) :TdDouble;
        procedure Sets( const Y_,X_:Integer; const M_:TdDouble );
        function GetAxisX :TdDouble2D;
@@ -148,7 +148,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        constructor Create( const _11_,_12_,
                                  _21_,_22_:TdDouble );
-       ///// 演算子
+       ///// O P E R A T O R
        class operator Negative( const V_:TdDoubleM2 ) :TdDoubleM2;
        class operator Positive( const V_:TdDoubleM2 ) :TdDoubleM2;
        class operator Add( const A_,B_:TdDoubleM2 ) :TdDoubleM2;
@@ -159,11 +159,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdDouble2D; const B_:TdDoubleM2 ) :TdDouble2D;
        class operator Multiply( const A_:TdDoubleM2; const B_:TdDouble2D ) :TdDouble2D;
        class operator Divide( const A_:TdDoubleM2; const B_:TdDouble ) :TdDoubleM2;
-       ///// プロパティ
+       ///// P R O P E R T Y
        property _s[ const Y_,X_:Integer ] :TdDouble   read Gets     write Sets    ; default;
        property AxisX                     :TdDouble2D read GetAxisX write SetAxisX;
        property AxisY                     :TdDouble2D read GetAxisY write SetAxisY;
-       ///// メソッド
+       ///// M E T H O D
        function Det :TdDouble;
        function Adjugate :TdDoubleM2;
        function Inverse :TdDoubleM2;
@@ -176,25 +176,25 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
             _12, _22 :TdDouble;                        );
      end;
 
-     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
+     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
-//const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【定数】
+//const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
 
-//var //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【変数】
+//var //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 V A R I A B L E 】
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 implementation //############################################################### ■
 
 uses System.Math;
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【レコード】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleM2
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TSingleM2.Gets( const Y_,X_:Integer ) :Single;
 begin
@@ -252,7 +252,7 @@ begin
      _21 := _21_;  _22 := _22_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TSingleM2.Positive( const V_:TSingleM2 ) :TSingleM2;
 begin
@@ -360,7 +360,7 @@ begin
      end
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TSingleM2.Det :Single;
 begin
@@ -397,7 +397,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TDoubleM2.Gets( const Y_,X_:Integer ) :Double;
 begin
@@ -455,7 +455,7 @@ begin
      _21 := _21_;  _22 := _22_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TDoubleM2.Positive( const V_:TDoubleM2 ) :TDoubleM2;
 begin
@@ -563,7 +563,7 @@ begin
      end
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TDoubleM2.Det :Double;
 begin
@@ -600,7 +600,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdSingleM2.Gets( const Y_,X_:Integer ) :TdSingle;
 begin
@@ -658,7 +658,7 @@ begin
      _21 := _21_;  _22 := _22_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdSingleM2.Positive( const V_:TdSingleM2 ) :TdSingleM2;
 begin
@@ -766,7 +766,7 @@ begin
      end
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TdSingleM2.Det :TdSingle;
 begin
@@ -803,7 +803,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-/////////////////////////////////////////////////////////////////////// アクセス
+//////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TdDoubleM2.Gets( const Y_,X_:Integer ) :TdDouble;
 begin
@@ -861,7 +861,7 @@ begin
      _21 := _21_;  _22 := _22_;
 end;
 
-///////////////////////////////////////////////////////////////////////// 演算子
+//////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TdDoubleM2.Positive( const V_:TdDoubleM2 ) :TdDoubleM2;
 begin
@@ -969,7 +969,7 @@ begin
      end
 end;
 
-/////////////////////////////////////////////////////////////////////// メソッド
+//////////////////////////////////////////////////////////////////// M E T H O D
 
 function TdDoubleM2.Det :TdDouble;
 begin
@@ -1002,14 +1002,8 @@ begin
      end
 end;
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【クラス】
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【ルーチン】
-
-//############################################################################## □
-
-initialization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 初期化
-
-finalization //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 終了化
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 end. //######################################################################### ■
