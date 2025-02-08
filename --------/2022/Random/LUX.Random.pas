@@ -428,8 +428,8 @@ function GetTimeCount :Int64u;
 var
    Counter :Int64;
 begin
-     if QueryPerformanceCounter( Counter ) then Result := Counter        //Int64s
-                                           else Result := GetTickCount;  //Int32u
+     if QueryPerformanceCounter( Counter ) then Result := Counter       //Int64s
+                                           else Result := GetTickCount; //Int32u
 end;
 {$ELSEIF MACOS }
 begin
