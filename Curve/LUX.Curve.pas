@@ -2,97 +2,64 @@
 
 interface //#################################################################### ■
 
-uses LUX.D3;
+uses LUX;
 
-//type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
+type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleWector<_TVector_>
+
+     TSingleWector<_TVector_> = record
+     private
+     public
+       v :_TVector_;
+       w :Single;
+       /////
+       constructor Create( const V_:_TVector_; const W_:Single );
+     end;
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleWector<_TVector_>
+
+     TDoubleWector<_TVector_> = record
+     private
+     public
+       v :_TVector_;
+       w :Double;
+       /////
+       constructor Create( const V_:_TVector_; const W_:Double );
+     end;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
-function Lerp( const V1_,V2_:TSingle3D ) :TSingle3D; overload;
-function Lerp( const V1_,V2_:TDouble3D ) :TDouble3D; overload;
-
-function Lerp( const V1_,V2_,V3_:TSingle3D ) :TSingle3D; overload;
-function Lerp( const V1_,V2_,V3_:TDouble3D ) :TDouble3D; overload;
-
-function Lerp( const V1_,V2_:TSingle3D; const T_:Single ) :TSingle3D; overload;
-function Lerp( const V1_,V2_:TDouble3D; const T_:Double ) :TDouble3D; overload;
-
-function Lerp( const V1_,V2_:TSingle3D; const W1_,W2_:Single ) :TSingle3D; overload;
-function Lerp( const V1_,V2_:TDouble3D; const W1_,W2_:Double ) :TDouble3D; overload;
-
-function Lerp( const V1_,V2_,V3_:TSingle3D; const W1_,W2_,W3_:Single ) :TSingle3D; overload;
-function Lerp( const V1_,V2_,V3_:TDouble3D; const W1_,W2_,W3_:Double ) :TDouble3D; overload;
-
 implementation //############################################################### ■
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleWector<_TVector_>
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+constructor TSingleWector<_TVector_>.Create( const V_:_TVector_; const W_:Single );
+begin
+     v := V_;
+     w := W_;
+end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleWector<_TVector_>
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+constructor TDoubleWector<_TVector_>.Create( const V_:_TVector_; const W_:Double );
+begin
+     v := V_;
+     w := W_;
+end;
+
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
-
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LerpG
-
-function Lerp( const V1_,V2_:TSingle3D ) :TSingle3D;
-begin
-     Result := ( V1_ + V2_ ) / 2;
-end;
-
-function Lerp( const V1_,V2_:TDouble3D ) :TDouble3D;
-begin
-     Result := ( V1_ + V2_ ) / 2;
-end;
-
-//------------------------------------------------------------------------------
-
-function Lerp( const V1_,V2_,V3_:TSingle3D ) :TSingle3D;
-begin
-     Result := ( V1_ + V2_ + V3_ ) / 3;
-end;
-
-function Lerp( const V1_,V2_,V3_:TDouble3D ) :TDouble3D;
-begin
-     Result := ( V1_ + V2_ + V3_ ) / 3;
-end;
-
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Lerp
-
-function Lerp( const V1_,V2_:TSingle3D; const T_:Single ) :TSingle3D; overload;
-begin
-     Result := ( V2_ - V1_ ) * T_ + V1_;
-end;
-
-function Lerp( const V1_,V2_:TDouble3D; const T_:Double ) :TDouble3D; overload;
-begin
-     Result := ( V2_ - V1_ ) * T_ + V1_;
-end;
-
-//------------------------------------------------------------------------------
-
-function Lerp( const V1_,V2_:TSingle3D; const W1_,W2_:Single ) :TSingle3D;
-begin
-     Result := ( W1_ * V1_ + W2_ * V2_ ) / ( W1_ + W2_ );
-end;
-
-function Lerp( const V1_,V2_:TDouble3D; const W1_,W2_:Double ) :TDouble3D;
-begin
-     Result := ( W1_ * V1_ + W2_ * V2_ ) / ( W1_ + W2_ );
-end;
-
-//------------------------------------------------------------------------------
-
-function Lerp( const V1_,V2_,V3_:TSingle3D; const W1_,W2_,W3_:Single ) :TSingle3D;
-begin
-     Result := ( W1_ * V1_ + W2_ * V2_ + W3_ * V3_ ) / ( W1_ + W2_ + W3_ );
-end;
-
-function Lerp( const V1_,V2_,V3_:TDouble3D; const W1_,W2_,W3_:Double ) :TDouble3D;
-begin
-     Result := ( W1_ * V1_ + W2_ * V2_ + W3_ * V3_ ) / ( W1_ + W2_ + W3_ );
-end;
 
 end. //######################################################################### ■
