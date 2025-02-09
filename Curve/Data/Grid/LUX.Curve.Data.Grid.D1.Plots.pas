@@ -1,4 +1,4 @@
-﻿unit LUX.Curve.Data.Grid.D1.Plot;
+﻿unit LUX.Curve.Data.Grid.D1.Plots;
 
 interface //#################################################################### ■
 
