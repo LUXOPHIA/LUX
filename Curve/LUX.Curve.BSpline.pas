@@ -2,7 +2,7 @@
 
 interface //#################################################################### ■
 
-uses LUX.Curve;
+uses LUX, LUX.Curve;
 
 //type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
@@ -12,17 +12,31 @@ uses LUX.Curve;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BSplineREC
+
 function BSplineREC( const N,I:Integer; const T:Single; const Ks:TArray<Single> ) :Single; overload;
 function BSplineREC( const N,I:Integer; const T:Double; const Ks:TArray<Double> ) :Double; overload;
 
 function BSplineREC( const N,I:Integer; const T:Single ) :Single; overload;
 function BSplineREC( const N,I:Integer; const T:Double ) :Double; overload;
 
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BSpline
+
 function BSpline( const N,I:Integer; const T:Single; const Ks:TArray<Single> ) :Single; overload;
 function BSpline( const N,I:Integer; const T:Double; const Ks:TArray<Double> ) :Double; overload;
 
 function BSpline( const N,I:Integer; const T:Single ) :Single; overload;
 function BSpline( const N,I:Integer; const T:Double ) :Double; overload;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BSpline3
+
+function BSpline3( const X_:Double ) :Double; overload;
+function BSpline3( const X_:Single ) :Single; overload;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BSpline4
+
+function BSpline4( const X_:Single ) :Single; overload;
+function BSpline4( const X_:Double ) :Double; overload;
 
 implementation //############################################################### ■
 
@@ -32,13 +46,7 @@ implementation //###############################################################
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
-//  0     1     2     3     4     5     6     7 = i
-//  +-----+-----+-----+=====+-----+-----+-----+
-// -3    -2    -1     0     1     2     3     4 = Ks[ i ]
-//  |                                         |
-// -N                                         N+1
-
-//------------------------------------------------------------------------------
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BSplineREC
 
 function BSplineREC( const N,I:Integer; const T:Single; const Ks:TArray<Single> ) :Single;
 begin
@@ -63,6 +71,22 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+//                             N
+//                             |
+//                 0     1     2                = I
+//        +-----+--|--+==|==+--|--+-----+
+//       -2    -1     0     1     2     3       = Ks
+//        |                       |     |
+//       -N                       N     N+1
+
+//                                N
+//                                |
+//              0     1     2     3             = I
+//  +-----+-----|-----|=====|-----|-----+-----+
+// -3    -2    -1     0     1     2     3     4 = Ks
+//  |                                   |     |
+// -N                                   N     N+1
 
 function BSplineREC( const N,I:Integer; const T:Single ) :Single;
 // - - - - - - - - - - - - - - - - - - -
@@ -98,7 +122,7 @@ begin
      Result := BSplineREC( N, I );
 end;
 
-//------------------------------------------------------------------------------
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BSpline
 
 function BSpline( const N,I:Integer; const T:Single; const Ks:TArray<Single> ) :Single;
 var
@@ -156,6 +180,22 @@ end;
 
 //------------------------------------------------------------------------------
 
+//                             N
+//                             |
+//                 0     1     2                = I
+//        +-----+--|--+==|==+--|--+-----+
+//       -2    -1     0     1     2     3       = Ks
+//        |                       |     |
+//       -N                       N     N+1
+
+//                                N
+//                                |
+//              0     1     2     3             = I
+//  +-----+-----|-----|=====|-----|-----+-----+
+// -3    -2    -1     0     1     2     3     4 = Ks
+//  |                                   |     |
+// -N                                   N     N+1
+
 function BSpline( const N,I:Integer; const T:Single ) :Single;
 var
    Bs :TArray<Single>;
@@ -202,6 +242,62 @@ begin
      end;
 
      Result := Bs[ 0 ];
+end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BSpline3
+
+function BSpline3( const X_:Single ) :Single;
+var
+   X :Single;
+begin
+     X := Abs( X_ );
+
+     if X < 1/2 then Result := 3/4 - Pow2( X )
+                else
+     if X < 3/2 then Result := Pow2( X - 3/2 ) / 2
+                else Result := 0;
+end;
+
+function BSpline3( const X_:Double ) :Double;
+var
+   X :Double;
+begin
+     X := Abs( X_ );
+
+     if X < 1/2 then Result := 3/4 - Pow2( X )
+                else
+     if X < 3/2 then Result := Pow2( X - 3/2 ) / 2
+                else Result := 0;
+end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BSpline4
+
+function BSpline4( const X_:Single ) :Single;
+const
+     A :Single = 1/6;
+     B :Single = 4/3;
+     C :Single = 2/3;
+var
+   X :Single;
+begin
+     X := Abs( X_ );
+
+     if X < 1 then Result := ( X / 2 - 1 ) * X * X + 2/3
+              else
+     if X < 2 then Result := ( ( 1 - X / 6 ) * X - 2 ) * X + 4/3
+              else Result := 0;
+end;
+
+function BSpline4( const X_:Double ) :Double;
+var
+   X :Double;
+begin
+     X := Abs( X_ );
+
+     if X < 1 then Result := ( X / 2 - 1 ) * X * X + 2/3
+              else
+     if X < 2 then Result := ( ( 1 - X / 6 ) * X - 2 ) * X + 4/3
+              else Result := 0;
 end;
 
 end. //######################################################################### ■
