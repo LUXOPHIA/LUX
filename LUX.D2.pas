@@ -40,6 +40,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:Single; const B_:TSingle2D ) :TSingle2D; inline;
        class operator Divide( const A_:TSingle2D; const B_:Single ) :TSingle2D; inline;
        ///// C A S T
+       class operator Implicit( const V_:Single ) :TSingle2D;
        class operator Implicit( const V_:TPointF ) :TSingle2D;
        class operator Implicit( const V_:TSingle2D ) :TPointF;
        ///// C O N S T A N T
@@ -98,6 +99,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:Double; const B_:TDouble2D ) :TDouble2D; inline;
        class operator Divide( const A_:TDouble2D; const B_:Double ) :TDouble2D; inline;
        ///// C A S T
+       class operator Implicit( const V_:Double ) :TDouble2D;
        class operator Implicit( const V_:TPointF ) :TDouble2D;
        class operator Explicit( const V_:TDouble2D ) :TPointF;
        class operator Implicit( const V_:TSingle2D ) :TDouble2D;
@@ -294,6 +296,14 @@ begin
 end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
+
+class operator TSingle2D.Implicit( const V_:Single ) :TSingle2D;
+begin
+     Result.X := V_;
+     Result.Y := V_;
+end;
+
+//------------------------------------------------------------------------------
 
 class operator TSingle2D.Implicit( const V_:TPointF ) :TSingle2D;
 begin
@@ -543,6 +553,14 @@ begin
 end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
+
+class operator TDouble2D.Implicit( const V_:Double ) :TDouble2D;
+begin
+     Result.X := V_;
+     Result.Y := V_;
+end;
+
+//------------------------------------------------------------------------------
 
 class operator TDouble2D.Implicit( const V_:TPointF ) :TDouble2D;
 begin
