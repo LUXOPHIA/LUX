@@ -13,8 +13,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TSingle = record
      private
      public
-       ///// C A S T
-       class function RandG   :Single; static;
+       ///// M E T H O D
+       class function RandG( const SD_:Single = 1 ) :Single; static;
        class function RandBS1 :Single; static;
        class function RandBS2 :Single; static;
        class function RandBS4 :Single; static;
@@ -25,8 +25,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TDouble = record
      private
      public
-       ///// C A S T
-       class function RandG   :Double; static;
+       ///// M E T H O D
+       class function RandG( const SD_:Double = 1 ) :Double; static;
        class function RandBS1 :Double; static;
        class function RandBS2 :Double; static;
        class function RandBS4 :Double; static;
@@ -53,9 +53,11 @@ uses System.Math;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-class function TSingle.RandG :Single;
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+class function TSingle.RandG( const SD_:Single = 1 ) :Single;
 begin
-     Result := System.Math.RandG( 0, 1 );
+     Result := System.Math.RandG( 0, SD_ );
 end;
 
 class function TSingle.RandBS1 :Single;
@@ -79,9 +81,11 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-class function TDouble.RandG :Double;
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+class function TDouble.RandG( const SD_:Double = 1 ) :Double;
 begin
-     Result := System.Math.RandG( 0, 1 );
+     Result := System.Math.RandG( 0, SD_ );
 end;
 
 class function TDouble.RandBS1 :Double;
