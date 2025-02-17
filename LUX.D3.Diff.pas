@@ -107,38 +107,26 @@ end;
 
 class operator TdDouble3D.Positive( const V_:TdDouble3D ) :TdDouble3D;
 begin
-     with Result do
-     begin
-          o := +V_.o;
-          d := +V_.d;
-     end;
+     Result.o := +V_.o;
+     Result.d := +V_.d;
 end;
 
 class operator TdDouble3D.Negative( const V_:TdDouble3D ) :TdDouble3D;
 begin
-     with Result do
-     begin
-          o := -V_.o;
-          d := -V_.d;
-     end;
+     Result.o := -V_.o;
+     Result.d := -V_.d;
 end;
 
 class operator TdDouble3D.Add( const A_,B_:TdDouble3D ) :TdDouble3D;
 begin
-     with Result do
-     begin
-          o := A_.o + B_.o;
-          d := A_.d + B_.d;
-     end;
+     Result.o := A_.o + B_.o;
+     Result.d := A_.d + B_.d;
 end;
 
 class operator TdDouble3D.Subtract( const A_,B_:TdDouble3D ) :TdDouble3D;
 begin
-     with Result do
-     begin
-          o := A_.o - B_.o;
-          d := A_.d - B_.d;
-     end;
+     Result.o := A_.o - B_.o;
+     Result.d := A_.d - B_.d;
 end;
 
 class operator TdDouble3D.Multiply( const A_:TdDouble; const B_:TdDouble3D ) :TdDouble3D;
@@ -166,38 +154,26 @@ end;
 
 class operator TdDouble3D.Implicit( const V_:Integer ) :TdDouble3D;
 begin
-     with Result do
-     begin
-          o := V_;
-          d := 0;
-     end;
+     Result.o := V_;
+     Result.d := 0;
 end;
 
 class operator TdDouble3D.Implicit( const V_:Int64 ) :TdDouble3D;
 begin
-     with Result do
-     begin
-          o := V_;
-          d := 0;
-     end;
+     Result.o := V_;
+     Result.d := 0;
 end;
 
 class operator TdDouble3D.Implicit( const V_:Double ) :TdDouble3D;
 begin
-     with Result do
-     begin
-          o := V_;
-          d := 0;
-     end;
+     Result.o := V_;
+     Result.d := 0;
 end;
 
 class operator TdDouble3D.Implicit( const V_:TdDouble ) :TdDouble3D;
 begin
-     with Result do
-     begin
-          o := V_.o;
-          d := V_.d;
-     end;
+     Result.o := V_.o;
+     Result.d := V_.d;
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
