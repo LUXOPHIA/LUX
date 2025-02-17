@@ -28,6 +28,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_,B_:TdSingle ) :TdSingle;
        class operator Divide( const A_:TdSingle; const B_:Single ) :TdSingle;
        class operator Divide( const A_,B_:TdSingle ) :TdSingle;
+       class operator Equal( const A_,B_:TdSingle ) :Boolean;
+       class operator NotEqual( const A_,B_:TdSingle ) :Boolean;
        class operator GreaterThan( const A_,B_:TdSingle ) :Boolean;
        class operator GreaterThanOrEqual( const A_,B_:TdSingle ) :Boolean;
        class operator LessThan( const A_,B_:TdSingle ) :Boolean;
@@ -62,6 +64,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_,B_:TdDouble ) :TdDouble;
        class operator Divide( const A_:TdDouble; const B_:Double ) :TdDouble;
        class operator Divide( const A_,B_:TdDouble ) :TdDouble;
+       class operator Equal( const A_,B_:TdDouble ) :Boolean;
+       class operator NotEqual( const A_,B_:TdDouble ) :Boolean;
        class operator GreaterThan( const A_,B_:TdDouble ) :Boolean;
        class operator GreaterThanOrEqual( const A_,B_:TdDouble ) :Boolean;
        class operator LessThan( const A_,B_:TdDouble ) :Boolean;
@@ -193,6 +197,8 @@ begin
      Result.d := -V_.d;
 end;
 
+//------------------------------------------------------------------------------
+
 class operator TdSingle.Add( const A_,B_:TdSingle ) :TdSingle;
 begin
      Result.o := A_.o + B_.o;
@@ -204,6 +210,8 @@ begin
      Result.o := A_.o - B_.o;
      Result.d := A_.d - B_.d;
 end;
+
+//------------------------------------------------------------------------------
 
 class operator TdSingle.Multiply( const A_:Single; const B_:TdSingle ) :TdSingle;
 begin
@@ -223,6 +231,8 @@ begin
      Result.d := A_.d * B_.o + A_.o * B_.d;
 end;
 
+//------------------------------------------------------------------------------
+
 class operator TdSingle.Divide( const A_:TdSingle; const B_:Single ) :TdSingle;    
 begin
      Result.o := A_.o / B_;
@@ -234,6 +244,20 @@ begin
      Result.o := A_.o / B_.o;
      Result.d := ( A_.d * B_.o - A_.o * B_.d ) / Pow2( B_.o );
 end;
+
+//------------------------------------------------------------------------------
+
+class operator TdSingle.Equal( const A_,B_:TdSingle ) :Boolean;
+begin
+     Result := ( A_.o = B_.o ) and ( A_.d = B_.d );
+end;
+
+class operator TdSingle.NotEqual( const A_,B_:TdSingle ) :Boolean;
+begin
+     Result := not ( A_ = B_ );
+end;
+
+//------------------------------------------------------------------------------
 
 class operator TdSingle.GreaterThan( const A_,B_:TdSingle ) :Boolean;
 begin
@@ -329,6 +353,8 @@ begin
      Result.d := -V_.d;
 end;
 
+//------------------------------------------------------------------------------
+
 class operator TdDouble.Add( const A_,B_:TdDouble ) :TdDouble;
 begin
      Result.o := A_.o + B_.o;
@@ -340,6 +366,8 @@ begin
      Result.o := A_.o - B_.o;
      Result.d := A_.d - B_.d;
 end;
+
+//------------------------------------------------------------------------------
 
 class operator TdDouble.Multiply( const A_:Double; const B_:TdDouble ) :TdDouble;
 begin
@@ -359,6 +387,8 @@ begin
      Result.d := A_.d * B_.o + A_.o * B_.d;
 end;
 
+//------------------------------------------------------------------------------
+
 class operator TdDouble.Divide( const A_:TdDouble; const B_:Double ) :TdDouble;    
 begin
      Result.o := A_.o / B_;
@@ -370,6 +400,20 @@ begin
      Result.o := A_.o / B_.o;
      Result.d := ( A_.d * B_.o - A_.o * B_.d ) / Pow2( B_.o );
 end;
+
+//------------------------------------------------------------------------------
+
+class operator TdDouble.Equal( const A_,B_:TdDouble ) :Boolean;
+begin
+     Result := ( A_.o = B_.o ) and ( A_.d = B_.d );
+end;
+
+class operator TdDouble.NotEqual( const A_,B_:TdDouble ) :Boolean;
+begin
+     Result := not ( A_ = B_ );
+end;
+
+//------------------------------------------------------------------------------
 
 class operator TdDouble.GreaterThan( const A_,B_:TdDouble ) :Boolean;
 begin
