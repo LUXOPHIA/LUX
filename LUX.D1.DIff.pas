@@ -105,8 +105,8 @@ function Roo2( const X_:TdDouble ) :TdDouble; overload;
 function ArcCos( const X_:TdSingle ) :TdSingle; overload;
 function ArcCos( const X_:TdDouble ) :TdDouble; overload;
 
-function Abs( const V_:TdSingle ) :TdSingle; overload;
-function Abs( const V_:TdDouble ) :TdDouble; overload;
+function Abso( const V_:TdSingle ) :TdSingle; overload;
+function Abso( const V_:TdDouble ) :TdDouble; overload;
 
 function Sin( const X_:TdSingle ) :TdSingle; overload;
 function Sin( const X_:TdDouble ) :TdDouble; overload;
@@ -583,12 +583,12 @@ end;
 
 //------------------------------------------------------------------------------
 
-function Abs( const V_:TdSingle ) :TdSingle;
+function Abso( const V_:TdSingle ) :TdSingle;
 begin
      Result := Sign( V_.o ) * V_;
 end;
 
-function Abs( const V_:TdDouble ) :TdDouble;
+function Abso( const V_:TdDouble ) :TdDouble;
 begin
      Result := Sign( V_.o ) * V_;
 end;
