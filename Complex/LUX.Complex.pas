@@ -403,8 +403,8 @@ class function TSingleC.RandG( const SD_:Single = 1 ) :TSingleC;
 begin
      with Result do
      begin
-          R := System.Math.RandG( 0, SD_ );
-          I := System.Math.RandG( 0, SD_ );
+          R := TSingle.RandG( SD_ );
+          I := TSingle.RandG( SD_ );
      end;
 end;
 
@@ -412,8 +412,8 @@ class function TSingleC.RandG( const SD_:TSingleC ) :TSingleC;
 begin
      with Result do
      begin
-          R := System.Math.RandG( 0, SD_.R );
-          I := System.Math.RandG( 0, SD_.I );
+          R := TSingle.RandG( SD_.R );
+          I := TSingle.RandG( SD_.I );
      end;
 end;
 
@@ -632,8 +632,8 @@ class function TDoubleC.RandG( const SD_:Double = 1 ) :TDoubleC;
 begin
      with Result do
      begin
-          R := System.Math.RandG( 0, SD_ );
-          I := System.Math.RandG( 0, SD_ );
+          R := TDouble.RandG( SD_ );
+          I := TDouble.RandG( SD_ );
      end;
 end;
 
@@ -641,8 +641,8 @@ class function TDoubleC.RandG( const SD_:TDoubleC ) :TDoubleC;
 begin
      with Result do
      begin
-          R := System.Math.RandG( 0, SD_.R );
-          I := System.Math.RandG( 0, SD_.I );
+          R := TDouble.RandG( SD_.R );
+          I := TDouble.RandG( SD_.I );
      end;
 end;
 
