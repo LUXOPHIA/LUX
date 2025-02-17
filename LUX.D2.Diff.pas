@@ -23,7 +23,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        X :TdDouble;
        Y :TdDouble;
        /////
-       constructor Create( const X_,Y_,Z_:TdDouble ); overload;
+       constructor Create( const X_,Y_:TdDouble ); overload;
        constructor Create( const o_,d_:TDouble2D ); overload;
        ///// P R O P E R T Y
        property o :TDouble2D read Geto write Seto;
@@ -85,7 +85,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-constructor TdDouble2D.Create( const X_,Y_,Z_:TdDouble );
+constructor TdDouble2D.Create( const X_,Y_:TdDouble );
 begin
      X := X_;
      Y := Y_;
@@ -101,38 +101,26 @@ end;
 
 class operator TdDouble2D.Positive( const V_:TdDouble2D ) :TdDouble2D;
 begin
-     with Result do
-     begin
-          o := +V_.o;
-          d := +V_.d;
-     end;
+     Result.o := +V_.o;
+     Result.d := +V_.d;
 end;
 
 class operator TdDouble2D.Negative( const V_:TdDouble2D ) :TdDouble2D;
 begin
-     with Result do
-     begin
-          o := -V_.o;
-          d := -V_.d;
-     end;
+     Result.o := -V_.o;
+     Result.d := -V_.d;
 end;
 
 class operator TdDouble2D.Add( const A_,B_:TdDouble2D ) :TdDouble2D;
 begin
-     with Result do
-     begin
-          o := A_.o + B_.o;
-          d := A_.d + B_.d;
-     end;
+     Result.o := A_.o + B_.o;
+     Result.d := A_.d + B_.d;
 end;
 
 class operator TdDouble2D.Subtract( const A_,B_:TdDouble2D ) :TdDouble2D;
 begin
-     with Result do
-     begin
-          o := A_.o - B_.o;
-          d := A_.d - B_.d;
-     end;
+     Result.o := A_.o - B_.o;
+     Result.d := A_.d - B_.d;
 end;
 
 class operator TdDouble2D.Multiply( const A_:TdDouble; const B_:TdDouble2D ) :TdDouble2D;
@@ -157,38 +145,26 @@ end;
 
 class operator TdDouble2D.Implicit( const V_:Integer ) :TdDouble2D;
 begin
-     with Result do
-     begin
-          o := V_;
-          d := 0;
-     end;
+     Result.o := V_;
+     Result.d := 0;
 end;
 
 class operator TdDouble2D.Implicit( const V_:Int64 ) :TdDouble2D;
 begin
-     with Result do
-     begin
-          o := V_;
-          d := 0;
-     end;
+     Result.o := V_;
+     Result.d := 0;
 end;
 
 class operator TdDouble2D.Implicit( const V_:Double ) :TdDouble2D;
 begin
-     with Result do
-     begin
-          o := V_;
-          d := 0;
-     end;
+     Result.o := V_;
+     Result.d := 0;
 end;
 
 class operator TdDouble2D.Implicit( const V_:TdDouble ) :TdDouble2D;
 begin
-     with Result do
-     begin
-          o := V_.o;
-          d := V_.d;
-     end;
+     Result.o := V_.o;
+     Result.d := V_.d;
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
