@@ -252,191 +252,140 @@ end;
 
 class operator TSingle4D.Negative( const V_:TSingle4D ) :TSingle4D;
 begin
-     with Result do
-     begin
-          X := -V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-          W := -V_.W;
-     end;
+     Result.X := -V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
+     Result.W := -V_.W;
 end;
 
 class operator TSingle4D.Positive( const V_:TSingle4D ) :TSingle4D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := +V_.Y;
-          Z := +V_.Z;
-          W := +V_.W;
-     end;
+     Result.X := +V_.X;
+     Result.Y := +V_.Y;
+     Result.Z := +V_.Z;
+     Result.W := +V_.W;
 end;
 
 class operator TSingle4D.Add( const A_,B_:TSingle4D ) :TSingle4D;
 begin
-     with Result do
-     begin
-          X := A_.X + B_.X;
-          Y := A_.Y + B_.Y;
-          Z := A_.Z + B_.Z;
-          W := A_.W + B_.W;
-     end;
+     Result.X := A_.X + B_.X;
+     Result.Y := A_.Y + B_.Y;
+     Result.Z := A_.Z + B_.Z;
+     Result.W := A_.W + B_.W;
 end;
 
 class operator TSingle4D.Subtract( const A_,B_:TSingle4D ) :TSingle4D;
 begin
-     with Result do
-     begin
-          X := A_.X - B_.X;
-          Y := A_.Y - B_.Y;
-          Z := A_.Z - B_.Z;
-          W := A_.W - B_.W;
-     end;
+     Result.X := A_.X - B_.X;
+     Result.Y := A_.Y - B_.Y;
+     Result.Z := A_.Z - B_.Z;
+     Result.W := A_.W - B_.W;
 end;
 
 class operator TSingle4D.Multiply( const A_:TSingle4D; const B_:Single ) :TSingle4D;
 begin
-     with Result do
-     begin
-          X := A_.X * B_;
-          Y := A_.Y * B_;
-          Z := A_.Z * B_;
-          W := A_.W * B_;
-     end;
+     Result.X := A_.X * B_;
+     Result.Y := A_.Y * B_;
+     Result.Z := A_.Z * B_;
+     Result.W := A_.W * B_;
 end;
 
 class operator TSingle4D.Multiply( const A_:Single; const B_:TSingle4D ) :TSingle4D;
 begin
-     with Result do
-     begin
-          X := A_ * B_.X;
-          Y := A_ * B_.Y;
-          Z := A_ * B_.Z;
-          W := A_ * B_.W;
-     end;
+     Result.X := A_ * B_.X;
+     Result.Y := A_ * B_.Y;
+     Result.Z := A_ * B_.Z;
+     Result.W := A_ * B_.W;
 end;
 
 class operator TSingle4D.Divide( const A_:TSingle4D; const B_:Single ) :TSingle4D;
 begin
-     with Result do
-     begin
-          X := A_.X / B_;
-          Y := A_.Y / B_;
-          Z := A_.Z / B_;
-          W := A_.W / B_;
-     end;
+     Result.X := A_.X / B_;
+     Result.Y := A_.Y / B_;
+     Result.Z := A_.Z / B_;
+     Result.W := A_.W / B_;
 end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TSingle4D.Implicit( const V_:TSingle3D ) :TSingle4D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := V_.Z;
-          W :=    0;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
+     Result.W :=    0;
 end;
 
 class operator TSingle4D.Explicit( const V_:TSingle4D ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := V_.Z;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
 end;
 
 class operator TSingle4D.Implicit( const V_:TPoint3D ) :TSingle4D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-          W :=     0;
-     end;
+     Result.X := +V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
+     Result.W :=     0;
 end;
 
 class operator TSingle4D.Explicit( const V_:TSingle4D ) :TPoint3D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-     end;
+     Result.X := +V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
 end;
 
 class operator TSingle4D.Implicit( const V_:TVector3D ) :TSingle4D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-          W :=  V_.W;
-     end;
+     Result.X := +V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
+     Result.W :=  V_.W;
 end;
 
 class operator TSingle4D.Explicit( const V_:TSingle4D ) :TVector3D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-          W :=  V_.W;
-     end;
+     Result.X := +V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
+     Result.W :=  V_.W;
 end;
 
 //////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TSingle4D.IdentityX :TSingle4D;
 begin
-     with Result do
-     begin
-          X := 1;
-          Y := 0;
-          Z := 0;
-          W := 0;
-     end;
+     Result.X := 1;
+     Result.Y := 0;
+     Result.Z := 0;
+     Result.W := 0;
 end;
 
 class function TSingle4D.IdentityY :TSingle4D;
 begin
-     with Result do
-     begin
-          X := 0;
-          Y := 1;
-          Z := 0;
-          W := 0;
-     end;
+     Result.X := 0;
+     Result.Y := 1;
+     Result.Z := 0;
+     Result.W := 0;
 end;
 
 class function TSingle4D.IdentityZ :TSingle4D;
 begin
-     with Result do
-     begin
-          X := 0;
-          Y := 0;
-          Z := 1;
-          W := 0;
-     end;
+     Result.X := 0;
+     Result.Y := 0;
+     Result.Z := 1;
+     Result.W := 0;
 end;
 
 class function TSingle4D.IdentityW :TSingle4D;
 begin
-     with Result do
-     begin
-          X := 0;
-          Y := 0;
-          Z := 0;
-          W := 1;
-     end;
+     Result.X := 0;
+     Result.Y := 0;
+     Result.Z := 0;
+     Result.W := 1;
 end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
@@ -469,48 +418,36 @@ end;
 
 class function TSingle4D.RandG :TSingle4D;
 begin
-     with Result do
-     begin
-          X := TSingle.RandG;
-          Y := TSingle.RandG;
-          Z := TSingle.RandG;
-          W := TSingle.RandG;
-     end;
+     Result.X := TSingle.RandG;
+     Result.Y := TSingle.RandG;
+     Result.Z := TSingle.RandG;
+     Result.W := TSingle.RandG;
 end;
 
 //------------------------------------------------------------------------------
 
 class function TSingle4D.RandBS1 :TSingle4D;
 begin
-     with Result do
-     begin
-          X := TSingle.RandBS1;
-          Y := TSingle.RandBS1;
-          Z := TSingle.RandBS1;
-          W := TSingle.RandBS1;
-     end;
+     Result.X := TSingle.RandBS1;
+     Result.Y := TSingle.RandBS1;
+     Result.Z := TSingle.RandBS1;
+     Result.W := TSingle.RandBS1;
 end;
 
 class function TSingle4D.RandBS2 :TSingle4D;
 begin
-     with Result do
-     begin
-          X := TSingle.RandBS2;
-          Y := TSingle.RandBS2;
-          Z := TSingle.RandBS2;
-          W := TSingle.RandBS2;
-     end;
+     Result.X := TSingle.RandBS2;
+     Result.Y := TSingle.RandBS2;
+     Result.Z := TSingle.RandBS2;
+     Result.W := TSingle.RandBS2;
 end;
 
 class function TSingle4D.RandBS4 :TSingle4D;
 begin
-     with Result do
-     begin
-          X := TSingle.RandBS4;
-          Y := TSingle.RandBS4;
-          Z := TSingle.RandBS4;
-          W := TSingle.RandBS4;
-     end;
+     Result.X := TSingle.RandBS4;
+     Result.Y := TSingle.RandBS4;
+     Result.Z := TSingle.RandBS4;
+     Result.W := TSingle.RandBS4;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDouble4D
@@ -591,191 +528,140 @@ end;
 
 class operator TDouble4D.Negative( const V_:TDouble4D ) :TDouble4D;
 begin
-     with Result do
-     begin
-          X := -V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-          W := -V_.W;
-     end;
+     Result.X := -V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
+     Result.W := -V_.W;
 end;
 
 class operator TDouble4D.Positive( const V_:TDouble4D ) :TDouble4D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := +V_.Y;
-          Z := +V_.Z;
-          W := +V_.W;
-     end;
+     Result.X := +V_.X;
+     Result.Y := +V_.Y;
+     Result.Z := +V_.Z;
+     Result.W := +V_.W;
 end;
 
 class operator TDouble4D.Add( const A_,B_:TDouble4D ) :TDouble4D;
 begin
-     with Result do
-     begin
-          X := A_.X + B_.X;
-          Y := A_.Y + B_.Y;
-          Z := A_.Z + B_.Z;
-          W := A_.W + B_.W;
-     end;
+     Result.X := A_.X + B_.X;
+     Result.Y := A_.Y + B_.Y;
+     Result.Z := A_.Z + B_.Z;
+     Result.W := A_.W + B_.W;
 end;
 
 class operator TDouble4D.Subtract( const A_,B_:TDouble4D ) :TDouble4D;
 begin
-     with Result do
-     begin
-          X := A_.X - B_.X;
-          Y := A_.Y - B_.Y;
-          Z := A_.Z - B_.Z;
-          W := A_.W - B_.W;
-     end;
+     Result.X := A_.X - B_.X;
+     Result.Y := A_.Y - B_.Y;
+     Result.Z := A_.Z - B_.Z;
+     Result.W := A_.W - B_.W;
 end;
 
 class operator TDouble4D.Multiply( const A_:TDouble4D; const B_:Double ) :TDouble4D;
 begin
-     with Result do
-     begin
-          X := A_.X * B_;
-          Y := A_.Y * B_;
-          Z := A_.Z * B_;
-          W := A_.W * B_;
-     end;
+     Result.X := A_.X * B_;
+     Result.Y := A_.Y * B_;
+     Result.Z := A_.Z * B_;
+     Result.W := A_.W * B_;
 end;
 
 class operator TDouble4D.Multiply( const A_:Double; const B_:TDouble4D ) :TDouble4D;
 begin
-     with Result do
-     begin
-          X := A_ * B_.X;
-          Y := A_ * B_.Y;
-          Z := A_ * B_.Z;
-          W := A_ * B_.W;
-     end;
+     Result.X := A_ * B_.X;
+     Result.Y := A_ * B_.Y;
+     Result.Z := A_ * B_.Z;
+     Result.W := A_ * B_.W;
 end;
 
 class operator TDouble4D.Divide( const A_:TDouble4D; const B_:Double ) :TDouble4D;
 begin
-     with Result do
-     begin
-          X := A_.X / B_;
-          Y := A_.Y / B_;
-          Z := A_.Z / B_;
-          W := A_.W / B_;
-     end;
+     Result.X := A_.X / B_;
+     Result.Y := A_.Y / B_;
+     Result.Z := A_.Z / B_;
+     Result.W := A_.W / B_;
 end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TDouble4D.Implicit( const V_:TDouble3D ) :TDouble4D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := V_.Z;
-          W :=    0;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
+     Result.W :=    0;
 end;
 
 class operator TDouble4D.Explicit( const V_:TDouble4D ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := V_.Z;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
 end;
 
 class operator TDouble4D.Implicit( const V_:TPoint3D ) :TDouble4D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-          W :=     0;
-     end;
+     Result.X := +V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
+     Result.W :=     0;
 end;
 
 class operator TDouble4D.Explicit( const V_:TDouble4D ) :TPoint3D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-     end;
+     Result.X := +V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
 end;
 
 class operator TDouble4D.Implicit( const V_:TVector3D ) :TDouble4D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-          W :=  V_.W;
-     end;
+     Result.X := +V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
+     Result.W :=  V_.W;
 end;
 
 class operator TDouble4D.Explicit( const V_:TDouble4D ) :TVector3D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-          W :=  V_.W;
-     end;
+     Result.X := +V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
+     Result.W :=  V_.W;
 end;
 
 //////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TDouble4D.IdentityX :TDouble4D;
 begin
-     with Result do
-     begin
-          X := 1;
-          Y := 0;
-          Z := 0;
-          W := 0;
-     end;
+     Result.X := 1;
+     Result.Y := 0;
+     Result.Z := 0;
+     Result.W := 0;
 end;
 
 class function TDouble4D.IdentityY :TDouble4D;
 begin
-     with Result do
-     begin
-          X := 0;
-          Y := 1;
-          Z := 0;
-          W := 0;
-     end;
+     Result.X := 0;
+     Result.Y := 1;
+     Result.Z := 0;
+     Result.W := 0;
 end;
 
 class function TDouble4D.IdentityZ :TDouble4D;
 begin
-     with Result do
-     begin
-          X := 0;
-          Y := 0;
-          Z := 1;
-          W := 0;
-     end;
+     Result.X := 0;
+     Result.Y := 0;
+     Result.Z := 1;
+     Result.W := 0;
 end;
 
 class function TDouble4D.IdentityW :TDouble4D;
 begin
-     with Result do
-     begin
-          X := 0;
-          Y := 0;
-          Z := 0;
-          W := 1;
-     end;
+     Result.X := 0;
+     Result.Y := 0;
+     Result.Z := 0;
+     Result.W := 1;
 end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
@@ -808,48 +694,36 @@ end;
 
 class function TDouble4D.RandG :TDouble4D;
 begin
-     with Result do
-     begin
-          X := TDouble.RandG;
-          Y := TDouble.RandG;
-          Z := TDouble.RandG;
-          W := TDouble.RandG;
-     end;
+     Result.X := TDouble.RandG;
+     Result.Y := TDouble.RandG;
+     Result.Z := TDouble.RandG;
+     Result.W := TDouble.RandG;
 end;
 
 //------------------------------------------------------------------------------
 
 class function TDouble4D.RandBS1 :TDouble4D;
 begin
-     with Result do
-     begin
-          X := TDouble.RandBS1;
-          Y := TDouble.RandBS1;
-          Z := TDouble.RandBS1;
-          W := TDouble.RandBS1;
-     end;
+     Result.X := TDouble.RandBS1;
+     Result.Y := TDouble.RandBS1;
+     Result.Z := TDouble.RandBS1;
+     Result.W := TDouble.RandBS1;
 end;
 
 class function TDouble4D.RandBS2 :TDouble4D;
 begin
-     with Result do
-     begin
-          X := TDouble.RandBS2;
-          Y := TDouble.RandBS2;
-          Z := TDouble.RandBS2;
-          W := TDouble.RandBS2;
-     end;
+     Result.X := TDouble.RandBS2;
+     Result.Y := TDouble.RandBS2;
+     Result.Z := TDouble.RandBS2;
+     Result.W := TDouble.RandBS2;
 end;
 
 class function TDouble4D.RandBS4 :TDouble4D;
 begin
-     with Result do
-     begin
-          X := TDouble.RandBS4;
-          Y := TDouble.RandBS4;
-          Z := TDouble.RandBS4;
-          W := TDouble.RandBS4;
-     end;
+     Result.X := TDouble.RandBS4;
+     Result.Y := TDouble.RandBS4;
+     Result.Z := TDouble.RandBS4;
+     Result.W := TDouble.RandBS4;
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
@@ -878,46 +752,40 @@ end;
 
 function CrossProduct( const A_,B_,C_:TSingle4D ) :TSingle4D;
 begin
-     with Result do
-     begin
-          X := A_.Y * B_.Z * C_.W - A_.W * B_.Z * C_.Y
-             + B_.Y * C_.Z * A_.W - B_.W * C_.Z * A_.Y
-             + C_.Y * A_.Z * B_.W - C_.W * A_.Z * B_.Y;
+     Result.X := A_.Y * B_.Z * C_.W - A_.W * B_.Z * C_.Y
+               + B_.Y * C_.Z * A_.W - B_.W * C_.Z * A_.Y
+               + C_.Y * A_.Z * B_.W - C_.W * A_.Z * B_.Y;
 
-          Y := A_.X * B_.W * C_.Z - A_.Z * B_.W * C_.X
-             + B_.X * C_.W * A_.Z - B_.Z * C_.W * A_.X
-             + C_.X * A_.W * B_.Z - C_.Z * A_.W * B_.X;
+     Result.Y := A_.X * B_.W * C_.Z - A_.Z * B_.W * C_.X
+               + B_.X * C_.W * A_.Z - B_.Z * C_.W * A_.X
+               + C_.X * A_.W * B_.Z - C_.Z * A_.W * B_.X;
 
-          Z := A_.W * B_.X * C_.Y - A_.Y * B_.X * C_.W
-             + B_.W * C_.X * A_.Y - B_.Y * C_.X * A_.W
-             + C_.W * A_.X * B_.Y - C_.Y * A_.X * B_.W;
+     Result.Z := A_.W * B_.X * C_.Y - A_.Y * B_.X * C_.W
+               + B_.W * C_.X * A_.Y - B_.Y * C_.X * A_.W
+               + C_.W * A_.X * B_.Y - C_.Y * A_.X * B_.W;
 
-          W := A_.Z * B_.Y * C_.X - A_.X * B_.Y * C_.Z
-             + B_.Z * C_.Y * A_.X - B_.X * C_.Y * A_.Z
-             + C_.Z * A_.Y * B_.X - C_.X * A_.Y * B_.Z;
-     end;
+     Result.W := A_.Z * B_.Y * C_.X - A_.X * B_.Y * C_.Z
+               + B_.Z * C_.Y * A_.X - B_.X * C_.Y * A_.Z
+               + C_.Z * A_.Y * B_.X - C_.X * A_.Y * B_.Z;
 end;
 
 function CrossProduct( const A_,B_,C_:TDouble4D ) :TDouble4D;
 begin
-     with Result do
-     begin
-          X := A_.Y * B_.Z * C_.W - A_.W * B_.Z * C_.Y
-             + B_.Y * C_.Z * A_.W - B_.W * C_.Z * A_.Y
-             + C_.Y * A_.Z * B_.W - C_.W * A_.Z * B_.Y;
+     Result.X := A_.Y * B_.Z * C_.W - A_.W * B_.Z * C_.Y
+               + B_.Y * C_.Z * A_.W - B_.W * C_.Z * A_.Y
+               + C_.Y * A_.Z * B_.W - C_.W * A_.Z * B_.Y;
 
-          Y := A_.X * B_.W * C_.Z - A_.Z * B_.W * C_.X
-             + B_.X * C_.W * A_.Z - B_.Z * C_.W * A_.X
-             + C_.X * A_.W * B_.Z - C_.Z * A_.W * B_.X;
+     Result.Y := A_.X * B_.W * C_.Z - A_.Z * B_.W * C_.X
+               + B_.X * C_.W * A_.Z - B_.Z * C_.W * A_.X
+               + C_.X * A_.W * B_.Z - C_.Z * A_.W * B_.X;
 
-          Z := A_.W * B_.X * C_.Y - A_.Y * B_.X * C_.W
-             + B_.W * C_.X * A_.Y - B_.Y * C_.X * A_.W
-             + C_.W * A_.X * B_.Y - C_.Y * A_.X * B_.W;
+     Result.Z := A_.W * B_.X * C_.Y - A_.Y * B_.X * C_.W
+               + B_.W * C_.X * A_.Y - B_.Y * C_.X * A_.W
+               + C_.W * A_.X * B_.Y - C_.Y * A_.X * B_.W;
 
-          W := A_.Z * B_.Y * C_.X - A_.X * B_.Y * C_.Z
-             + B_.Z * C_.Y * A_.X - B_.X * C_.Y * A_.Z
-             + C_.Z * A_.Y * B_.X - C_.X * A_.Y * B_.Z;
-     end;
+     Result.W := A_.Z * B_.Y * C_.X - A_.X * B_.Y * C_.Z
+               + B_.Z * C_.Y * A_.X - B_.X * C_.Y * A_.Z
+               + C_.Z * A_.Y * B_.X - C_.X * A_.Y * B_.Z;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Distance

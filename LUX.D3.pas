@@ -352,123 +352,87 @@ end;
 
 class operator TSingle3D.Negative( const V_:TSingle3D ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := -V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-     end;
+     Result.X := -V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
 end;
 
 class operator TSingle3D.Positive( const V_:TSingle3D ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := +V_.Y;
-          Z := +V_.Z;
-     end;
+     Result.X := +V_.X;
+     Result.Y := +V_.Y;
+     Result.Z := +V_.Z;
 end;
 
 class operator TSingle3D.Add( const A_,B_:TSingle3D ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := A_.X + B_.X;
-          Y := A_.Y + B_.Y;
-          Z := A_.Z + B_.Z;
-     end;
+     Result.X := A_.X + B_.X;
+     Result.Y := A_.Y + B_.Y;
+     Result.Z := A_.Z + B_.Z;
 end;
 
 class operator TSingle3D.Subtract( const A_,B_:TSingle3D ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := A_.X - B_.X;
-          Y := A_.Y - B_.Y;
-          Z := A_.Z - B_.Z;
-     end;
+     Result.X := A_.X - B_.X;
+     Result.Y := A_.Y - B_.Y;
+     Result.Z := A_.Z - B_.Z;
 end;
 
 class operator TSingle3D.Multiply( const A_:TSingle3D; const B_:Single ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := A_.X * B_;
-          Y := A_.Y * B_;
-          Z := A_.Z * B_;
-     end;
+     Result.X := A_.X * B_;
+     Result.Y := A_.Y * B_;
+     Result.Z := A_.Z * B_;
 end;
 
 class operator TSingle3D.Multiply( const A_:Single; const B_:TSingle3D ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := A_ * B_.X;
-          Y := A_ * B_.Y;
-          Z := A_ * B_.Z;
-     end;
+     Result.X := A_ * B_.X;
+     Result.Y := A_ * B_.Y;
+     Result.Z := A_ * B_.Z;
 end;
 
 class operator TSingle3D.Divide( const A_:TSingle3D; const B_:Single ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := A_.X / B_;
-          Y := A_.Y / B_;
-          Z := A_.Z / B_;
-     end;
+     Result.X := A_.X / B_;
+     Result.Y := A_.Y / B_;
+     Result.Z := A_.Z / B_;
 end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TSingle3D.Implicit( const V_:Single ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := V_;
-          Y := V_;
-          Z := V_;
-     end;
+     Result.X := V_;
+     Result.Y := V_;
+     Result.Z := V_;
 end;
 
 class operator TSingle3D.Implicit( const V_:TSingle2D ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := 0;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z :=    0;
 end;
 
 class operator TSingle3D.Explicit( const V_:TSingle3D ) :TSingle2D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
 end;
 
 class operator TSingle3D.Implicit( const V_:TPoint3D ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := V_.Z;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
 end;
 
 class operator TSingle3D.Implicit( const V_:TSingle3D ) :TPoint3D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := V_.Z;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
 end;
 
 class operator TSingle3D.Implicit( const V_:TVector3D ) :TSingle3D;
@@ -485,32 +449,23 @@ end;
 
 class function TSingle3D.IdentityX :TSingle3D;
 begin
-     with Result do
-     begin
-          X := 1;
-          Y := 0;
-          Z := 0;
-     end;
+     Result.X := 1;
+     Result.Y := 0;
+     Result.Z := 0;
 end;
 
 class function TSingle3D.IdentityY :TSingle3D;
 begin
-     with Result do
-     begin
-          X := 0;
-          Y := 1;
-          Z := 0;
-     end;
+     Result.X := 0;
+     Result.Y := 1;
+     Result.Z := 0;
 end;
 
 class function TSingle3D.IdentityZ :TSingle3D;
 begin
-     with Result do
-     begin
-          X := 0;
-          Y := 0;
-          Z := 1;
-     end;
+     Result.X := 0;
+     Result.Y := 0;
+     Result.Z := 1;
 end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
@@ -534,44 +489,32 @@ end;
 
 class function TSingle3D.RandG :TSingle3D;
 begin
-     with Result do
-     begin
-          X := System.Math.RandG( 0, 1 );
-          Y := System.Math.RandG( 0, 1 );
-          Z := System.Math.RandG( 0, 1 );
-     end;
+     Result.X := TSingle.RandG;
+     Result.Y := TSingle.RandG;
+     Result.Z := TSingle.RandG;
 end;
 
 //------------------------------------------------------------------------------
 
 class function TSingle3D.RandBS1 :TSingle3D;
 begin
-     with Result do
-     begin
-          X := TSingle.RandBS1;
-          Y := TSingle.RandBS1;
-          Z := TSingle.RandBS1;
-     end;
+     Result.X := TSingle.RandBS1;
+     Result.Y := TSingle.RandBS1;
+     Result.Z := TSingle.RandBS1;
 end;
 
 class function TSingle3D.RandBS2 :TSingle3D;
 begin
-     with Result do
-     begin
-          X := TSingle.RandBS2;
-          Y := TSingle.RandBS2;
-          Z := TSingle.RandBS2;
-     end;
+     Result.X := TSingle.RandBS2;
+     Result.Y := TSingle.RandBS2;
+     Result.Z := TSingle.RandBS2;
 end;
 
 class function TSingle3D.RandBS4 :TSingle3D;
 begin
-     with Result do
-     begin
-          X := TSingle.RandBS4;
-          Y := TSingle.RandBS4;
-          Z := TSingle.RandBS4;
-     end;
+     Result.X := TSingle.RandBS4;
+     Result.Y := TSingle.RandBS4;
+     Result.Z := TSingle.RandBS4;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDouble3D
@@ -690,123 +633,87 @@ end;
 
 class operator TDouble3D.Negative( const V_:TDouble3D ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := -V_.X;
-          Y := -V_.Y;
-          Z := -V_.Z;
-     end;
+     Result.X := -V_.X;
+     Result.Y := -V_.Y;
+     Result.Z := -V_.Z;
 end;
 
 class operator TDouble3D.Positive( const V_:TDouble3D ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := +V_.X;
-          Y := +V_.Y;
-          Z := +V_.Z;
-     end;
+     Result.X := +V_.X;
+     Result.Y := +V_.Y;
+     Result.Z := +V_.Z;
 end;
 
 class operator TDouble3D.Add( const A_,B_:TDouble3D ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := A_.X + B_.X;
-          Y := A_.Y + B_.Y;
-          Z := A_.Z + B_.Z;
-     end;
+     Result.X := A_.X + B_.X;
+     Result.Y := A_.Y + B_.Y;
+     Result.Z := A_.Z + B_.Z;
 end;
 
 class operator TDouble3D.Subtract( const A_,B_:TDouble3D ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := A_.X - B_.X;
-          Y := A_.Y - B_.Y;
-          Z := A_.Z - B_.Z;
-     end;
+     Result.X := A_.X - B_.X;
+     Result.Y := A_.Y - B_.Y;
+     Result.Z := A_.Z - B_.Z;
 end;
 
 class operator TDouble3D.Multiply( const A_:TDouble3D; const B_:Double ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := A_.X * B_;
-          Y := A_.Y * B_;
-          Z := A_.Z * B_;
-     end;
+     Result.X := A_.X * B_;
+     Result.Y := A_.Y * B_;
+     Result.Z := A_.Z * B_;
 end;
 
 class operator TDouble3D.Multiply( const A_:Double; const B_:TDouble3D ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := A_ * B_.X;
-          Y := A_ * B_.Y;
-          Z := A_ * B_.Z;
-     end;
+     Result.X := A_ * B_.X;
+     Result.Y := A_ * B_.Y;
+     Result.Z := A_ * B_.Z;
 end;
 
 class operator TDouble3D.Divide( const A_:TDouble3D; const B_:Double ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := A_.X / B_;
-          Y := A_.Y / B_;
-          Z := A_.Z / B_;
-     end;
+     Result.X := A_.X / B_;
+     Result.Y := A_.Y / B_;
+     Result.Z := A_.Z / B_;
 end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TDouble3D.Implicit( const V_:Double ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := V_;
-          Y := V_;
-          Z := V_;
-     end;
+     Result.X := V_;
+     Result.Y := V_;
+     Result.Z := V_;
 end;
 
 class operator TDouble3D.Implicit( const V_:TDouble2D ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := 0;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z :=    0;
 end;
 
 class operator TDouble3D.Explicit( const V_:TDouble3D ) :TDouble2D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
 end;
 
 class operator TDouble3D.Implicit( const V_:TPoint3D ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := V_.Z;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
 end;
 
 class operator TDouble3D.Implicit( const V_:TDouble3D ) :TPoint3D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := V_.Z;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
 end;
 
 class operator TDouble3D.Implicit( const V_:TVector3D ) :TDouble3D;
@@ -821,54 +728,39 @@ end;
 
 class operator TDouble3D.Implicit( const V_:TSingle3D ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := V_.Z;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
 end;
 
 class operator TDouble3D.Implicit( const V_:TDouble3D ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := V_.X;
-          Y := V_.Y;
-          Z := V_.Z;
-     end;
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
 end;
 
 //////////////////////////////////////////////////////////////// C O N S T A N T
 
 class function TDouble3D.IdentityX :TDouble3D;
 begin
-     with Result do
-     begin
-          X := 1;
-          Y := 0;
-          Z := 0;
-     end;
+     Result.X := 1;
+     Result.Y := 0;
+     Result.Z := 0;
 end;
 
 class function TDouble3D.IdentityY :TDouble3D;
 begin
-     with Result do
-     begin
-          X := 0;
-          Y := 1;
-          Z := 0;
-     end;
+     Result.X := 0;
+     Result.Y := 1;
+     Result.Z := 0;
 end;
 
 class function TDouble3D.IdentityZ :TDouble3D;
 begin
-     with Result do
-     begin
-          X := 0;
-          Y := 0;
-          Z := 1;
-     end;
+     Result.X := 0;
+     Result.Y := 0;
+     Result.Z := 1;
 end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
@@ -892,44 +784,32 @@ end;
 
 class function TDouble3D.RandG :TDouble3D;
 begin
-     with Result do
-     begin
-          X := System.Math.RandG( 0, 1 );
-          Y := System.Math.RandG( 0, 1 );
-          Z := System.Math.RandG( 0, 1 );
-     end;
+     Result.X := TDouble.RandG;
+     Result.Y := TDouble.RandG;
+     Result.Z := TDouble.RandG;
 end;
 
 //------------------------------------------------------------------------------
 
 class function TDouble3D.RandBS1 :TDouble3D;
 begin
-     with Result do
-     begin
-          X := TDouble.RandBS1;
-          Y := TDouble.RandBS1;
-          Z := TDouble.RandBS1;
-     end;
+     Result.X := TDouble.RandBS1;
+     Result.Y := TDouble.RandBS1;
+     Result.Z := TDouble.RandBS1;
 end;
 
 class function TDouble3D.RandBS2 :TDouble3D;
 begin
-     with Result do
-     begin
-          X := TDouble.RandBS2;
-          Y := TDouble.RandBS2;
-          Z := TDouble.RandBS2;
-     end;
+     Result.X := TDouble.RandBS2;
+     Result.Y := TDouble.RandBS2;
+     Result.Z := TDouble.RandBS2;
 end;
 
 class function TDouble3D.RandBS4 :TDouble3D;
 begin
-     with Result do
-     begin
-          X := TDouble.RandBS4;
-          Y := TDouble.RandBS4;
-          Z := TDouble.RandBS4;
-     end;
+     Result.X := TDouble.RandBS4;
+     Result.Y := TDouble.RandBS4;
+     Result.Z := TDouble.RandBS4;
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
@@ -968,22 +848,16 @@ end;
 
 function CrossProduct( const A_,B_:TSingle3D ) :TSingle3D;
 begin
-     with Result do
-     begin
-          X := A_.Y * B_.Z - A_.Z * B_.Y;
-          Y := A_.Z * B_.X - A_.X * B_.Z;
-          Z := A_.X * B_.Y - A_.Y * B_.X;
-     end;
+     Result.X := A_.Y * B_.Z - A_.Z * B_.Y;
+     Result.Y := A_.Z * B_.X - A_.X * B_.Z;
+     Result.Z := A_.X * B_.Y - A_.Y * B_.X;
 end;
 
 function CrossProduct( const A_,B_:TDouble3D ) :TDouble3D;
 begin
-     with Result do
-     begin
-          X := A_.Y * B_.Z - A_.Z * B_.Y;
-          Y := A_.Z * B_.X - A_.X * B_.Z;
-          Z := A_.X * B_.Y - A_.Y * B_.X;
-     end;
+     Result.X := A_.Y * B_.Z - A_.Z * B_.Y;
+     Result.Y := A_.Z * B_.X - A_.X * B_.Z;
+     Result.Z := A_.X * B_.Y - A_.Y * B_.X;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Distance
