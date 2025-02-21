@@ -1,4 +1,4 @@
-﻿unit LUX.D1.Gamma.C2.Diff;
+﻿unit LUX.C2.Gamma.Diff;
 
 interface //#################################################################### ■
 
