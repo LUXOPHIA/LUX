@@ -1,4 +1,4 @@
-﻿unit LUX.D1.Gamma.FMX.D3;
+﻿unit LUX.C2.Gamma.FMX.D3;
 
 interface //#################################################################### ■
 
@@ -12,8 +12,8 @@ uses System.SysUtils, System.RTLConsts, System.Classes,
      LUX.D4x4, LUX.D4x4.Diff,
      LUX.Complex,
      LUX.Complex.Diff,
-     LUX.D1.Gamma.C2,
-     LUX.D1.Gamma.C2.Diff,
+     LUX.C2.Gamma,
+     LUX.C2.Gamma.Diff,
      LUX.FMX.Graphics.D3;
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
