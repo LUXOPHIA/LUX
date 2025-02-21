@@ -1,10 +1,8 @@
-﻿unit LUX.C2.Gamma.Diff;
+﻿unit LUX.C2.Gamma.Ooura;
 
 interface //#################################################################### ■
 
-uses LUX,
-     LUX.D1.Diff,
-     LUX.Complex.Diff;
+uses LUX, LUX.Complex;
 
 //type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
@@ -14,8 +12,8 @@ uses LUX,
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
-function Gamma( const X_:TdSingleC ) :TdSingleC; overload;
-function Gamma( const X_:TdDoubleC ) :TdDoubleC; overload;
+function Gamma( const X_:TSingleC ) :TSingleC; overload;
+function Gamma( const X_:TDoubleC ) :TDoubleC; overload;
 
 implementation //############################################################### ■
 
@@ -25,10 +23,10 @@ implementation //###############################################################
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
-function Gamma( const X_:TdSingleC ) :TdSingleC;
+function Gamma( const X_:TSingleC ) :TSingleC;
 var
-   W, U, V, Y :TdSingleC;
-   T :TdSingle;
+   W, U, V, Y :TSingleC;
+   T :Single;
 begin
      if X_.R < 0 then W := 1 - X_
                  else W :=     X_;
@@ -73,10 +71,10 @@ begin
      Result := Y;
 end;
 
-function Gamma( const X_:TdDoubleC ) :TdDoubleC;
+function Gamma( const X_:TDoubleC ) :TDoubleC;
 var
-   W, U, V, Y :TdDoubleC;
-   T :TdDouble;
+   W, U, V, Y :TDoubleC;
+   T :Double;
 begin
      if X_.R < 0 then W := 1 - X_
                  else W :=     X_;
