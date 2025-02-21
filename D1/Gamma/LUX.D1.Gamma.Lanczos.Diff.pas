@@ -12,27 +12,27 @@ uses LUX, LUX.D1.Diff;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LnGamma*
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RLnGamma*
 
-function LnGamma7( const X_:TdSingle ) :TdSingle; overload;
-function LnGamma7( const X_:TdDouble ) :TdDouble; overload;
-function LnGamma9( const X_:TdSingle ) :TdSingle; overload;
-function LnGamma9( const X_:TdDouble ) :TdDouble; overload;
-function LnGamma11( const X_:TdSingle ) :TdSingle; overload;
-function LnGamma11( const X_:TdDouble ) :TdDouble; overload;
-function LnGamma15( const X_:TdSingle ) :TdSingle; overload;
-function LnGamma15( const X_:TdDouble ) :TdDouble; overload;
+function RLnGamma7( const X_:TdSingle ) :TdSingle; overload;
+function RLnGamma7( const X_:TdDouble ) :TdDouble; overload;
+function RLnGamma9( const X_:TdSingle ) :TdSingle; overload;
+function RLnGamma9( const X_:TdDouble ) :TdDouble; overload;
+function RLnGamma11( const X_:TdSingle ) :TdSingle; overload;
+function RLnGamma11( const X_:TdDouble ) :TdDouble; overload;
+function RLnGamma15( const X_:TdSingle ) :TdSingle; overload;
+function RLnGamma15( const X_:TdDouble ) :TdDouble; overload;
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Gamma*
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RGamma*
 
-function Gamma7( const X_:TdSingle ) :TdSingle; overload;
-function Gamma7( const X_:TdDouble ) :TdDouble; overload;
-function Gamma9( const X_:TdSingle ) :TdSingle; overload;
-function Gamma9( const X_:TdDouble ) :TdDouble; overload;
-function Gamma11( const X_:TdSingle ) :TdSingle; overload;
-function Gamma11( const X_:TdDouble ) :TdDouble; overload;
-function Gamma15( const X_:TdSingle ) :TdSingle; overload;
-function Gamma15( const X_:TdDouble ) :TdDouble; overload;
+function RGamma7( const X_:TdSingle ) :TdSingle; overload;
+function RGamma7( const X_:TdDouble ) :TdDouble; overload;
+function RGamma9( const X_:TdSingle ) :TdSingle; overload;
+function RGamma9( const X_:TdDouble ) :TdDouble; overload;
+function RGamma11( const X_:TdSingle ) :TdSingle; overload;
+function RGamma11( const X_:TdDouble ) :TdDouble; overload;
+function RGamma15( const X_:TdSingle ) :TdSingle; overload;
+function RGamma15( const X_:TdDouble ) :TdDouble; overload;
 
 implementation //############################################################### ■
 
@@ -98,9 +98,9 @@ const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LnGamma*
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RLnGamma*
 
-function LnGammaP( const X_:TdSingle; const LCg_:Double; const LCs_:array of Double ) :TdSingle; overload;  // 0 < X
+function RLnGammaP( const X_:TdSingle; const LCg_:Double; const LCs_:array of Double ) :TdSingle; overload;  // 0 < X
 var
    X1, B, A :TdSingle;
    I :Integer;
@@ -115,7 +115,7 @@ begin
      Result := Ln(Pi2)/2 + Ln( A ) - B + Ln( B ) * ( X1 + 0.5 );
 end;
 
-function LnGammaP( const X_:TdDouble; const LCg_:Double; const LCs_:array of Double ) :TdDouble; overload;  // 0 < X
+function RLnGammaP( const X_:TdDouble; const LCg_:Double; const LCs_:array of Double ) :TdDouble; overload;  // 0 < X
 var
    X1, B, A :TdDouble;
    I :Integer;
@@ -132,126 +132,126 @@ end;
 
 //------------------------------------------------------------------------------
 
-function LnGamma( const X_:TdSingle; const LCg_:Double; const LCs_:array of Double ) :TdSingle; overload;
+function RLnGamma( const X_:TdSingle; const LCg_:Double; const LCs_:array of Double ) :TdSingle; overload;
 begin
-     if X_ < 0.5 then Result := Ln( Pi / Sin( Pi * X_ ) ) - LnGammaP( 1 - X_, LCg_, LCs_ )
-                 else Result :=                             LnGammaP(     X_, LCg_, LCs_ );
+     if X_ < 0.5 then Result := Ln( Pi / Sin( Pi * X_ ) ) - RLnGammaP( 1 - X_, LCg_, LCs_ )
+                 else Result :=                             RLnGammaP(     X_, LCg_, LCs_ );
 end;
 
-function LnGamma( const X_:TdDouble; const LCg_:Double; const LCs_:array of Double ) :TdDouble; overload;
+function RLnGamma( const X_:TdDouble; const LCg_:Double; const LCs_:array of Double ) :TdDouble; overload;
 begin
-     if X_ < 0.5 then Result := Ln( Pi / Sin( Pi * X_ ) ) - LnGammaP( 1 - X_, LCg_, LCs_ )
-                 else Result :=                             LnGammaP(     X_, LCg_, LCs_ );
-end;
-
-//------------------------------------------------------------------------------
-
-function LnGamma7( const X_:TdSingle ) :TdSingle;
-begin
-     Result := LnGamma( X_, _LC7g, _LC7s );
-end;
-
-function LnGamma7( const X_:TdDouble ) :TdDouble;
-begin
-     Result := LnGamma( X_, _LC7g, _LC7s );
-end;
-
-function LnGamma9( const X_:TdSingle ) :TdSingle;
-begin
-     Result := LnGamma( X_, _LC9g, _LC9s );
-end;
-
-function LnGamma9( const X_:TdDouble ) :TdDouble;
-begin
-     Result := LnGamma( X_, _LC9g, _LC9s );
-end;
-
-function LnGamma11( const X_:TdSingle ) :TdSingle;
-begin
-     Result := LnGamma( X_, _LC11g, _LC11s );
-end;
-
-function LnGamma11( const X_:TdDouble ) :TdDouble;
-begin
-     Result := LnGamma( X_, _LC11g, _LC11s );
-end;
-
-function LnGamma15( const X_:TdSingle ) :TdSingle;
-begin
-     Result := LnGamma( X_, _LC15g, _LC15s );
-end;
-
-function LnGamma15( const X_:TdDouble ) :TdDouble;
-begin
-     Result := LnGamma( X_, _LC15g, _LC15s );
-end;
-
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Gamma*
-
-function GammaP( const X_:TdSingle; const LCg_:Double; const LCs_:array of Double ) :TdSingle; overload;  // 0 < X
-begin
-     Result := Exp( LnGammaP( X_, LCg_, LCs_ ) );
-end;
-
-function GammaP( const X_:TdDouble; const LCg_:Double; const LCs_:array of Double ) :TdDouble; overload;  // 0 < X
-begin
-     Result := Exp( LnGammaP( X_, LCg_, LCs_ ) );
+     if X_ < 0.5 then Result := Ln( Pi / Sin( Pi * X_ ) ) - RLnGammaP( 1 - X_, LCg_, LCs_ )
+                 else Result :=                             RLnGammaP(     X_, LCg_, LCs_ );
 end;
 
 //------------------------------------------------------------------------------
 
-function Gamma( const X_:TdSingle; const LCg_:Double; const LCs_:array of Double ) :TdSingle; overload;
+function RLnGamma7( const X_:TdSingle ) :TdSingle;
 begin
-     if X_ < 0.5 then Result := Pi / ( Sin( Pi * X_ ) * GammaP( 1 - X_, LCg_, LCs_ ) )
-                 else Result :=                         GammaP(     X_, LCg_, LCs_ );
+     Result := RLnGamma( X_, _LC7g, _LC7s );
 end;
 
-function Gamma( const X_:TdDouble; const LCg_:Double; const LCs_:array of Double ) :TdDouble; overload;
+function RLnGamma7( const X_:TdDouble ) :TdDouble;
 begin
-     if X_ < 0.5 then Result := Pi / ( Sin( Pi * X_ ) * GammaP( 1 - X_, LCg_, LCs_ ) )
-                 else Result :=                         GammaP(     X_, LCg_, LCs_ );
+     Result := RLnGamma( X_, _LC7g, _LC7s );
+end;
+
+function RLnGamma9( const X_:TdSingle ) :TdSingle;
+begin
+     Result := RLnGamma( X_, _LC9g, _LC9s );
+end;
+
+function RLnGamma9( const X_:TdDouble ) :TdDouble;
+begin
+     Result := RLnGamma( X_, _LC9g, _LC9s );
+end;
+
+function RLnGamma11( const X_:TdSingle ) :TdSingle;
+begin
+     Result := RLnGamma( X_, _LC11g, _LC11s );
+end;
+
+function RLnGamma11( const X_:TdDouble ) :TdDouble;
+begin
+     Result := RLnGamma( X_, _LC11g, _LC11s );
+end;
+
+function RLnGamma15( const X_:TdSingle ) :TdSingle;
+begin
+     Result := RLnGamma( X_, _LC15g, _LC15s );
+end;
+
+function RLnGamma15( const X_:TdDouble ) :TdDouble;
+begin
+     Result := RLnGamma( X_, _LC15g, _LC15s );
+end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RGamma*
+
+function RGammaP( const X_:TdSingle; const LCg_:Double; const LCs_:array of Double ) :TdSingle; overload;  // 0 < X
+begin
+     Result := Exp( RLnGammaP( X_, LCg_, LCs_ ) );
+end;
+
+function RGammaP( const X_:TdDouble; const LCg_:Double; const LCs_:array of Double ) :TdDouble; overload;  // 0 < X
+begin
+     Result := Exp( RLnGammaP( X_, LCg_, LCs_ ) );
 end;
 
 //------------------------------------------------------------------------------
 
-function Gamma7( const X_:TdSingle ) :TdSingle;
+function RGamma( const X_:TdSingle; const LCg_:Double; const LCs_:array of Double ) :TdSingle; overload;
 begin
-     Result := Gamma( X_, _LC7g, _LC7s );
+     if X_ < 0.5 then Result := Pi / ( Sin( Pi * X_ ) * RGammaP( 1 - X_, LCg_, LCs_ ) )
+                 else Result :=                         RGammaP(     X_, LCg_, LCs_ );
 end;
 
-function Gamma7( const X_:TdDouble ) :TdDouble;
+function RGamma( const X_:TdDouble; const LCg_:Double; const LCs_:array of Double ) :TdDouble; overload;
 begin
-     Result := Gamma( X_, _LC7g, _LC7s );
+     if X_ < 0.5 then Result := Pi / ( Sin( Pi * X_ ) * RGammaP( 1 - X_, LCg_, LCs_ ) )
+                 else Result :=                         RGammaP(     X_, LCg_, LCs_ );
 end;
 
-function Gamma9( const X_:TdSingle ) :TdSingle;
+//------------------------------------------------------------------------------
+
+function RGamma7( const X_:TdSingle ) :TdSingle;
 begin
-     Result := Gamma( X_, _LC9g, _LC9s );
+     Result := RGamma( X_, _LC7g, _LC7s );
 end;
 
-function Gamma9( const X_:TdDouble ) :TdDouble;
+function RGamma7( const X_:TdDouble ) :TdDouble;
 begin
-     Result := Gamma( X_, _LC9g, _LC9s );
+     Result := RGamma( X_, _LC7g, _LC7s );
 end;
 
-function Gamma11( const X_:TdSingle ) :TdSingle;
+function RGamma9( const X_:TdSingle ) :TdSingle;
 begin
-     Result := Gamma( X_, _LC11g, _LC11s );
+     Result := RGamma( X_, _LC9g, _LC9s );
 end;
 
-function Gamma11( const X_:TdDouble ) :TdDouble;
+function RGamma9( const X_:TdDouble ) :TdDouble;
 begin
-     Result := Gamma( X_, _LC11g, _LC11s );
+     Result := RGamma( X_, _LC9g, _LC9s );
 end;
 
-function Gamma15( const X_:TdSingle ) :TdSingle;
+function RGamma11( const X_:TdSingle ) :TdSingle;
 begin
-     Result := Gamma( X_, _LC15g, _LC15s );
+     Result := RGamma( X_, _LC11g, _LC11s );
 end;
 
-function Gamma15( const X_:TdDouble ) :TdDouble;
+function RGamma11( const X_:TdDouble ) :TdDouble;
 begin
-     Result := Gamma( X_, _LC15g, _LC15s );
+     Result := RGamma( X_, _LC11g, _LC11s );
+end;
+
+function RGamma15( const X_:TdSingle ) :TdSingle;
+begin
+     Result := RGamma( X_, _LC15g, _LC15s );
+end;
+
+function RGamma15( const X_:TdDouble ) :TdDouble;
+begin
+     Result := RGamma( X_, _LC15g, _LC15s );
 end;
 
 end. //######################################################################### ■
