@@ -177,7 +177,7 @@ begin
      C.R := ( _Area.Max.R - _Area.Min.R ) * T_.X + _Area.Min.R;
      C.I := ( _Area.Max.I - _Area.Min.I ) * T_.Y + _Area.Min.I;
 
-     Result.Y := Func( C ).Size;
+     Result.Y := Func( C ).Abso;
      Result.X := C.R;
      Result.Z := C.I;
 end;
@@ -214,7 +214,7 @@ begin
 
                     C := Func( C ).o;
 
-                    C.Size := C.Size / ( _Scale + C.Size );
+                    C.Abso := C.Abso / ( _Scale + C.Abso );
 
                     T2.X := 0.5 + C.R / 2;
                     T2.Y := 0.5 + C.I / 2;
