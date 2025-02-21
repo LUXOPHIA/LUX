@@ -15,9 +15,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// A C C E S S O R
        class function GetImaginary :TSingleC; static;
        //--------
-       function GetSiz2 :Single;
-       function GetSize :Single;
-       procedure SetSize( const Size_:Single );
+       function GetAbs2 :Single;
+       function GetAbso :Single;
+       procedure SetAbso( const Abso_:Single );
        function GetUnitor :TSingleC;
        procedure SetUnitor( const Unitor_:TSingleC );
        function GetConj :TSingleC;
@@ -27,12 +27,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        R :Single;
        I :Single;
        /////
-       constructor Create( const R_,I_:Single );
+       constructor Create( const R_:Single ); overload;
+       constructor Create( const R_,I_:Single ); overload;
        ///// P R O P E R T Y
        class property Imaginary :TSingleC read GetImaginary;
        //--------
-       property Siz2   :Single   read GetSiz2                  ;
-       property Size   :Single   read GetSize   write SetSize  ;
+       property Abs2   :Single   read GetAbs2                  ;
+       property Abso   :Single   read GetAbso   write SetAbso  ;
        property Unitor :TSingleC read GetUnitor write SetUnitor;
        property Conj   :TSingleC read GetConj   write SetConj  ;
        property Angle  :Single   read GetAngle                 ;
@@ -63,9 +64,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// A C C E S S O R
        class function GetImaginary :TDoubleC; static;
        //--------
-       function GetSiz2 :Double;
-       function GetSize :Double;
-       procedure SetSize( const Size_:Double );
+       function GetAbs2 :Double;
+       function GetAbso :Double;
+       procedure SetAbso( const Abso_:Double );
        function GetUnitor :TDoubleC;
        procedure SetUnitor( const Unitor_:TDoubleC );
        function GetConj :TDoubleC;
@@ -75,12 +76,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        R :Double;
        I :Double;
        /////
-       constructor Create( const R_,I_:Double );
+       constructor Create( const R_:Double ); overload;
+       constructor Create( const R_,I_:Double ); overload;
        ///// P R O P E R T Y
        class property Imaginary :TDoubleC read GetImaginary;
        //--------
-       property Siz2   :Double   read GetSiz2                  ;
-       property Size   :Double   read GetSize   write SetSize  ;
+       property Abs2   :Double   read GetAbs2                  ;
+       property Abso   :Double   read GetAbso   write SetAbso  ;
        property Unitor :TDoubleC read GetUnitor write SetUnitor;
        property Conj   :TDoubleC read GetConj   write SetConj  ;
        property Angle  :Double   read GetAngle                 ;
@@ -105,6 +107,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function RandBS2 :TDoubleC; static;
        class function RandBS4 :TDoubleC; static;
      end;
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% T*CFunc
+
+     TSingleCFunc = reference to function ( const C_:TSingleC ) :TSingleC;
+     TDoubleCFunc = reference to function ( const C_:TDoubleC ) :TDoubleC;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleAreaC
 
@@ -254,29 +261,29 @@ end;
 
 //------------------------------------------------------------------------------
 
-function TSingleC.GetSiz2 :Single;
+function TSingleC.GetAbs2 :Single;
 begin
      Result := Pow2( R ) + Pow2( I );
 end;
 
-function TSingleC.GetSize :Single;
+function TSingleC.GetAbso :Single;
 begin
-     Result := Roo2( GetSiz2 );
+     Result := Roo2( GetAbs2 );
 end;
 
-procedure TSingleC.SetSize( const Size_:Single );
+procedure TSingleC.SetAbso( const Abso_:Single );
 begin
-     Self := Size_ * Unitor;
+     Self := Abso_ * Unitor;
 end;
 
 function TSingleC.GetUnitor :TSingleC;
 begin
-     Result := Self / Size;
+     Result := Self / Abso;
 end;
 
 procedure TSingleC.SetUnitor( const Unitor_:TSingleC );
 begin
-     Self := Size * Unitor_;
+     Self := Abso * Unitor_;
 end;
 
 function TSingleC.GetConj :TSingleC;
@@ -298,6 +305,12 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
+constructor TSingleC.Create( const R_:Single );
+begin
+     R := R_;
+     I := 0 ;
+end;
+
 constructor TSingleC.Create( const R_,I_:Single );
 begin
      R := R_;
@@ -308,147 +321,102 @@ end;
 
 class operator TSingleC.Negative( const V_:TSingleC ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := -V_.R;
-          I := -V_.I;
-     end;
+     Result.R := -V_.R;
+     Result.I := -V_.I;
 end;
 
 class operator TSingleC.Positive( const V_:TSingleC ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := +V_.R;
-          I := +V_.I;
-     end;
+     Result.R := +V_.R;
+     Result.I := +V_.I;
 end;
 
 class operator TSingleC.Add( const A_,B_:TSingleC ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := A_.R + B_.R;
-          I := A_.I + B_.I;
-     end;
+     Result.R := A_.R + B_.R;
+     Result.I := A_.I + B_.I;
 end;
 
 class operator TSingleC.Subtract( const A_,B_:TSingleC ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := A_.R - B_.R;
-          I := A_.I - B_.I;
-     end;
+     Result.R := A_.R - B_.R;
+     Result.I := A_.I - B_.I;
 end;
 
 class operator TSingleC.Multiply( const A_,B_:TSingleC ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := A_.R * B_.R - A_.I * B_.I;
-          I := A_.R * B_.I + A_.I * B_.R;
-     end;
+     Result.R := A_.R * B_.R - A_.I * B_.I;
+     Result.I := A_.R * B_.I + A_.I * B_.R;
 end;
 
 class operator TSingleC.Multiply( const A_:TSingleC; const B_:Single ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := A_.R * B_;
-          I := A_.I * B_;
-     end;
+     Result.R := A_.R * B_;
+     Result.I := A_.I * B_;
 end;
 
 class operator TSingleC.Multiply( const A_:Single; const B_:TSingleC ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := A_ * B_.R;
-          I := A_ * B_.I;
-     end;
+     Result.R := A_ * B_.R;
+     Result.I := A_ * B_.I;
 end;
 
 class operator TSingleC.Divide( const A_,B_:TSingleC ) :TSingleC;
 var
    C :Single;
 begin
-     C := B_.Siz2;
+     C := B_.Abs2;
 
-     with Result do
-     begin
-          R := ( A_.R * B_.R + A_.I * B_.I ) / C;
-          I := ( A_.I * B_.R - A_.R * B_.I ) / C;
-     end;
+     Result.R := ( A_.R * B_.R + A_.I * B_.I ) / C;
+     Result.I := ( A_.I * B_.R - A_.R * B_.I ) / C;
 end;
 
 class operator TSingleC.Divide( const A_:TSingleC; const B_:Single ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := A_.R / B_;
-          I := A_.I / B_;
-     end;
+     Result.R := A_.R / B_;
+     Result.I := A_.I / B_;
 end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TSingleC.Implicit( const V_:Single ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := V_;
-          I := 0;
-     end;
+     Result.R := V_;
+     Result.I := 0 ;
 end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
 class function TSingleC.RandG( const SD_:Single = 1 ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := TSingle.RandG( SD_ );
-          I := TSingle.RandG( SD_ );
-     end;
+     Result.R := TSingle.RandG( SD_ );
+     Result.I := TSingle.RandG( SD_ );
 end;
 
 class function TSingleC.RandG( const SD_:TSingleC ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := TSingle.RandG( SD_.R );
-          I := TSingle.RandG( SD_.I );
-     end;
+     Result.R := TSingle.RandG( SD_.R );
+     Result.I := TSingle.RandG( SD_.I );
 end;
 
 //------------------------------------------------------------------------------
 
 class function TSingleC.RandBS1 :TSingleC;
 begin
-     with Result do
-     begin
-          R := TSingle.RandBS1;
-          I := TSingle.RandBS1;
-     end;
+     Result.R := TSingle.RandBS1;
+     Result.I := TSingle.RandBS1;
 end;
 
 class function TSingleC.RandBS2 :TSingleC;
 begin
-     with Result do
-     begin
-          R := TSingle.RandBS2;
-          I := TSingle.RandBS2;
-     end;
+     Result.R := TSingle.RandBS2;
+     Result.I := TSingle.RandBS2;
 end;
 
 class function TSingleC.RandBS4 :TSingleC;
 begin
-     with Result do
-     begin
-          R := TSingle.RandBS4;
-          I := TSingle.RandBS4;
-     end;
+     Result.R := TSingle.RandBS4;
+     Result.I := TSingle.RandBS4;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleC
@@ -465,29 +433,29 @@ end;
 
 //------------------------------------------------------------------------------
 
-function TDoubleC.GetSiz2 :Double;
+function TDoubleC.GetAbs2 :Double;
 begin
      Result := Pow2( R ) + Pow2( I );
 end;
 
-function TDoubleC.GetSize :Double;
+function TDoubleC.GetAbso :Double;
 begin
-     Result := Roo2( GetSiz2 );
+     Result := Roo2( GetAbs2 );
 end;
 
-procedure TDoubleC.SetSize( const Size_:Double );
+procedure TDoubleC.SetAbso( const Abso_:Double );
 begin
-     Self := Size_ * Unitor;
+     Self := Abso_ * Unitor;
 end;
 
 function TDoubleC.GetUnitor :TDoubleC;
 begin
-     Result := Self / Size;
+     Result := Self / Abso;
 end;
 
 procedure TDoubleC.SetUnitor( const Unitor_:TDoubleC );
 begin
-     Self := Size * Unitor_;
+     Self := Abso * Unitor_;
 end;
 
 function TDoubleC.GetConj :TDoubleC;
@@ -509,6 +477,12 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
+constructor TDoubleC.Create( const R_:Double );
+begin
+     R := R_;
+     I := 0 ;
+end;
+
 constructor TDoubleC.Create( const R_,I_:Double );
 begin
      R := R_;
@@ -519,165 +493,114 @@ end;
 
 class operator TDoubleC.Negative( const V_:TDoubleC ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := -V_.R;
-          I := -V_.I;
-     end;
+     Result.R := -V_.R;
+     Result.I := -V_.I;
 end;
 
 class operator TDoubleC.Positive( const V_:TDoubleC ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := +V_.R;
-          I := +V_.I;
-     end;
+     Result.R := +V_.R;
+     Result.I := +V_.I;
 end;
 
 class operator TDoubleC.Add( const A_,B_:TDoubleC ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := A_.R + B_.R;
-          I := A_.I + B_.I;
-     end;
+     Result.R := A_.R + B_.R;
+     Result.I := A_.I + B_.I;
 end;
 
 class operator TDoubleC.Subtract( const A_,B_:TDoubleC ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := A_.R - B_.R;
-          I := A_.I - B_.I;
-     end;
+     Result.R := A_.R - B_.R;
+     Result.I := A_.I - B_.I;
 end;
 
 class operator TDoubleC.Multiply( const A_,B_:TDoubleC ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := A_.R * B_.R - A_.I * B_.I;
-          I := A_.R * B_.I + A_.I * B_.R;
-     end;
+     Result.R := A_.R * B_.R - A_.I * B_.I;
+     Result.I := A_.R * B_.I + A_.I * B_.R;
 end;
 
 class operator TDoubleC.Multiply( const A_:TDoubleC; const B_:Double ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := A_.R * B_;
-          I := A_.I * B_;
-     end;
+     Result.R := A_.R * B_;
+     Result.I := A_.I * B_;
 end;
 
 class operator TDoubleC.Multiply( const A_:Double; const B_:TDoubleC ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := A_ * B_.R;
-          I := A_ * B_.I;
-     end;
+     Result.R := A_ * B_.R;
+     Result.I := A_ * B_.I;
 end;
 
 class operator TDoubleC.Divide( const A_,B_:TDoubleC ) :TDoubleC;
 var
    C :Double;
 begin
-     C := B_.Siz2;
+     C := B_.Abs2;
 
-     with Result do
-     begin
-          R := ( A_.R * B_.R + A_.I * B_.I ) / C;
-          I := ( A_.I * B_.R - A_.R * B_.I ) / C;
-     end;
+     Result.R := ( A_.R * B_.R + A_.I * B_.I ) / C;
+     Result.I := ( A_.I * B_.R - A_.R * B_.I ) / C;
 end;
 
 class operator TDoubleC.Divide( const A_:TDoubleC; const B_:Double ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := A_.R / B_;
-          I := A_.I / B_;
-     end;
+     Result.R := A_.R / B_;
+     Result.I := A_.I / B_;
 end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
 
 class operator TDoubleC.Implicit( const V_:Double ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := V_;
-          I := 0;
-     end;
+     Result.R := V_;
+     Result.I := 0 ;
 end;
 
 class operator TDoubleC.Implicit( const V_:TSingleC ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := V_.R;
-          I := V_.I;
-     end;
+     Result.R := V_.R;
+     Result.I := V_.I;
 end;
 
 class operator TDoubleC.Implicit( const V_:TDoubleC ) :TSingleC;
 begin
-     with Result do
-     begin
-          R := V_.R;
-          I := V_.I;
-     end;
+     Result.R := V_.R;
+     Result.I := V_.I;
 end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
 class function TDoubleC.RandG( const SD_:Double = 1 ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := TDouble.RandG( SD_ );
-          I := TDouble.RandG( SD_ );
-     end;
+     Result.R := TDouble.RandG( SD_ );
+     Result.I := TDouble.RandG( SD_ );
 end;
 
 class function TDoubleC.RandG( const SD_:TDoubleC ) :TDoubleC;
 begin
-     with Result do
-     begin
-          R := TDouble.RandG( SD_.R );
-          I := TDouble.RandG( SD_.I );
-     end;
+     Result.R := TDouble.RandG( SD_.R );
+     Result.I := TDouble.RandG( SD_.I );
 end;
 
 //------------------------------------------------------------------------------
 
 class function TDoubleC.RandBS1 :TDoubleC;
 begin
-     with Result do
-     begin
-          R := TDouble.RandBS1;
-          I := TDouble.RandBS1;
-     end;
+     Result.R := TDouble.RandBS1;
+     Result.I := TDouble.RandBS1;
 end;
 
 class function TDoubleC.RandBS2 :TDoubleC;
 begin
-     with Result do
-     begin
-          R := TDouble.RandBS2;
-          I := TDouble.RandBS2;
-     end;
+     Result.R := TDouble.RandBS2;
+     Result.I := TDouble.RandBS2;
 end;
 
 class function TDoubleC.RandBS4 :TDoubleC;
 begin
-     with Result do
-     begin
-          R := TDouble.RandBS4;
-          I := TDouble.RandBS4;
-     end;
+     Result.R := TDouble.RandBS4;
+     Result.I := TDouble.RandBS4;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleAreaC
@@ -693,11 +616,8 @@ end;
 
 procedure TSingleAreaC.SetCenter( const Center_:TSingleC );
 begin
-     with Center_ do
-     begin
-          CenterR := R;
-          CenterI := I;
-     end;
+     CenterR := Center_.R;
+     CenterI := Center_.I;
 end;
 
 function TSingleAreaC.GetCenterR :Single;
@@ -772,81 +692,54 @@ end;
 
 constructor TSingleAreaC.Create( const MinR_,MinI_,MaxR_,MaxI_:Single );
 begin
-     with Min do
-     begin
-          R := MinR_;
-          I := MinI_;
-     end;
-     with Max do
-     begin
-          R := MaxR_;
-          I := MaxI_;
-     end;
+     Min.R := MinR_;
+     Min.I := MinI_;
+     Max.R := MaxR_;
+     Max.I := MaxI_;
 end;
 
 //////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TSingleAreaC.Negative( const V_:TSingleAreaC ) :TSingleAreaC;
 begin
-     with Result do
-     begin
-          Min := -V_.Min;
-          Max := -V_.Max;
-     end;
+     Result.Min := -V_.Min;
+     Result.Max := -V_.Max;
 end;
 
 class operator TSingleAreaC.Positive( const V_:TSingleAreaC ) :TSingleAreaC;
 begin
-     with Result do
-     begin
-          Min := +V_.Min;
-          Max := +V_.Max;
-     end;
+     Result.Min := +V_.Min;
+     Result.Max := +V_.Max;
 end;
 
 class operator TSingleAreaC.Add( const A_,B_:TSingleAreaC ) :TSingleAreaC;
 begin
-     with Result do
-     begin
-          Min := A_.Min + B_.Min;
-          Max := A_.Max + B_.Max;
-     end;
+     Result.Min := A_.Min + B_.Min;
+     Result.Max := A_.Max + B_.Max;
 end;
 
 class operator TSingleAreaC.Subtract( const A_,B_:TSingleAreaC ) :TSingleAreaC;
 begin
-     with Result do
-     begin
-          Min := A_.Min - B_.Min;
-          Max := A_.Max - B_.Max;
-     end;
+     Result.Min := A_.Min - B_.Min;
+     Result.Max := A_.Max - B_.Max;
 end;
 
 class operator TSingleAreaC.Multiply( const A_:TSingleAreaC; const B_:Single ) :TSingleAreaC;
 begin
-     with Result do
-     begin
-          Min := A_.Min * B_;
-          Max := A_.Max * B_;
-     end;
+     Result.Min := A_.Min * B_;
+     Result.Max := A_.Max * B_;
 end;
 
 class operator TSingleAreaC.Multiply( const A_:Single; const B_:TSingleAreaC ) :TSingleAreaC;
 begin
-     with Result do
-     begin
-          Min := A_ * B_.Min;
-          Max := A_ * B_.Max;
-     end;
+     Result.Min := A_ * B_.Min;
+     Result.Max := A_ * B_.Max;
 end;
 
 class operator TSingleAreaC.Divide( const A_:TSingleAreaC; const B_:Single ) :TSingleAreaC;
 begin
-     with Result do
-     begin
-          Min := A_.Min / B_;
-          Max := A_.Max / B_;
-     end;
+     Result.Min := A_.Min / B_;
+     Result.Max := A_.Max / B_;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleAreaC
@@ -862,11 +755,8 @@ end;
 
 procedure TDoubleAreaC.SetCenter( const Center_:TDoubleC );
 begin
-     with Center_ do
-     begin
-          CenterR := R;
-          CenterI := I;
-     end;
+     CenterR := Center_.R;
+     CenterI := Center_.I;
 end;
 
 function TDoubleAreaC.GetCenterR :Double;
@@ -941,81 +831,54 @@ end;
 
 constructor TDoubleAreaC.Create( const MinR_,MinI_,MaxR_,MaxI_:Double );
 begin
-     with Min do
-     begin
-          R := MinR_;
-          I := MinI_;
-     end;
-     with Max do
-     begin
-          R := MaxR_;
-          I := MaxI_;
-     end;
+     Min.R := MinR_;
+     Min.I := MinI_;
+     Max.R := MaxR_;
+     Max.I := MaxI_;
 end;
 
 //////////////////////////////////////////////////////////////// O P E R A T O R
 
 class operator TDoubleAreaC.Negative( const V_:TDoubleAreaC ) :TDoubleAreaC;
 begin
-     with Result do
-     begin
-          Min := -V_.Min;
-          Max := -V_.Max;
-     end;
+     Result.Min := -V_.Min;
+     Result.Max := -V_.Max;
 end;
 
 class operator TDoubleAreaC.Positive( const V_:TDoubleAreaC ) :TDoubleAreaC;
 begin
-     with Result do
-     begin
-          Min := +V_.Min;
-          Max := +V_.Max;
-     end;
+     Result.Min := +V_.Min;
+     Result.Max := +V_.Max;
 end;
 
 class operator TDoubleAreaC.Add( const A_,B_:TDoubleAreaC ) :TDoubleAreaC;
 begin
-     with Result do
-     begin
-          Min := A_.Min + B_.Min;
-          Max := A_.Max + B_.Max;
-     end;
+     Result.Min := A_.Min + B_.Min;
+     Result.Max := A_.Max + B_.Max;
 end;
 
 class operator TDoubleAreaC.Subtract( const A_,B_:TDoubleAreaC ) :TDoubleAreaC;
 begin
-     with Result do
-     begin
-          Min := A_.Min - B_.Min;
-          Max := A_.Max - B_.Max;
-     end;
+     Result.Min := A_.Min - B_.Min;
+     Result.Max := A_.Max - B_.Max;
 end;
 
 class operator TDoubleAreaC.Multiply( const A_:TDoubleAreaC; const B_:Double ) :TDoubleAreaC;
 begin
-     with Result do
-     begin
-          Min := A_.Min * B_;
-          Max := A_.Max * B_;
-     end;
+     Result.Min := A_.Min * B_;
+     Result.Max := A_.Max * B_;
 end;
 
 class operator TDoubleAreaC.Multiply( const A_:Double; const B_:TDoubleAreaC ) :TDoubleAreaC;
 begin
-     with Result do
-     begin
-          Min := A_ * B_.Min;
-          Max := A_ * B_.Max;
-     end;
+     Result.Min := A_ * B_.Min;
+     Result.Max := A_ * B_.Max;
 end;
 
 class operator TDoubleAreaC.Divide( const A_:TDoubleAreaC; const B_:Double ) :TDoubleAreaC;
 begin
-     with Result do
-     begin
-          Min := A_.Min / B_;
-          Max := A_.Max / B_;
-     end;
+     Result.Min := A_.Min / B_;
+     Result.Max := A_.Max / B_;
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
@@ -1028,8 +891,8 @@ function Pow( const X_:TSingleC; const N_:Single ) :TSingleC;
 var
    S, A: Single;
 begin
-     S := Power( X_.Size, N_ );
-     A := X_.Angle * N_;
+     S := Power( X_.Abso, N_ );
+     A :=        X_.Angle * N_;
 
      Result.R := S * Cos( A );
      Result.I := S * Sin( A );
@@ -1039,8 +902,8 @@ function Pow( const X_:TDoubleC; const N_:Double ) :TDoubleC;
 var
    S, A: Double;
 begin
-     S := Power( X_.Size, N_ );
-     A := X_.Angle * N_;
+     S := Power( X_.Abso, N_ );
+     A :=        X_.Angle * N_;
 
      Result.R := S * Cos( A );
      Result.I := S * Sin( A );
@@ -1052,8 +915,8 @@ function Roo2( const X_:TSingleC ) :TSingleC;
 var
    S, A: Single;
 begin
-     S := Roo2( X_.Size );
-     A := X_.Angle / 2;
+     S := Roo2( X_.Abso );
+     A :=       X_.Angle / 2;
 
      Result.R := S * Cos( A );
      Result.I := S * Sin( A );
@@ -1063,8 +926,8 @@ function Roo2( const X_:TDoubleC ) :TDoubleC;
 var
    S, A: Double;
 begin
-     S := Roo2( X_.Size );
-     A := X_.Angle / 2;
+     S := Roo2( X_.Abso );
+     A :=       X_.Angle / 2;
 
      Result.R := S * Cos( A );
      Result.I := S * Sin( A );
@@ -1166,20 +1029,14 @@ end;
 
 function Ln( const A_:TSingleC ) :TSingleC;
 begin
-     with A_ do
-     begin
-          Result.R := Ln( Size );
-          Result.I := Angle;
-     end;
+     Result.R := Ln( A_.Abso );
+     Result.I :=     A_.Angle ;
 end;
 
 function Ln( const A_:TDoubleC ) :TDoubleC;
 begin
-     with A_ do
-     begin
-          Result.R := Ln( Size );
-          Result.I := Angle;
-     end;
+     Result.R := Ln( A_.Abso );
+     Result.I :=     A_.Angle ;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ArcCos
