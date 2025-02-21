@@ -1,4 +1,4 @@
-﻿unit LUX.C2.Gamma.FMX.D3;
+﻿unit LUX.Complex.FMX.D3;
 
 interface //#################################################################### ■
 
@@ -12,8 +12,6 @@ uses System.SysUtils, System.RTLConsts, System.Classes,
      LUX.D4x4, LUX.D4x4.Diff,
      LUX.Complex,
      LUX.Complex.Diff,
-     LUX.C2.Gamma,
-     LUX.C2.Gamma.Diff,
      LUX.FMX.Graphics.D3;
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
@@ -22,20 +20,31 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
-     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TGamma3D
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TComplex3D
 
-     TGamma3D = class( TF3DShaper )
+     TComplex3D = class( TF3DShaper )
      private
        ///// M E T H O D
        function XYtoI( const X_,Y_:Integer ) :Integer; inline;
      protected
        _Polygons :TMeshData;
        _Material :TLightMaterialSource;
+       _Func     :TdDoubleCFunc;
+       _Area     :TDoubleAreaC;
        _DivX     :Integer;
        _DivY     :Integer;
+       _Scale    :Double;
        ///// A C C E S S O R
+       function GetFunc :TdDoubleCFunc;
+       procedure SetFunc( const Func_:TdDoubleCFunc );
+       function GetArea :TDoubleAreaC;
+       procedure SetArea( const Area_:TDoubleAreaC );
+       function GetDivX :Integer;
        procedure SetDivX( const DivX_:Integer );
+       function GetDivY :Integer;
        procedure SetDivY( const DivY_:Integer );
+       function GetScale :Double;
+       procedure SetScale( const Scale_:Double );
        ///// M E T H O D
        procedure Render; override;
        function TexToPos( const T_:TdDouble2D ) :TdDouble3D;
@@ -46,8 +55,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        destructor Destroy; override;
        ///// P R O P E R T Y
        property Material :TLightMaterialSource read   _Material write   _Material;
-       property DivX     :Integer              read   _DivX     write SetDivX    ;
-       property DivY     :Integer              read   _DivY     write SetDivY    ;
+       property Func     :TdDoubleCFunc        read GetFunc     write SetFunc    ;
+       property Area     :TDoubleAreaC         read GetArea     write SetArea    ;
+       property DivX     :Integer              read GetDivX     write SetDivX    ;
+       property DivY     :Integer              read GetDivY     write SetDivY    ;
+       property Scale    :Double               read GetScale    write SetScale   ;
      end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
@@ -58,11 +70,11 @@ implementation //###############################################################
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TGamma3D
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TComplex3D
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
-function TGamma3D.XYtoI( const X_,Y_:Integer ) :Integer;
+function TComplex3D.XYtoI( const X_,Y_:Integer ) :Integer;
 begin
      Result := ( _DivX + 1 ) * Y_ + X_;
 end;
@@ -71,7 +83,44 @@ end;
 
 //////////////////////////////////////////////////////////////// A C C E S S O R
 
-procedure TGamma3D.SetDivX( const DivX_:Integer );
+function TComplex3D.GetFunc :TdDoubleCFunc;
+begin
+     Result := _Func;
+end;
+
+procedure TComplex3D.SetFunc( const Func_:TdDoubleCFunc );
+begin
+     _Func := Func_;
+
+     upGeometry := True;
+
+     Repaint;
+end;
+
+//------------------------------------------------------------------------------
+
+function TComplex3D.GetArea :TDoubleAreaC;
+begin
+     Result := _Area;
+end;
+
+procedure TComplex3D.SetArea( const Area_:TDoubleAreaC );
+begin
+     _Area := Area_;
+
+     upGeometry := True;
+
+     Repaint;
+end;
+
+//------------------------------------------------------------------------------
+
+function TComplex3D.GetDivX :Integer;
+begin
+     Result := _DivX;
+end;
+
+procedure TComplex3D.SetDivX( const DivX_:Integer );
 begin
      _DivX := DivX_;
 
@@ -81,7 +130,12 @@ begin
      Repaint;
 end;
 
-procedure TGamma3D.SetDivY( const DivY_:Integer );
+function TComplex3D.GetDivY :Integer;
+begin
+     Result := _DivY;
+end;
+
+procedure TComplex3D.SetDivY( const DivY_:Integer );
 begin
      _DivY := DivY_;
 
@@ -91,28 +145,44 @@ begin
      Repaint;
 end;
 
+//------------------------------------------------------------------------------
+
+function TComplex3D.GetScale :Double;
+begin
+     Result := _Scale;
+end;
+
+procedure TComplex3D.SetScale( const Scale_:Double );
+begin
+     _Scale := Scale_;
+
+     upGeometry := True;
+
+     Repaint;
+end;
+
 //////////////////////////////////////////////////////////////////// M E T H O D
 
-procedure TGamma3D.Render;
+procedure TComplex3D.Render;
 begin
      inherited;
 
      _Polygons.Render( Context, TMaterialSource.ValidMaterial( _Material ), AbsoluteOpacity );
 end;
 
-function TGamma3D.TexToPos( const T_:TdDouble2D ) :TdDouble3D;
+function TComplex3D.TexToPos( const T_:TdDouble2D ) :TdDouble3D;
 var
    C :TdDoubleC;
 begin
-     C.R := ( +5 - -5 ) * T_.X + -5;
-     C.I := ( +5 - -5 ) * T_.Y + -5;
+     C.R := ( _Area.Max.R - _Area.Min.R ) * T_.X + _Area.Min.R;
+     C.I := ( _Area.Max.I - _Area.Min.I ) * T_.Y + _Area.Min.I;
 
-     Result.Y := Gamma( C ).Size;
+     Result.Y := Func( C ).Size;
      Result.X := C.R;
      Result.Z := C.I;
 end;
 
-procedure TGamma3D.MakeGeometry;
+procedure TComplex3D.MakeGeometry;
 var
    X, Y, I :Integer;
    T :TDouble2D;
@@ -122,6 +192,11 @@ var
 begin
      with _Polygons.VertexBuffer do
      begin
+          if not Assigned( Func ) then
+          begin
+               Length := 0;  Exit;
+          end;
+
           Length := ( _DivX + 1 ) * ( _DivY + 1 );
 
           for Y := 0 to _DivY do
@@ -134,17 +209,17 @@ begin
 
                     M := TexToMatrix( T, TexToPos );
 
-                    I := XYtoI( X, Y );
+                    C.R := ( _Area.Max.R - _Area.Min.R ) * T.X + _Area.Min.R;
+                    C.I := ( _Area.Max.I - _Area.Min.I ) * T.Y + _Area.Min.I;
 
-                    C.R := ( +5 - -5 ) * T.X + -5;
-                    C.I := ( +5 - -5 ) * T.Y + -5;
+                    C := Func( C ).o;
 
-                    C := Gamma( C );
-
-                    C.Size := C.Size / ( 2*Sqrt(Pi) + C.Size );
+                    C.Size := C.Size / ( _Scale + C.Size );
 
                     T2.X := 0.5 + C.R / 2;
                     T2.Y := 0.5 + C.I / 2;
+
+                    I := XYtoI( X, Y );
 
                     Vertices [ I ] := M.AxisP;
                     Normals  [ I ] := M.AxisZ;
@@ -154,12 +229,17 @@ begin
      end;
 end;
 
-procedure TGamma3D.MakeTopology;
+procedure TComplex3D.MakeTopology;
 var
    X, Y, I :Integer;
 begin
      with _Polygons.IndexBuffer do
      begin
+          if not Assigned( Func ) then
+          begin
+               Length := 0;  Exit;
+          end;
+
           Length := 3{Poin} * 2{Face} * _DivX * _DivY;
 
           I := 0;
@@ -188,7 +268,7 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-constructor TGamma3D.Create( Owner_:TComponent );
+constructor TComplex3D.Create( Owner_:TComponent );
 begin
      inherited;
 
@@ -197,11 +277,14 @@ begin
      _Material := TLightMaterialSource.Create( Self );
      _Material.Specular := TAlphaColors.Null;
 
-     DivX := 256;
-     DivY := 256;
+     Func  := nil;
+     Area  := TDoubleAreaC.Create( -1, -1, +1, +1 );
+     DivX  := 64;
+     DivY  := 64;
+     Scale := 1;
 end;
 
-destructor TGamma3D.Destroy;
+destructor TComplex3D.Destroy;
 begin
      _Polygons.Free;
 
