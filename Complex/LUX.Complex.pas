@@ -214,6 +214,11 @@ function Tan( const A_:TDoubleC ) :TDoubleC; overload;
 function Exp( const A_:TSingleC ) :TSingleC; overload;
 function Exp( const A_:TDoubleC ) :TDoubleC; overload;
 
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Expi
+
+function Expi( const X_:Single ) :TSingleC; overload;
+function Expi( const X_:Double ) :TDoubleC; overload;
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Ln
 
 function Ln( const A_:TSingleC ) :TSingleC; overload;
@@ -1143,6 +1148,18 @@ begin
           Result.R := E * Cos( I );
           Result.I := E * Sin( I );
      end;
+end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Expi
+
+function Expi( const X_:Single ) :TSingleC;
+begin
+     SinCos( X_, Result.I, Result.R );
+end;
+
+function Expi( const X_:Double ) :TDoubleC;
+begin
+     SinCos( X_, Result.I, Result.R );
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Ln
