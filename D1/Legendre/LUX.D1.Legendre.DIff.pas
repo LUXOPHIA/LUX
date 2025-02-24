@@ -57,6 +57,13 @@ end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% NLegendreCos
 
+{
+function NLegendreCos( const T_:TdSingle; const N_:Integer ) :TdSingle;
+begin
+     Result.o :=  NLegendreCos( T_.o, N_ );
+     Result.d := dNLegendreCos( T_.o, N_ ) * T_.d;
+end;
+}
 function NLegendreCos( const T_:TdSingle; const N_:Integer ) :TdSingle;
 // - - - - - - - - - - - - - - - - - - -
      function FNN( const N_:Integer ) :TdSingle;
@@ -93,6 +100,13 @@ begin
                      else Result := Result + A * Cos( T_ );  // K = 1
 end;
 
+{
+function NLegendreCos( const T_:TdDouble; const N_:Integer ) :TdDouble;
+begin
+     Result.o :=  NLegendreCos( T_.o, N_ );
+     Result.d := dNLegendreCos( T_.o, N_ ) * T_.d;
+end;
+}
 function NLegendreCos( const T_:TdDouble; const N_:Integer ) :TdDouble;
 // - - - - - - - - - - - - - - - - - - -
      function ANN( const N_:Integer ) :TdDouble;
