@@ -2,7 +2,7 @@
 
 interface //#################################################################### ■
 
-uses System.SysUtils, System.Math.Vectors,
+uses System.Math.Vectors,
      LUX,
      LUX.D1,
      LUX.D2, LUX.D2x2,
