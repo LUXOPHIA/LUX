@@ -43,6 +43,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function RandBS1 :TdSingle; static;
        class function RandBS2 :TdSingle; static;
        class function RandBS4 :TdSingle; static;
+       class function NaN :TdSingle; static;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TdDouble
@@ -81,6 +82,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function RandBS1 :TdDouble; static;
        class function RandBS2 :TdDouble; static;
        class function RandBS4 :TdDouble; static;
+       class function NaN :TdDouble; static;
      end;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
@@ -327,6 +329,14 @@ begin
      Result.d := 0;
 end;
 
+//------------------------------------------------------------------------------
+
+class function TdSingle.NaN :TdSingle;
+begin
+     Result.o := System.Math.NaN;
+     Result.d := System.Math.NaN;
+end;
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TdDouble
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
@@ -493,6 +503,14 @@ class function TdDouble.RandBS4 :TdDouble;
 begin
      Result.o := TDouble.RandBS4;
      Result.d := 0;
+end;
+
+//------------------------------------------------------------------------------
+
+class function TdDouble.NaN :TdDouble;
+begin
+     Result.o := System.Math.NaN;
+     Result.d := System.Math.NaN;
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
