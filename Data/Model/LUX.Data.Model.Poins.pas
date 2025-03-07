@@ -19,9 +19,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TPoin<TPos_;TPoinSet_:class> = class( TListChildr<TPoinSet_> )
      private
      protected
+       _Pos :TPos_;
        ///// A C C E S S O R
-       function GetPos :TPos_; virtual; abstract;
-       procedure SetPos( const Pos_:TPos_ ); virtual; abstract;
+       function GetPos :TPos_; virtual;
+       procedure SetPos( const Pos_:TPos_ ); virtual;
      public
        constructor Create( const Pos_:TPos_ ); overload;
        constructor Create( const Pos_:TPos_; const Parent_:TPoinSet_ ); overload;
@@ -50,6 +51,18 @@ implementation //###############################################################
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+//////////////////////////////////////////////////////////////// A C C E S S O R
+
+function TPoin<TPos_,TPoinSet_>.GetPos :TPos_;
+begin
+     Result := _Pos;
+end;
+
+procedure TPoin<TPos_,TPoinSet_>.SetPos( const Pos_:TPos_ );
+begin
+     _Pos := Pos_;
+end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
