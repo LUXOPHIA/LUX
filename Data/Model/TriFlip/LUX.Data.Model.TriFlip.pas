@@ -139,6 +139,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetPoinset :TPoinSet_; virtual;
        procedure SetPoinset( const Poinset_:TPoinSet_ ); virtual;
      public
+       constructor Create; override;
+       destructor Destroy; override;
        ///// P R O P E R T Y
        property Poinset :TPoinSet_ read GetPoinset write SetPoinset;
        ///// M E T H O D
@@ -572,6 +574,20 @@ begin
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+constructor TTriFaceSet<TPos_>.Create;
+begin
+     inherited;
+
+     _Poinset := TPoinSet_.Create;
+end;
+
+destructor TTriFaceSet<TPos_>.Destroy;
+begin
+     _Poinset.Free;
+
+     inherited;
+end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
