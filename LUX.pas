@@ -40,14 +40,19 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDelegates
 
      TDelegates = record
+     private type
+       THolder = class( TInterfacedObject )
+         _Events :TArray<TNotifyEvent>;
+       end;
      private
-       _Events :TArray<TNotifyEvent>;
+       _Keeper :IInterface;  // 寿命管理（参照カウント）
+       _Holder :THolder;     // 実体（レコードのコピー間で共有される）
      public
+       class operator Initialize( out D_:TDelegates );
        ///// M E T H O D
        procedure Add( E_:TNotifyEvent );
        procedure Del( const E_:TNotifyEvent );
        procedure Run( const Sender_:TObject );
-       procedure Free;
      end;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
@@ -196,8 +201,17 @@ uses System.Math;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
+class operator TDelegates.Initialize( out D_:TDelegates );
+begin
+     D_._Holder := THolder.Create;
+     D_._Keeper := D_._Holder;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TDelegates.Add( E_:TNotifyEvent );
 begin
+     with _Holder do
      if TArray.IndexOf<TNotifyEvent>( _Events, E_ ) < 0 then _Events := _Events + [ E_ ];
 end;
 
@@ -205,23 +219,19 @@ procedure TDelegates.Del( const E_:TNotifyEvent );
 var
    I :Integer;
 begin
-     I := TArray.IndexOf<TNotifyEvent>( _Events, E_ );  if I < 0 then Exit;
+     with _Holder do
+     begin
+          I := TArray.IndexOf<TNotifyEvent>( _Events, E_ );  if I < 0 then Exit;
 
-     Delete( _Events, I, 1 );
+          Delete( _Events, I, 1 );
+     end;
 end;
 
 procedure TDelegates.Run( const Sender_:TObject );
 var
    E :TNotifyEvent;
 begin
-     for E in _Events do E( Sender_ );
-end;
-
-procedure TDelegates.Free;
-var
-   E :TNotifyEvent;
-begin
-     for E in Copy( _Events ) do TObject( TMethod( E ).Data ).Free;
+     for E in Copy( _Holder._Events ) do E( Sender_ );  // ハンドラ内の Del に備えてコピーを走査
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
