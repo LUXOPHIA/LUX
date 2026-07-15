@@ -12,6 +12,18 @@ uses LUX;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
+//  Lanczos 近似による実数ガンマ関数。
+//  関数名の数字は係数の項数を表す:
+//    RLnGamma7 /RGamma7  … N= 7, g=5        (Numerical Recipes)
+//    RLnGamma9 /RGamma9  … N= 9, g=7
+//    RLnGamma11/RGamma11 … N=11, g=9
+//    RLnGamma15/RGamma15 … N=15, g=607/128  (Boost 系・最高精度)
+//
+//  ※ 非正整数 (0, -1, -2, ...) は極であり、内部で0除算が発生する。
+//     浮動小数点例外がマスクされた既定環境 (Delphi 12+ / FMX) では INF/NaN を返し、
+//     SetExceptionMask で例外を有効化した環境では EZeroDivide 等が発生する。
+//  ※ RLnGamma* は Γ(x)<0 となる区間 (-1<x<0, -3<x<-2, ...) では NaN を返す。
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RLnGamma*
 
 function RLnGamma7( const X_:Single ) :Single; overload;
@@ -189,13 +201,31 @@ end;
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RGamma*
 
 function RGammaP( const X_:Single; const LCg_:Double; const LCs_:array of Double ) :Single; overload;  // 0 < X
+var
+   X1, B, A :Single;
+   I :Integer;
 begin
-     Result := Exp( RLnGammaP( X_, LCg_, LCs_ ) );
+     // Result := Exp( RLnGammaP( X_, LCg_, LCs_ ) );
+	 
+     X1 := X_ - 1;
+     A := LCs_[ 0 ];
+     for I := 1 to High( LCs_ ) do A := A + LCs_[ I ] / ( X1 + I );
+     B := X1 + LCg_ + 0.5;
+     Result := A * Exp( Ln( B ) * ( X1 + 0.5 ) - B + Ln(Pi2)/2 );
 end;
 
 function RGammaP( const X_:Double; const LCg_:Double; const LCs_:array of Double ) :Double; overload;  // 0 < X
+var
+   X1, B, A :Double;
+   I :Integer;
 begin
-     Result := Exp( RLnGammaP( X_, LCg_, LCs_ ) );
+     // Result := Exp( RLnGammaP( X_, LCg_, LCs_ ) );
+	 
+     X1 := X_ - 1;
+     A := LCs_[ 0 ];
+     for I := 1 to High( LCs_ ) do A := A + LCs_[ I ] / ( X1 + I );
+     B := X1 + LCg_ + 0.5;
+     Result := A * Exp( Ln( B ) * ( X1 + 0.5 ) - B + Ln(Pi2)/2 );
 end;
 
 //------------------------------------------------------------------------------
