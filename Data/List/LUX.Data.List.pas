@@ -33,6 +33,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListParent<TChildr_>
 
+     // TChildr_ には TListChildr の「真の派生クラス」を指定すること（基底そのものだと overload が衝突する）
      TListParent<TChildr_:class> = class( TListParent )
      private
      protected
@@ -65,7 +66,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        ///// A C C E S S O R
-       function GetCurrent: TChildr_; reintroduce; virtual;
+       function GetCurrent: TChildr_; virtual;
      public
        ///// P R O P E R T Y
        property Current :TChildr_ read GetCurrent;
@@ -90,6 +91,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      protected
        _Ownere :TOwnere_;
        ///// A C C E S S O R
+       function GetOwnereObject :TObject; override;
        function GetOwnere :TOwnere_;
      public
        constructor Create; overload; override;
@@ -225,11 +227,9 @@ end;
 //////////////////////////////////////////////////////////////// A C C E S S O R
 
 function TListChildr<TOwnere_,TParent_>.GetOwnere :TOwnere_;
-type
-    TListChildr_ = TListChildr<TOwnere_,TParent_>;
-    TListParent_ = TListParent<TOwnere_,TListChildr_>;
 begin
-     Result := TListParent_( Parent ).Ownere;
+     if Assigned( _Parent ) then Result := TOwnere_( _Parent.OwnereObject )  // 仮想メソッド経由のため、親のジェネリック実体に依存しない
+                            else Result := nil;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -239,6 +239,13 @@ end;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
 //////////////////////////////////////////////////////////////// A C C E S S O R
+
+function TListParent<TOwnere_,TChildr_>.GetOwnereObject :TObject;
+begin
+     Result := _Ownere;
+end;
+
+//------------------------------------------------------------------------------
 
 function TListParent<TOwnere_,TChildr_>.GetOwnere :TOwnere_;
 begin
