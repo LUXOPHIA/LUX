@@ -13,15 +13,27 @@ uses LUX,
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
+//  本ユニットは 大浦拓哉 氏の gamerf パッケージ (dgamma.c / dlgamma.c) の Delphi 移植 (双対数による自動微分対応版)。
+//    Copyright(C) 1996 Takuya OOURA
+//    https://www.kurims.kyoto-u.ac.jp/~ooura/gamerf.html
+//    "You may use, copy, modify this code for any purpose and without fee."
+//
+//  ※ RGamma の非正整数 (0, -1, -2, ...) は極であり、内部で0除算が発生する。
+//     浮動小数点例外がマスクされた既定環境 (Delphi 12+ / FMX) では INF/NaN を返し、
+//     SetExceptionMask で例外を有効化した環境では EZeroDivide 等が発生する。
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RGamma
 
 function RGamma( const X_:TdSingle ) :TdSingle; overload;
 function RGamma( const X_:TdDouble ) :TdDouble; overload;
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RLogGamma
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RLnGamma
 
-function RLogGamma( const X_:TdSingle ) :TdSingle; overload;
-function RLogGamma( const X_:TdDouble ) :TdDouble; overload;
+//  注意: Γ(x)<0 となる区間 (-1<x<0, -3<x<-2, ...) では実数の対数が定義できず NaN を返す
+//        (大浦氏オリジナル dlgamma.c と同挙動)。ln|Γ(x)| が必要な場合は別途処理のこと。
+
+function RLnGamma( const X_:TdSingle ) :TdSingle; overload;
+function RLnGamma( const X_:TdDouble ) :TdDouble; overload;
 
 implementation //############################################################### ■
 
@@ -109,9 +121,9 @@ begin
      Result := W / Y;
 end;
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RLogGamma
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RLnGamma
 
-function RLogGamma( const X_:TdSingle ) :TdSingle;
+function RLnGamma( const X_:TdSingle ) :TdSingle;
 const
      A :array[ 0..21 ] of Single = (
           +9.967270908702825e-5  , -1.9831672170162227e-4 ,
@@ -279,7 +291,7 @@ begin
      Result := Y;
 end;
 
-function RLogGamma( const X_:TdDouble ) :TdDouble;
+function RLnGamma( const X_:TdDouble ) :TdDouble;
 const
      A :array[ 0..21 ] of Double = (
           +9.967270908702825e-5  , -1.9831672170162227e-4 ,
