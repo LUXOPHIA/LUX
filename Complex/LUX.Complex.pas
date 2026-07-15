@@ -1043,12 +1043,12 @@ end;
 
 function ArcCos( const X_:TSingleC ) :TSingleC;
 begin
-     Result := +TSingleC.Imaginary * Ln( X_ + TSingleC.Imaginary * Roo2( 1 - X_ * X_ ) );
+     Result := -TSingleC.Imaginary * Ln( X_ + TSingleC.Imaginary * Roo2( 1 - X_ * X_ ) );
 end;
 
 function ArcCos( const X_:TDoubleC ) :TDoubleC;
 begin
-     Result := +TDoubleC.Imaginary * Ln( X_ + TDoubleC.Imaginary * Roo2( 1 - X_ * X_ ) );
+     Result := -TDoubleC.Imaginary * Ln( X_ + TDoubleC.Imaginary * Roo2( 1 - X_ * X_ ) );
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ArcSin
