@@ -59,7 +59,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        destructor Destroy; override;
        ///// P R O P E R T Y
        property Parent :TListParent read GetParent write SetParent;
-       property Order  :Integer     read GetOrder  write SetOrder ;
+       property Order  :Integer     read GetOrder  write SetOrder ;  // 代入は指定順位のノードとの「交換」であり、間のノードはシフトしない
        ///// M E T H O D
        procedure Remove;
        procedure InsertPrev( const Siblin_:TListChildr );
@@ -87,6 +87,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetChildrs( const I_:Integer ) :TListChildr; overload; virtual;
        procedure SetChildrs( const I_:Integer; const Childr_:TListChildr ); overload; virtual;
        function GetChildrsN :Integer; virtual;
+       function GetIsEmpty :Boolean;
+       function GetOwnereObject :TObject; virtual;
        ///// P R O P E R T Y
        property Origin                      :TListChildr read GetOrigin   write SetOrigin  ;
        property Indexes[ const I_:Integer ] :TListChildr read GetIndexes  write SetIndexes ;
@@ -111,6 +113,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Items[ const I_:Integer ]   :TListChildr read GetChildrs  write SetChildrs;
        property ChildrsN                    :Integer     read GetChildrsN                 ;
        property Count                       :Integer     read GetChildrsN                 ;
+       property IsEmpty                     :Boolean     read GetIsEmpty                  ;
+       property OwnereObject                :TObject     read GetOwnereObject             ;
        ///// M E T H O D
        procedure Clear; virtual;
        procedure InsertHead( const Childr_:TListChildr ); overload;
@@ -128,10 +132,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      protected
        _Parent :TListParent;
        _Childr :TListChildr;
+       _NextCh :TListChildr;  // 先読み（列挙中の Current 削除を安全にする）
        ///// A C C E S S O R
        function GetChildr: TListChildr; virtual;
      public
-       constructor Create( Parent_:TListParent );
+       constructor Create( const Parent_:TListParent );
        ///// P R O P E R T Y
        property Current :TListChildr read GetChildr;
        ///// M E T H O D
@@ -141,6 +146,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 implementation //############################################################### ■
+
+uses System.SysUtils;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
@@ -228,13 +235,19 @@ end;
 
 function TListChildr.GetOrder :Integer;
 begin
-     if not IsOrdered then _Parent.FindTo( Self );
+     if Assigned( _Parent ) then
+     begin
+          if not IsOrdered then _Parent.FindTo( Self );
 
-     Result := _Order;
+          Result := _Order;
+     end
+     else Result := -1;  // リストに属していない
 end;
 
 procedure TListChildr.SetOrder( const Order_:Integer );
 begin
+     Assert( Assigned( _Parent ), 'TListChildr.SetOrder: 親リストに属していません' );
+
      TListParent.Swap( Self, _Parent[ Order_ ] );
 end;
 
@@ -296,14 +309,22 @@ end;
 
 procedure TListChildr.Remove;
 begin
-     if Assigned( _Parent ) then _Remove;
+     if not Assigned( _Parent ) then Exit;
+
+     if _Prev = Self then _Parent := nil  // 未連結（構築中の例外など）は切り離すのみ
+                     else _Remove;
 end;
 
 //------------------------------------------------------------------------------
 
 procedure TListChildr.InsertPrev( const Siblin_:TListChildr );
 begin
+     Assert( Assigned( _Parent ), 'TListChildr.InsertPrev: 親リストに属していません' );
+     Assert( Siblin_ <> Self, 'TListChildr.InsertPrev: 自分自身は挿入できません' );
+
      Siblin_.Remove;
+
+     Siblin_._Parent := _Parent;
 
      _Parent.InsertBind( _Prev, Siblin_, Self );
 
@@ -312,7 +333,12 @@ end;
 
 procedure TListChildr.InsertNext( const Siblin_:TListChildr );
 begin
+     Assert( Assigned( _Parent ), 'TListChildr.InsertNext: 親リストに属していません' );
+     Assert( Siblin_ <> Self, 'TListChildr.InsertNext: 自分自身は挿入できません' );
+
      Siblin_.Remove;
+
+     Siblin_._Parent := _Parent;
 
      _Parent.InsertBind( Self, Siblin_, _Next );
 
@@ -363,14 +389,16 @@ function TListParent.GetHeader :TListChildr;
 begin
      if _ChildrsN = 0 then OnInit;
 
-     Result := Origin._Next;
+     if _ChildrsN = 0 then Result := nil  // 空のときは nil
+                      else Result := Origin._Next;
 end;
 
 function TListParent.GetTailer :TListChildr;
 begin
      if _ChildrsN = 0 then OnInit;
 
-     Result := Origin._Prev;
+     if _ChildrsN = 0 then Result := nil  // 空のときは nil
+                      else Result := Origin._Prev;
 end;
 
 //------------------------------------------------------------------------------
@@ -379,6 +407,9 @@ function TListParent.GetChildrs( const I_:Integer ) :TListChildr;
 begin
      if _ChildrsN = 0 then OnInit;
 
+     if ( I_ < 0 ) or ( _ChildrsN <= I_ )
+     then raise EArgumentOutOfRangeException.CreateFmt( 'TListParent.Childrs[%d]: 添字が範囲外です（Count=%d）', [ I_, _ChildrsN ] );
+
      if I_ > _MaxOrder then FindTo( I_ );
 
      Result := Indexes[ I_ ];
@@ -386,16 +417,19 @@ end;
 
 procedure TListParent.SetChildrs( const I_:Integer; const Childr_:TListChildr );
 var
-   S :TListChildr;
+   O, P :TListChildr;
 begin
-     with Childrs[ I_ ] do
-     begin
-          S := Childrs[ I_ ]._Prev;
+     O := Childrs[ I_ ];  // 範囲検査+ I_ までのインデックス化
 
-          Remove;
-     end;
+     P := O._Prev;  // P は番兵（Origin）でも良い（以降はリンク操作しか行わない）
 
-     S.InsertNext( Childr_ );
+     O.Remove;  // 旧ノードは切り離すのみで解放しない（所有権は呼び出し側へ移る）
+
+     Childr_.Remove;
+
+     Childr_._Parent := Self;
+
+     InsertBind( P, Childr_, P._Next );
 end;
 
 //------------------------------------------------------------------------------
@@ -405,6 +439,20 @@ begin
      if _ChildrsN = 0 then OnInit;
 
      Result := _ChildrsN;
+end;
+
+//------------------------------------------------------------------------------
+
+function TListParent.GetIsEmpty :Boolean;
+begin
+     Result := GetChildrsN = 0;
+end;
+
+//------------------------------------------------------------------------------
+
+function TListParent.GetOwnereObject :TObject;
+begin
+     Result := nil;  // 所有者は派生クラス（LUX.Data.List の Ownere 層）が返す
 end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
@@ -495,7 +543,7 @@ begin
      inherited;
 
       IndexesN := 0;
-      Origin   := Origin;
+      Origin   := Origin;  // 番兵（自身）を _Indexes[0] へ格納する初期化イディオム
      _MaxOrder := -1;
      _ChildrsN := 0;
 end;
@@ -510,10 +558,8 @@ end;
 //////////////////////////////////////////////////////////////////// M E T H O D
 
 procedure TListParent.Clear;
-var
-   N :Integer;
 begin
-     for N := 1 to _ChildrsN do Origin._Prev.Free;
+     while _ChildrsN > 0 do Origin._Prev.Free;  // 子は親の所有であり、ここで解放される（Remove は切り離すのみで解放しない）
 end;
 
 //------------------------------------------------------------------------------
@@ -551,6 +597,8 @@ var
    B1, B2 :Boolean;
    I1, I2 :Integer;
 begin
+     Assert( Assigned( C1_._Parent ) and Assigned( C2_._Parent ), 'TListParent.Swap: 親リストに属していないノードがあります' );
+
      with C1_ do
      begin
           P1 := _Parent   ;
@@ -621,23 +669,26 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
-constructor TListEnumer.Create( Parent_:TListParent );
+constructor TListEnumer.Create( const Parent_:TListParent );
 begin
      inherited Create;
 
-     with Parent_ do if _ChildrsN = 0 then OnInit;
+     if Parent_._ChildrsN = 0 then Parent_.OnInit;
 
      _Parent := Parent_;
-     _Childr := Parent_.Origin;
+     _Childr := nil;
+     _NextCh := Parent_.Origin._Next;
 end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
 function TListEnumer.MoveNext :Boolean;
 begin
-     _Childr := _Childr.Next;
+     _Childr := _NextCh;  // 次要素を先読みしているため、列挙中の削除は Current に対してのみ安全
 
      Result := _Childr <> _Parent.Origin;
+
+     if Result then _NextCh := _Childr._Next;
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
