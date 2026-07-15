@@ -66,6 +66,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 implementation //############################################################### ■
 
+uses System.Threading;
+
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
@@ -184,49 +186,50 @@ end;
 
 procedure TComplex3D.MakeGeometry;
 var
-   X, Y, I :Integer;
-   T :TDouble2D;
-   M :TDoubleM4;
-   C :TDoubleC;
-   T2 :TPointF;
+   VB :TVertexBuffer;
 begin
-     with _Polygons.VertexBuffer do
+     VB := _Polygons.VertexBuffer;
+
+     if not Assigned( Func ) then
      begin
-          if not Assigned( Func ) then
-          begin
-               Length := 0;  Exit;
-          end;
-
-          Length := ( _DivX + 1 ) * ( _DivY + 1 );
-
-          for Y := 0 to _DivY do
-          begin
-               T.Y := Y / _DivY;
-
-               for X := 0 to _DivX do
-               begin
-                    T.X := X / _DivX;
-
-                    M := TexToMatrix( T, TexToPos );
-
-                    C.R := ( _Area.Max.R - _Area.Min.R ) * T.X + _Area.Min.R;
-                    C.I := ( _Area.Max.I - _Area.Min.I ) * T.Y + _Area.Min.I;
-
-                    C := Func( C ).o;
-
-                    C.Abso := C.Abso / ( _Scale + C.Abso );
-
-                    T2.X := 0.5 + C.R / 2;
-                    T2.Y := 0.5 + C.I / 2;
-
-                    I := XYtoI( X, Y );
-
-                    Vertices [ I ] := M.AxisP;
-                    Normals  [ I ] := M.AxisZ;
-                    TexCoord0[ I ] := T2;
-               end;
-          end;
+          VB.Length := 0;  Exit;
      end;
+
+     VB.Length := ( _DivX + 1 ) * ( _DivY + 1 );
+
+     TParallel.For( 0, _DivY, procedure( Y_:Integer )
+     var
+        X, I :Integer;
+        T :TDouble2D;
+        M :TDoubleM4;
+        C :TDoubleC;
+        T2 :TPointF;
+     begin
+          T.Y := Y_ / _DivY;
+
+          for X := 0 to _DivX do
+          begin
+               T.X := X / _DivX;
+
+               M := TexToMatrix( T, TexToPos );
+
+               C.R := ( _Area.Max.R - _Area.Min.R ) * T.X + _Area.Min.R;
+               C.I := ( _Area.Max.I - _Area.Min.I ) * T.Y + _Area.Min.I;
+
+               C := Func( C ).o;
+
+               C.Abso := C.Abso / ( _Scale + C.Abso );
+
+               T2.X := 0.5 + C.R / 2;
+               T2.Y := 0.5 + C.I / 2;
+
+               I := XYtoI( X, Y_ );
+
+               VB.Vertices [ I ] := M.AxisP;
+               VB.Normals  [ I ] := M.AxisZ;
+               VB.TexCoord0[ I ] := T2;
+          end;
+     end );
 end;
 
 procedure TComplex3D.MakeTopology;
