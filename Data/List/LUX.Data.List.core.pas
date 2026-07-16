@@ -7,9 +7,23 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TListObject = class;
      TListChildr = class;
      TListParent = class;
-     TListEnumer = class;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListEnumer
+
+     // 直下の子の列挙子。レコードなのでヒープ割り当てが無い。
+     TListEnumer = record
+     private
+       _Parent :TListParent;
+       _Childr :TListChildr;
+       _NextCh :TListChildr;  // 先読み（列挙中の Current 削除を安全にする）
+     public
+       ///// P R O P E R T Y
+       property Current :TListChildr read _Childr;
+       ///// M E T H O D
+       function MoveNext :Boolean;
+     end;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
@@ -125,24 +139,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetEnumerator: TListEnumer;
      end;
 
-     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListEnumer
-
-     TListEnumer = class
-     private
-     protected
-       _Parent :TListParent;
-       _Childr :TListChildr;
-       _NextCh :TListChildr;  // 先読み（列挙中の Current 削除を安全にする）
-       ///// A C C E S S O R
-       function GetChildr: TListChildr; virtual;
-     public
-       constructor Create( const Parent_:TListParent );
-       ///// P R O P E R T Y
-       property Current :TListChildr read GetChildr;
-       ///// M E T H O D
-       function MoveNext :Boolean;
-     end;
-
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 implementation //############################################################### ■
@@ -150,6 +146,19 @@ implementation //###############################################################
 uses System.SysUtils;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListEnumer
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+function TListEnumer.MoveNext :Boolean;
+begin
+     _Childr := _NextCh;  // 次要素を先読みしているため、列挙中の削除は Current に対してのみ安全
+
+     Result := _Childr <> _Parent.Origin;
+
+     if Result then _NextCh := _Childr._Next;
+end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
@@ -651,44 +660,11 @@ end;
 
 function TListParent.GetEnumerator: TListEnumer;
 begin
-     Result := TListEnumer.Create( Self );
-end;
+     if _ChildrsN = 0 then OnInit;
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListEnumer
-
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
-
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
-
-//////////////////////////////////////////////////////////////// A C C E S S O R
-
-function TListEnumer.GetChildr: TListChildr;
-begin
-     Result := _Childr;
-end;
-
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
-
-constructor TListEnumer.Create( const Parent_:TListParent );
-begin
-     inherited Create;
-
-     if Parent_._ChildrsN = 0 then Parent_.OnInit;
-
-     _Parent := Parent_;
-     _Childr := nil;
-     _NextCh := Parent_.Origin._Next;
-end;
-
-//////////////////////////////////////////////////////////////////// M E T H O D
-
-function TListEnumer.MoveNext :Boolean;
-begin
-     _Childr := _NextCh;  // 次要素を先読みしているため、列挙中の削除は Current に対してのみ安全
-
-     Result := _Childr <> _Parent.Origin;
-
-     if Result then _NextCh := _Childr._Next;
+     Result._Parent := Self;
+     Result._Childr := nil;
+     Result._NextCh := Origin._Next;  // 空なら Origin ＝ 最初の MoveNext で即終端
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】

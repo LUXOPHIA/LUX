@@ -8,12 +8,26 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      TListChildr<TParent_:class> = class;
      TListParent<TChildr_:class> = class;
-     TListEnumer<TChildr_:class> = class;
 
      TListChildr<TOwnere_,TParent_:class> = class;
      TListParent<TOwnere_,TChildr_:class> = class;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListEnumer<TChildr_>
+
+     // 列挙子の型付け層。核のレコードを包んで転送する。
+     TListEnumer<TChildr_:class> = record
+     private
+       _Enumer :TListEnumer;
+       ///// A C C E S S O R
+       function GetCurrent :TChildr_; inline;
+     public
+       ///// P R O P E R T Y
+       property Current :TChildr_ read GetCurrent;
+       ///// M E T H O D
+       function MoveNext :Boolean; inline;
+     end;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
@@ -60,18 +74,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetEnumerator: TListEnumer<TChildr_>;
      end;
 
-     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListEnumer<TChildr_>
-
-     TListEnumer<TChildr_:class> = class( TListEnumer )
-     private
-     protected
-       ///// A C C E S S O R
-       function GetCurrent: TChildr_; virtual;
-     public
-       ///// P R O P E R T Y
-       property Current :TChildr_ read GetCurrent;
-     end;
-
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChildr<TOwnere_,TParent_>
 
      TListChildr<TOwnere_,TParent_:class> = class( TListChildr<TParent_> )
@@ -105,6 +107,26 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 implementation //############################################################### ■
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListEnumer<TChildr_>
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
+
+//////////////////////////////////////////////////////////////// A C C E S S O R
+
+function TListEnumer<TChildr_>.GetCurrent :TChildr_;
+begin
+     Result := TChildr_( _Enumer.Current );
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+function TListEnumer<TChildr_>.MoveNext :Boolean;
+begin
+     Result := _Enumer.MoveNext;
+end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
@@ -204,21 +226,8 @@ end;
 
 function TListParent<TChildr_>.GetEnumerator: TListEnumer<TChildr_>;
 begin
-     Result := TListEnumer<TChildr_>.Create( Self );
+     Result._Enumer := inherited GetEnumerator;
 end;
-
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListEnumer<TChildr_>
-
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
-
-//////////////////////////////////////////////////////////////// A C C E S S O R
-
-function TListEnumer<TChildr_>.GetCurrent: TChildr_;
-begin
-     Result := TChildr_( inherited Current );
-end;
-
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListChildr<TOwnere_,TParent_>
 
