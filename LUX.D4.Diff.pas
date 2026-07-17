@@ -3,7 +3,8 @@
 interface //#################################################################### ■
 
 uses System.Math.Vectors,
-     LUX, LUX.D1.Diff, LUX.D3.Diff;
+     LUX, LUX.D4,
+     LUX.D1.Diff, LUX.D3.Diff;
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
@@ -40,6 +41,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdSingle; const B_:TdSingle4D ) :TdSingle4D;
        class operator Divide( const A_:TdSingle4D; const B_:TdSingle ) :TdSingle4D;
        ///// C A S T
+       class operator Implicit( const V_:Integer ) :TdSingle4D;
+       class operator Implicit( const V_:Int64 ) :TdSingle4D;
+       class operator Implicit( const V_:Single ) :TdSingle4D;
+       class operator Implicit( const V_:TdSingle ) :TdSingle4D;
+       class operator Implicit( const V_:TSingle4D ) :TdSingle4D;
        class operator Implicit( const V_:TdSingle3D ) :TdSingle4D;
        class operator Explicit( const V_:TdSingle4D ) :TdSingle3D;
        class operator Implicit( const V_:TPoint3D ) :TdSingle4D;
@@ -104,12 +110,19 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TdDouble; const B_:TdDouble4D ) :TdDouble4D;
        class operator Divide( const A_:TdDouble4D; const B_:TdDouble ) :TdDouble4D;
        ///// C A S T
+       class operator Implicit( const V_:Integer ) :TdDouble4D;
+       class operator Implicit( const V_:Int64 ) :TdDouble4D;
+       class operator Implicit( const V_:Double ) :TdDouble4D;
+       class operator Implicit( const V_:TdDouble ) :TdDouble4D;
+       class operator Implicit( const V_:TDouble4D ) :TdDouble4D;
        class operator Implicit( const V_:TdDouble3D ) :TdDouble4D;
        class operator Explicit( const V_:TdDouble4D ) :TdDouble3D;
        class operator Implicit( const V_:TPoint3D ) :TdDouble4D;
        class operator Explicit( const V_:TdDouble4D ) :TPoint3D;
        class operator Implicit( const V_:TVector3D ) :TdDouble4D;
        class operator Explicit( const V_:TdDouble4D ) :TVector3D;
+       class operator Implicit( const V_:TdSingle4D ) :TdDouble4D;
+       class operator Explicit( const V_:TdDouble4D ) :TdSingle4D;
        ///// C O N S T A N T
        class function IdentityX :TdDouble4D; static;
        class function IdentityY :TdDouble4D; static;
@@ -140,6 +153,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Angle
+
+function Angle( const V0_,V1_:TdSingle4D ) :TdSingle; overload;  //= 0..Pi
+function Angle( const V0_,V1_:TdDouble4D ) :TdDouble; overload;  //= 0..Pi
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DotProduct
 
@@ -328,6 +346,61 @@ begin
 end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
+
+class operator TdSingle4D.Implicit( const V_:Integer ) :TdSingle4D;
+begin
+     with Result do
+     begin
+          X := V_;
+          Y := V_;
+          Z := V_;
+          W := V_;
+     end;
+end;
+
+class operator TdSingle4D.Implicit( const V_:Int64 ) :TdSingle4D;
+begin
+     with Result do
+     begin
+          X := V_;
+          Y := V_;
+          Z := V_;
+          W := V_;
+     end;
+end;
+
+class operator TdSingle4D.Implicit( const V_:Single ) :TdSingle4D;
+begin
+     with Result do
+     begin
+          X := V_;
+          Y := V_;
+          Z := V_;
+          W := V_;
+     end;
+end;
+
+class operator TdSingle4D.Implicit( const V_:TdSingle ) :TdSingle4D;
+begin
+     with Result do
+     begin
+          X := V_;
+          Y := V_;
+          Z := V_;
+          W := V_;
+     end;
+end;
+
+class operator TdSingle4D.Implicit( const V_:TSingle4D ) :TdSingle4D;
+begin
+     with Result do
+     begin
+          X := V_.X;
+          Y := V_.Y;
+          Z := V_.Z;
+          W := V_.W;
+     end;
+end;
 
 class operator TdSingle4D.Implicit( const V_:TdSingle3D ) :TdSingle4D;
 begin
@@ -668,6 +741,61 @@ end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
 
+class operator TdDouble4D.Implicit( const V_:Integer ) :TdDouble4D;
+begin
+     with Result do
+     begin
+          X := V_;
+          Y := V_;
+          Z := V_;
+          W := V_;
+     end;
+end;
+
+class operator TdDouble4D.Implicit( const V_:Int64 ) :TdDouble4D;
+begin
+     with Result do
+     begin
+          X := V_;
+          Y := V_;
+          Z := V_;
+          W := V_;
+     end;
+end;
+
+class operator TdDouble4D.Implicit( const V_:Double ) :TdDouble4D;
+begin
+     with Result do
+     begin
+          X := V_;
+          Y := V_;
+          Z := V_;
+          W := V_;
+     end;
+end;
+
+class operator TdDouble4D.Implicit( const V_:TdDouble ) :TdDouble4D;
+begin
+     with Result do
+     begin
+          X := V_;
+          Y := V_;
+          Z := V_;
+          W := V_;
+     end;
+end;
+
+class operator TdDouble4D.Implicit( const V_:TDouble4D ) :TdDouble4D;
+begin
+     with Result do
+     begin
+          X := V_.X;
+          Y := V_.Y;
+          Z := V_.Z;
+          W := V_.W;
+     end;
+end;
+
 class operator TdDouble4D.Implicit( const V_:TdDouble3D ) :TdDouble4D;
 begin
      with Result do
@@ -729,6 +857,28 @@ begin
           Y := -V_.Y.o;
           Z := -V_.Z.o;
           W :=  V_.W.o;
+     end;
+end;
+
+class operator TdDouble4D.Implicit( const V_:TdSingle4D ) :TdDouble4D;
+begin
+     with Result do
+     begin
+          X := V_.X;
+          Y := V_.Y;
+          Z := V_.Z;
+          W := V_.W;
+     end;
+end;
+
+class operator TdDouble4D.Explicit( const V_:TdDouble4D ) :TdSingle4D;
+begin
+     with Result do
+     begin
+          X := TdSingle( V_.X );
+          Y := TdSingle( V_.Y );
+          Z := TdSingle( V_.Z );
+          W := TdSingle( V_.W );
      end;
 end;
 
@@ -855,6 +1005,18 @@ end;
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Angle
+
+function Angle( const V0_,V1_:TdSingle4D ) :TdSingle;
+begin
+     Result := ArcCos( Min( Max( DotProduct( V0_, V1_ ), -1 ), +1 ) );
+end;
+
+function Angle( const V0_,V1_:TdDouble4D ) :TdDouble;
+begin
+     Result := ArcCos( Min( Max( DotProduct( V0_, V1_ ), -1 ), +1 ) );
+end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DotProduct
 

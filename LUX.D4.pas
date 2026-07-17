@@ -9,6 +9,26 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TInteger4D
+
+     TInteger4D = record
+     private
+     public
+       constructor Create( const V_:Integer ); overload;
+       constructor Create( const X_,Y_,Z_,W_:Integer ); overload;
+       ///// F I E L D
+     case Byte of
+      0:( _1D :array [ 0..4-1 ] of Integer; );
+      1:( _1  :Integer;
+          _2  :Integer;
+          _3  :Integer;
+          _4  :Integer;                     );
+      2:(  X  :Integer;
+           Y  :Integer;
+           Z  :Integer;
+           W  :Integer;                     );
+     end;
+
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingle4D
 
      TSingle4D = record
@@ -22,6 +42,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetSize( const Size_:Single );
        function GetUnitor :TSingle4D;
        procedure SetUnitor( const Unitor_:TSingle4D );
+       function GetOrthant :Byte;
      public
        constructor Create( const V_:Single ); overload;
        constructor Create( const X_,Y_,Z_,W_:Single ); overload;
@@ -31,6 +52,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Size2                  :Single    read GetSize2  write SetSize2 ;
        property Size                   :Single    read GetSize   write SetSize  ;
        property Unitor                 :TSingle4D read GetUnitor write SetUnitor;
+       property Orthant                :Byte      read GetOrthant               ;
        ///// O P E R A T O R
        class operator Negative( const V_:TSingle4D ) :TSingle4D;
        class operator Positive( const V_:TSingle4D ) :TSingle4D;
@@ -40,6 +62,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:Single; const B_:TSingle4D ) :TSingle4D;
        class operator Divide( const A_:TSingle4D; const B_:Single ) :TSingle4D;
        ///// C A S T
+       class operator Implicit( const V_:Single ) :TSingle4D;
        class operator Implicit( const V_:TSingle3D ) :TSingle4D;
        class operator Explicit( const V_:TSingle4D ) :TSingle3D;
        class operator Implicit( const V_:TPoint3D ) :TSingle4D;
@@ -86,6 +109,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetSize( const Size_:Double );
        function GetUnitor :TDouble4D;
        procedure SetUnitor( const Unitor_:TDouble4D );
+       function GetOrthant :Byte;
      public
        constructor Create( const V_:Double ); overload;
        constructor Create( const X_,Y_,Z_,W_:Double ); overload;
@@ -95,6 +119,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Size2                  :Double    read GetSize2  write SetSize2 ;
        property Size                   :Double    read GetSize   write SetSize  ;
        property Unitor                 :TDouble4D read GetUnitor write SetUnitor;
+       property Orthant                :Byte      read GetOrthant               ;
        ///// O P E R A T O R
        class operator Negative( const V_:TDouble4D ) :TDouble4D;
        class operator Positive( const V_:TDouble4D ) :TDouble4D;
@@ -104,12 +129,15 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:Double; const B_:TDouble4D ) :TDouble4D;
        class operator Divide( const A_:TDouble4D; const B_:Double ) :TDouble4D;
        ///// C A S T
+       class operator Implicit( const V_:Double ) :TDouble4D;
        class operator Implicit( const V_:TDouble3D ) :TDouble4D;
        class operator Explicit( const V_:TDouble4D ) :TDouble3D;
        class operator Implicit( const V_:TPoint3D ) :TDouble4D;
        class operator Explicit( const V_:TDouble4D ) :TPoint3D;
        class operator Implicit( const V_:TVector3D ) :TDouble4D;
        class operator Explicit( const V_:TDouble4D ) :TVector3D;
+       class operator Implicit( const V_:TSingle4D ) :TDouble4D;
+       class operator Explicit( const V_:TDouble4D ) :TSingle4D;
        ///// C O N S T A N T
        class function IdentityX :TDouble4D; static;
        class function IdentityY :TDouble4D; static;
@@ -140,6 +168,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Angle
+
+function Angle( const V0_,V1_:TSingle4D ) :Single; overload;  //= 0..Pi
+function Angle( const V0_,V1_:TDouble4D ) :Double; overload;  //= 0..Pi
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DotProduct
 
@@ -172,7 +205,29 @@ function Ave( const P1_,P2_,P3_,P4_:TDouble4D ) :TDouble4D; overload;
 
 implementation //############################################################### ■
 
+uses System.Math;
+
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TInteger4D
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+constructor TInteger4D.Create( const V_:Integer );
+begin
+     X := V_;
+     Y := V_;
+     Z := V_;
+     W := V_;
+end;
+
+constructor TInteger4D.Create( const X_,Y_,Z_,W_:Integer );
+begin
+     X := X_;
+     Y := Y_;
+     Z := Z_;
+     W := W_;
+end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingle4D
 
@@ -220,6 +275,17 @@ end;
 procedure TSingle4D.SetUnitor( const Unitor_:TSingle4D );
 begin
      Self := Size * Unitor_;
+end;
+
+//------------------------------------------------------------------------------
+
+function TSingle4D.GetOrthant :Byte;
+begin
+     Result := 0;
+     if X >= 0 then Result := Result or 1;
+     if Y >= 0 then Result := Result or 2;
+     if Z >= 0 then Result := Result or 4;
+     if W >= 0 then Result := Result or 8;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -307,6 +373,14 @@ begin
 end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
+
+class operator TSingle4D.Implicit( const V_:Single ) :TSingle4D;
+begin
+     Result.X := V_;
+     Result.Y := V_;
+     Result.Z := V_;
+     Result.W := V_;
+end;
 
 class operator TSingle4D.Implicit( const V_:TSingle3D ) :TSingle4D;
 begin
@@ -498,6 +572,17 @@ begin
      Self := Size * Unitor_;
 end;
 
+//------------------------------------------------------------------------------
+
+function TDouble4D.GetOrthant :Byte;
+begin
+     Result := 0;
+     if X >= 0 then Result := Result or 1;
+     if Y >= 0 then Result := Result or 2;
+     if Z >= 0 then Result := Result or 4;
+     if W >= 0 then Result := Result or 8;
+end;
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
 constructor TDouble4D.Create( const V_:Double );
@@ -584,6 +669,14 @@ end;
 
 //////////////////////////////////////////////////////////////////////// C A S T
 
+class operator TDouble4D.Implicit( const V_:Double ) :TDouble4D;
+begin
+     Result.X := V_;
+     Result.Y := V_;
+     Result.Z := V_;
+     Result.W := V_;
+end;
+
 class operator TDouble4D.Implicit( const V_:TDouble3D ) :TDouble4D;
 begin
      Result.X := V_.X;
@@ -628,6 +721,22 @@ begin
      Result.Y := -V_.Y;
      Result.Z := -V_.Z;
      Result.W :=  V_.W;
+end;
+
+class operator TDouble4D.Implicit( const V_:TSingle4D ) :TDouble4D;
+begin
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
+     Result.W := V_.W;
+end;
+
+class operator TDouble4D.Explicit( const V_:TDouble4D ) :TSingle4D;
+begin
+     Result.X := V_.X;
+     Result.Y := V_.Y;
+     Result.Z := V_.Z;
+     Result.W := V_.W;
 end;
 
 //////////////////////////////////////////////////////////////// C O N S T A N T
@@ -729,6 +838,18 @@ end;
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Angle
+
+function Angle( const V0_,V1_:TSingle4D ) :Single;
+begin
+     Result := ArcCos( Clamp( DotProduct( V0_, V1_ ), -1, +1 ) );
+end;
+
+function Angle( const V0_,V1_:TDouble4D ) :Double;
+begin
+     Result := ArcCos( Clamp( DotProduct( V0_, V1_ ), -1, +1 ) );
+end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DotProduct
 
