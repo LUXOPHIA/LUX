@@ -143,11 +143,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Implicit( const V_:TDouble2D ) :TDouble3D;
        class operator Explicit( const V_:TDouble3D ) :TDouble2D;
        class operator Implicit( const V_:TPoint3D ) :TDouble3D;
-       class operator Implicit( const V_:TDouble3D ) :TPoint3D;
+       class operator Explicit( const V_:TDouble3D ) :TPoint3D;
        class operator Implicit( const V_:TVector3D ) :TDouble3D;
-       class operator Implicit( const V_:TDouble3D ) :TVector3D;
+       class operator Explicit( const V_:TDouble3D ) :TVector3D;
        class operator Implicit( const V_:TSingle3D ) :TDouble3D;
-       class operator Implicit( const V_:TDouble3D ) :TSingle3D;
+       class operator Explicit( const V_:TDouble3D ) :TSingle3D;
        ///// C O N S T A N T
        class function IdentityX :TDouble3D; static;
        class function IdentityY :TDouble3D; static;
@@ -709,7 +709,7 @@ begin
      Result.Z := V_.Z;
 end;
 
-class operator TDouble3D.Implicit( const V_:TDouble3D ) :TPoint3D;
+class operator TDouble3D.Explicit( const V_:TDouble3D ) :TPoint3D;
 begin
      Result.X := V_.X;
      Result.Y := V_.Y;
@@ -721,7 +721,7 @@ begin
      Result := TPoint3D( V_ );
 end;
 
-class operator TDouble3D.Implicit( const V_:TDouble3D ) :TVector3D;
+class operator TDouble3D.Explicit( const V_:TDouble3D ) :TVector3D;
 begin
      Result := TPoint3D( V_ );
 end;
@@ -733,7 +733,7 @@ begin
      Result.Z := V_.Z;
 end;
 
-class operator TDouble3D.Implicit( const V_:TDouble3D ) :TSingle3D;
+class operator TDouble3D.Explicit( const V_:TDouble3D ) :TSingle3D;
 begin
      Result.X := V_.X;
      Result.Y := V_.Y;

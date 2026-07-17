@@ -9,6 +9,22 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TInteger2D
+
+     TInteger2D = record
+     private
+     public
+       constructor Create( const V_:Integer ); overload;
+       constructor Create( const X_,Y_:Integer ); overload;
+       ///// F I E L D
+     case Byte of
+      0:( _1D :array [ 0..2-1 ] of Integer; );
+      1:( _1  :Integer;
+          _2  :Integer;                     );
+      2:(  X  :Integer;
+           Y  :Integer;                     );
+     end;
+
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingle2D
 
      TSingle2D = record
@@ -24,7 +40,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetUnitor( const Unitor_:TSingle2D ); inline;
        function GetOrthant :Byte;
      public
-       constructor Create( const X_,Y_:Single );
+       constructor Create( const V_:Single ); overload;
+       constructor Create( const X_,Y_:Single ); overload;
        ///// P R O P E R T Y
        property D1[ const X_:Integer ] :Single    read GetD1      write SetD1    ; default;
        property Size2                  :Single    read GetSize2   write SetSize2 ;
@@ -83,7 +100,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetUnitor( const Unitor_:TDouble2D ); inline;
        function GetOrthant :Byte;
      public
-       constructor Create( const X_,Y_:Double );
+       constructor Create( const V_:Double ); overload;
+       constructor Create( const X_,Y_:Double ); overload;
        ///// P R O P E R T Y
        property D1[ const X_:Integer ] :Double    read GetD1      write SetD1    ; default;
        property Size2                  :Double    read GetSize2   write SetSize2 ;
@@ -133,6 +151,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Angle
+
+function Angle( const V0_,V1_:TSingle2D ) :Single; overload;  //= 0..Pi
+function Angle( const V0_,V1_:TDouble2D ) :Double; overload;  //= 0..Pi
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DotProduct
 
 function DotProduct( const A_,B_:TSingle2D ) :Single; inline; overload;
@@ -159,11 +182,30 @@ function Ave( const P1_,P2_:TDouble2D ) :TDouble2D; inline; overload;
 function Ave( const P1_,P2_,P3_:TSingle2D ) :TSingle2D; inline; overload;
 function Ave( const P1_,P2_,P3_:TDouble2D ) :TDouble2D; inline; overload;
 
+function Ave( const P1_,P2_,P3_,P4_:TSingle2D ) :TSingle2D; inline; overload;
+function Ave( const P1_,P2_,P3_,P4_:TDouble2D ) :TDouble2D; inline; overload;
+
 implementation //############################################################### ■
 
 uses System.Math;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TInteger2D
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+constructor TInteger2D.Create( const V_:Integer );
+begin
+     X := V_;
+     Y := V_;
+end;
+
+constructor TInteger2D.Create( const X_,Y_:Integer );
+begin
+     X := X_;
+     Y := Y_;
+end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingle2D
 
@@ -223,6 +265,12 @@ begin
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+constructor TSingle2D.Create( const V_:Single );
+begin
+     X := V_;
+     Y := V_;
+end;
 
 constructor TSingle2D.Create( const X_,Y_:Single );
 begin
@@ -436,6 +484,12 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
+constructor TDouble2D.Create( const V_:Double );
+begin
+     X := V_;
+     Y := V_;
+end;
+
 constructor TDouble2D.Create( const X_,Y_:Double );
 begin
      X := X_;
@@ -607,6 +661,18 @@ end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Angle
+
+function Angle( const V0_,V1_:TSingle2D ) :Single;
+begin
+     Result := ArcCos( Clamp( DotProduct( V0_, V1_ ), -1, +1 ) );
+end;
+
+function Angle( const V0_,V1_:TDouble2D ) :Double;
+begin
+     Result := ArcCos( Clamp( DotProduct( V0_, V1_ ), -1, +1 ) );
+end;
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DotProduct
 
 function DotProduct( const A_,B_:TSingle2D ) :Single;
@@ -677,6 +743,18 @@ end;
 function Ave( const P1_,P2_,P3_:TDouble2D ) :TDouble2D;
 begin
      Result := ( P1_ + P2_ + P3_ ) / 3;
+end;
+
+//------------------------------------------------------------------------------
+
+function Ave( const P1_,P2_,P3_,P4_:TSingle2D ) :TSingle2D;
+begin
+     Result := ( P1_ + P2_ + P3_ + P4_ ) / 4;
+end;
+
+function Ave( const P1_,P2_,P3_,P4_:TDouble2D ) :TDouble2D;
+begin
+     Result := ( P1_ + P2_ + P3_ + P4_ ) / 4;
 end;
 
 end. //######################################################################### ■
