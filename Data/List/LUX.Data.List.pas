@@ -37,8 +37,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        ///// A C C E S S O R
-       function GetParent :TParent_; reintroduce;
-       procedure SetParent( const Parent_:TParent_ ); reintroduce;
+       function GetParent :TParent_; reintroduce; virtual;
+       procedure SetParent( const Parent_:TParent_ ); reintroduce; virtual;
      public
        constructor Create( const Parent_:TParent_ ); overload; virtual;
        ///// P R O P E R T Y
@@ -68,9 +68,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Childrs[ const I_:Integer ] :TChildr_ read GetChildrs write SetChildrs; default;
        property Items[ const I_:Integer ]   :TChildr_ read GetChildrs write SetChildrs;
        ///// M E T H O D
-       procedure InsertHead( const Childr_:TChildr_ ); overload;
-       procedure InsertTail( const Childr_:TChildr_ ); overload;
-       procedure Add( const Childr_:TChildr_ ); overload;
+       procedure InsertHead( const Childr_:TChildr_ ); overload; virtual;
+       procedure InsertTail( const Childr_:TChildr_ ); overload; virtual;
+       procedure Add( const Childr_:TChildr_ ); overload; virtual;
        function GetEnumerator: TListEnumer<TChildr_>;
      end;
 
