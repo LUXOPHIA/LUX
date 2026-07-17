@@ -16,7 +16,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TSingleM4
 
      TSingleM4 = record
-     public
+     private
        ///// A C C E S S O R
        function GetD2( const Y_,X_:Integer ) :Single;
        procedure SetD2( const Y_,X_:Integer; const D2_:Single );
@@ -41,6 +41,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property AxisZ                     :TSingle3D read GetAxisZ write SetAxisZ;
        property AxisP                     :TSingle3D read GetAxisP write SetAxisP;
        ///// O P E R A T O R
+       class operator Negative( const V_:TSingleM4 ) :TSingleM4;
+       class operator Positive( const V_:TSingleM4 ) :TSingleM4;
+       class operator Add( const A_,B_:TSingleM4 ) :TSingleM4;
+       class operator Subtract( const A_,B_:TSingleM4 ) :TSingleM4;
        class operator Multiply( const A_,B_:TSingleM4 ) :TSingleM4;
        class operator Multiply( const A_:Single; const B_:TSingleM4 ) :TSingleM4;
        class operator Multiply( const A_:TSingleM4; const B_:Single ) :TSingleM4;
@@ -56,8 +60,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// M E T H O D
        function MultPos( const B_:TSingle3D ) :TSingle3D;
        function MultVec( const B_:TSingle3D ) :TSingle3D;
-       function Adjugate :TSingleM4;
        function Transpose :TSingleM4;
+       function Det :Single;
+       function Adjugate :TSingleM4;
        function Inverse :TSingleM4;
        ///// C O N S T A N T
        class function Translate( const X_,Y_,Z_:Single ) :TSingleM4; overload; static;
@@ -85,7 +90,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TDoubleM4
 
      TDoubleM4 = record
-     public
+     private
        ///// A C C E S S O R
        function GetD2( const Y_,X_:Integer ) :Double;
        procedure SetD2( const Y_,X_:Integer; const D2_:Double );
@@ -110,6 +115,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property AxisZ                     :TDouble3D read GetAxisZ write SetAxisZ;
        property AxisP                     :TDouble3D read GetAxisP write SetAxisP;
        ///// O P E R A T O R
+       class operator Negative( const V_:TDoubleM4 ) :TDoubleM4;
+       class operator Positive( const V_:TDoubleM4 ) :TDoubleM4;
+       class operator Add( const A_,B_:TDoubleM4 ) :TDoubleM4;
+       class operator Subtract( const A_,B_:TDoubleM4 ) :TDoubleM4;
        class operator Multiply( const A_,B_:TDoubleM4 ) :TDoubleM4;
        class operator Multiply( const A_:Double; const B_:TDoubleM4 ) :TDoubleM4;
        class operator Multiply( const A_:TDoubleM4; const B_:Double ) :TDoubleM4;
@@ -127,8 +136,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// M E T H O D
        function MultPos( const B_:TDouble3D ) :TDouble3D;
        function MultVec( const B_:TDouble3D ) :TDouble3D;
-       function Adjugate :TDoubleM4;
        function Transpose :TDoubleM4;
+       function Det :Double;
+       function Adjugate :TDoubleM4;
        function Inverse :TDoubleM4;
        ///// C O N S T A N T
        class function Translate( const X_,Y_,Z_:Double ) :TDoubleM4; overload; static;
@@ -141,6 +151,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function Identity :TDoubleM4; static;
        class function ProjOrth( const MinX_,MaxX_,MinY_,MaxY_,NeaZ_,FarZ_:Double ) :TDoubleM4; static;
        class function ProjPers( const MinX_,MaxX_,MinY_,MaxY_,NeaZ_,FarZ_:Double ) :TDoubleM4; static;
+       class function ProjPersH( const AngH_,AspW_,NeaZ_,FarZ_:Double ) :TDoubleM4; static;
        class function LookAt( const EyeP_,TarP_,UppV_:TDouble3D ) :TDoubleM4; static;
        ///// F I E L D
      case Byte of
@@ -197,6 +208,7 @@ begin
           _11 := X;
           _21 := Y;
           _31 := Z;
+          _41 := 0;
      end;
 end;
 
@@ -217,6 +229,7 @@ begin
           _12 := X;
           _22 := Y;
           _32 := Z;
+          _42 := 0;
      end;
 end;
 
@@ -237,6 +250,7 @@ begin
           _13 := X;
           _23 := Y;
           _33 := Z;
+          _43 := 0;
      end;
 end;
 
@@ -257,6 +271,7 @@ begin
           _14 := X;
           _24 := Y;
           _34 := Z;
+          _44 := 1;
      end;
 end;
 
@@ -282,6 +297,50 @@ begin
 end;
 
 //////////////////////////////////////////////////////////////// O P E R A T O R
+
+class operator TSingleM4.Positive( const V_:TSingleM4 ) :TSingleM4;
+begin
+     with Result do
+     begin
+          _11 := +V_._11;  _12 := +V_._12;  _13 := +V_._13;  _14 := +V_._14;
+          _21 := +V_._21;  _22 := +V_._22;  _23 := +V_._23;  _24 := +V_._24;
+          _31 := +V_._31;  _32 := +V_._32;  _33 := +V_._33;  _34 := +V_._34;
+          _41 := +V_._41;  _42 := +V_._42;  _43 := +V_._43;  _44 := +V_._44;
+     end;
+end;
+
+class operator TSingleM4.Negative( const V_:TSingleM4 ) :TSingleM4;
+begin
+     with Result do
+     begin
+          _11 := -V_._11;  _12 := -V_._12;  _13 := -V_._13;  _14 := -V_._14;
+          _21 := -V_._21;  _22 := -V_._22;  _23 := -V_._23;  _24 := -V_._24;
+          _31 := -V_._31;  _32 := -V_._32;  _33 := -V_._33;  _34 := -V_._34;
+          _41 := -V_._41;  _42 := -V_._42;  _43 := -V_._43;  _44 := -V_._44;
+     end;
+end;
+
+class operator TSingleM4.Add( const A_,B_:TSingleM4 ) :TSingleM4;
+begin
+     with Result do
+     begin
+          _11 := A_._11 + B_._11;  _12 := A_._12 + B_._12;  _13 := A_._13 + B_._13;  _14 := A_._14 + B_._14;
+          _21 := A_._21 + B_._21;  _22 := A_._22 + B_._22;  _23 := A_._23 + B_._23;  _24 := A_._24 + B_._24;
+          _31 := A_._31 + B_._31;  _32 := A_._32 + B_._32;  _33 := A_._33 + B_._33;  _34 := A_._34 + B_._34;
+          _41 := A_._41 + B_._41;  _42 := A_._42 + B_._42;  _43 := A_._43 + B_._43;  _44 := A_._44 + B_._44;
+     end;
+end;
+
+class operator TSingleM4.Subtract( const A_,B_:TSingleM4 ) :TSingleM4;
+begin
+     with Result do
+     begin
+          _11 := A_._11 - B_._11;  _12 := A_._12 - B_._12;  _13 := A_._13 - B_._13;  _14 := A_._14 - B_._14;
+          _21 := A_._21 - B_._21;  _22 := A_._22 - B_._22;  _23 := A_._23 - B_._23;  _24 := A_._24 - B_._24;
+          _31 := A_._31 - B_._31;  _32 := A_._32 - B_._32;  _33 := A_._33 - B_._33;  _34 := A_._34 - B_._34;
+          _41 := A_._41 - B_._41;  _42 := A_._42 - B_._42;  _43 := A_._43 - B_._43;  _44 := A_._44 - B_._44;
+     end;
+end;
 
 class operator TSingleM4.Multiply( const A_,B_:TSingleM4 ) :TSingleM4;
 begin
@@ -536,6 +595,24 @@ end;
 
 //------------------------------------------------------------------------------
 
+function TSingleM4.Det :Single;
+begin
+     Result := _11 * TSingleM3.Create( _22, _23, _24,
+                                       _32, _33, _34,
+                                       _42, _43, _44 ).Det
+             - _12 * TSingleM3.Create( _21, _23, _24,
+                                       _31, _33, _34,
+                                       _41, _43, _44 ).Det
+             + _13 * TSingleM3.Create( _21, _22, _24,
+                                       _31, _32, _34,
+                                       _41, _42, _44 ).Det
+             - _14 * TSingleM3.Create( _21, _22, _23,
+                                       _31, _32, _33,
+                                       _41, _42, _43 ).Det;
+end;
+
+//------------------------------------------------------------------------------
+
 function TSingleM4.Inverse :TSingleM4;
 var
    A :TSingleM4;
@@ -750,6 +827,7 @@ begin
           _11 := X;
           _21 := Y;
           _31 := Z;
+          _41 := 0;
      end;
 end;
 
@@ -770,6 +848,7 @@ begin
           _12 := X;
           _22 := Y;
           _32 := Z;
+          _42 := 0;
      end;
 end;
 
@@ -790,6 +869,7 @@ begin
           _13 := X;
           _23 := Y;
           _33 := Z;
+          _43 := 0;
      end;
 end;
 
@@ -810,6 +890,7 @@ begin
           _14 := X;
           _24 := Y;
           _34 := Z;
+          _44 := 1;
      end;
 end;
 
@@ -835,6 +916,50 @@ begin
 end;
 
 //////////////////////////////////////////////////////////////// O P E R A T O R
+
+class operator TDoubleM4.Positive( const V_:TDoubleM4 ) :TDoubleM4;
+begin
+     with Result do
+     begin
+          _11 := +V_._11;  _12 := +V_._12;  _13 := +V_._13;  _14 := +V_._14;
+          _21 := +V_._21;  _22 := +V_._22;  _23 := +V_._23;  _24 := +V_._24;
+          _31 := +V_._31;  _32 := +V_._32;  _33 := +V_._33;  _34 := +V_._34;
+          _41 := +V_._41;  _42 := +V_._42;  _43 := +V_._43;  _44 := +V_._44;
+     end;
+end;
+
+class operator TDoubleM4.Negative( const V_:TDoubleM4 ) :TDoubleM4;
+begin
+     with Result do
+     begin
+          _11 := -V_._11;  _12 := -V_._12;  _13 := -V_._13;  _14 := -V_._14;
+          _21 := -V_._21;  _22 := -V_._22;  _23 := -V_._23;  _24 := -V_._24;
+          _31 := -V_._31;  _32 := -V_._32;  _33 := -V_._33;  _34 := -V_._34;
+          _41 := -V_._41;  _42 := -V_._42;  _43 := -V_._43;  _44 := -V_._44;
+     end;
+end;
+
+class operator TDoubleM4.Add( const A_,B_:TDoubleM4 ) :TDoubleM4;
+begin
+     with Result do
+     begin
+          _11 := A_._11 + B_._11;  _12 := A_._12 + B_._12;  _13 := A_._13 + B_._13;  _14 := A_._14 + B_._14;
+          _21 := A_._21 + B_._21;  _22 := A_._22 + B_._22;  _23 := A_._23 + B_._23;  _24 := A_._24 + B_._24;
+          _31 := A_._31 + B_._31;  _32 := A_._32 + B_._32;  _33 := A_._33 + B_._33;  _34 := A_._34 + B_._34;
+          _41 := A_._41 + B_._41;  _42 := A_._42 + B_._42;  _43 := A_._43 + B_._43;  _44 := A_._44 + B_._44;
+     end;
+end;
+
+class operator TDoubleM4.Subtract( const A_,B_:TDoubleM4 ) :TDoubleM4;
+begin
+     with Result do
+     begin
+          _11 := A_._11 - B_._11;  _12 := A_._12 - B_._12;  _13 := A_._13 - B_._13;  _14 := A_._14 - B_._14;
+          _21 := A_._21 - B_._21;  _22 := A_._22 - B_._22;  _23 := A_._23 - B_._23;  _24 := A_._24 - B_._24;
+          _31 := A_._31 - B_._31;  _32 := A_._32 - B_._32;  _33 := A_._33 - B_._33;  _34 := A_._34 - B_._34;
+          _41 := A_._41 - B_._41;  _42 := A_._42 - B_._42;  _43 := A_._43 - B_._43;  _44 := A_._44 - B_._44;
+     end;
+end;
 
 class operator TDoubleM4.Multiply( const A_,B_:TDoubleM4 ) :TDoubleM4;
 begin
@@ -1105,6 +1230,26 @@ begin
      Result._41 := _14;  Result._42 := _24;  Result._43 := _34;  Result._44 := _44;
 end;
 
+//------------------------------------------------------------------------------
+
+function TDoubleM4.Det :Double;
+begin
+     Result := _11 * TDoubleM3.Create( _22, _23, _24,
+                                       _32, _33, _34,
+                                       _42, _43, _44 ).Det
+             - _12 * TDoubleM3.Create( _21, _23, _24,
+                                       _31, _33, _34,
+                                       _41, _43, _44 ).Det
+             + _13 * TDoubleM3.Create( _21, _22, _24,
+                                       _31, _32, _34,
+                                       _41, _42, _44 ).Det
+             - _14 * TDoubleM3.Create( _21, _22, _23,
+                                       _31, _32, _33,
+                                       _41, _42, _43 ).Det;
+end;
+
+//------------------------------------------------------------------------------
+
 function TDoubleM4.Inverse :TDoubleM4;
 var
    A :TDoubleM4;
@@ -1247,6 +1392,18 @@ begin
           _31 :=  0             ;  _32 :=  0             ;  _33 :=  -( FarZ_ + NeaZ_ ) / SZ;  _34 := -2 * FarZ_ * NeaZ_ / SZ;
           _41 :=  0             ;  _42 :=  0             ;  _43 :=  -1                     ;  _44 :=  0                     ;
      end;
+end;
+
+//------------------------------------------------------------------------------
+
+class function TDoubleM4.ProjPersH( const AngH_,AspW_,NeaZ_,FarZ_:Double ) :TDoubleM4;
+var
+   SX, SY :Double;
+begin
+     SX := NeaZ_ * Tan( AngH_ / 2 );
+     SY := SX * AspW_;
+
+     Result := TDoubleM4.ProjPers( -SX, +SY, -SY, +SY, NeaZ_, FarZ_ );
 end;
 
 //------------------------------------------------------------------------------
