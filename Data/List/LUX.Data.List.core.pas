@@ -75,9 +75,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Parent :TListParent read GetParent write SetParent;
        property Order  :Integer     read GetOrder  write SetOrder ;  // 代入は指定順位のノードとの「交換」であり、間のノードはシフトしない
        ///// M E T H O D
-       procedure Remove;
-       procedure InsertPrev( const Siblin_:TListChildr );
-       procedure InsertNext( const Siblin_:TListChildr );
+       procedure Remove; virtual;
+       procedure InsertPrev( const Siblin_:TListChildr ); virtual;
+       procedure InsertNext( const Siblin_:TListChildr ); virtual;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TListParent
@@ -131,9 +131,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property OwnereObject                :TObject     read GetOwnereObject             ;
        ///// M E T H O D
        procedure Clear; virtual;
-       procedure InsertHead( const Childr_:TListChildr ); overload;
-       procedure InsertTail( const Childr_:TListChildr ); overload;
-       procedure Add( const Childr_:TListChildr ); overload;
+       procedure InsertHead( const Childr_:TListChildr ); overload; virtual;
+       procedure InsertTail( const Childr_:TListChildr ); overload; virtual;
+       procedure Add( const Childr_:TListChildr ); overload; virtual;
        class procedure Swap( const C1_,C2_:TListChildr ); overload;
        procedure Swap( const I1_,I2_:Integer ); overload;
        function GetEnumerator: TListEnumer;
