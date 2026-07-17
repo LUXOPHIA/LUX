@@ -15,13 +15,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// A C C E S S O R
        function GetD2( const Y_,X_:Integer ) :Single;
        procedure SetD2( const Y_,X_:Integer; const D2_:Single );
-       function GetAxisX :TSingle2D;
-       procedure SetAxisX( const AxisX_:TSingle2D );
-       function GetAxisY :TSingle2D;
-       procedure SetAxisY( const AxisY_:TSingle2D );
      public
        constructor Create( const _11_,_12_,
                                  _21_,_22_:Single );
+       ///// P R O P E R T Y
+       property D2[ const Y_,X_:Integer ] :Single read GetD2 write SetD2; default;
        ///// O P E R A T O R
        class operator Negative( const V_:TSingleM2 ) :TSingleM2;
        class operator Positive( const V_:TSingleM2 ) :TSingleM2;
@@ -33,15 +31,15 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TSingle2D; const B_:TSingleM2 ) :TSingle2D;
        class operator Multiply( const A_:TSingleM2; const B_:TSingle2D ) :TSingle2D;
        class operator Divide( const A_:TSingleM2; const B_:Single ) :TSingleM2;
-       ///// P R O P E R T Y
-       property D2[ const Y_,X_:Integer ] :Single    read GetD2    write SetD2   ; default;
-       property AxisX                     :TSingle2D read GetAxisX write SetAxisX;
-       property AxisY                     :TSingle2D read GetAxisY write SetAxisY;
+       ///// C A S T
+       class operator Implicit( const V_:Single ) :TSingleM2;
        ///// M E T H O D
+       function Transpose :TSingleM2;
        function Det :Single;
        function Adjugate :TSingleM2;
        function Inverse :TSingleM2;
-       class function Rotate( const Angle_:Single ) :TSingleM2; static;
+       ///// C O N S T A N T
+       class function Identity :TSingleM2; static;
        ///// F I E L D
      case Byte of
       0:( _1D :array [ 0..2*2-1       ] of Single; );
@@ -57,13 +55,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// A C C E S S O R
        function GetD2( const Y_,X_:Integer ) :Double;
        procedure SetD2( const Y_,X_:Integer; const D2_:Double );
-       function GetAxisX :TDouble2D;
-       procedure SetAxisX( const AxisX_:TDouble2D );
-       function GetAxisY :TDouble2D;
-       procedure SetAxisY( const AxisY_:TDouble2D );
      public
        constructor Create( const _11_,_12_,
                                  _21_,_22_:Double );
+       ///// P R O P E R T Y
+       property D2[ const Y_,X_:Integer ] :Double read GetD2 write SetD2; default;
        ///// O P E R A T O R
        class operator Negative( const V_:TDoubleM2 ) :TDoubleM2;
        class operator Positive( const V_:TDoubleM2 ) :TDoubleM2;
@@ -75,15 +71,17 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Multiply( const A_:TDouble2D; const B_:TDoubleM2 ) :TDouble2D;
        class operator Multiply( const A_:TDoubleM2; const B_:TDouble2D ) :TDouble2D;
        class operator Divide( const A_:TDoubleM2; const B_:Double ) :TDoubleM2;
-       ///// P R O P E R T Y
-       property D2[ const Y_,X_:Integer ] :Double    read GetD2    write SetD2   ; default;
-       property AxisX                     :TDouble2D read GetAxisX write SetAxisX;
-       property AxisY                     :TDouble2D read GetAxisY write SetAxisY;
+       ///// C A S T
+       class operator Implicit( const V_:Double ) :TDoubleM2;
+       class operator Implicit( const V_:TSingleM2 ) :TDoubleM2;
+       class operator Explicit( const V_:TDoubleM2 ) :TSingleM2;
        ///// M E T H O D
+       function Transpose :TDoubleM2;
        function Det :Double;
        function Adjugate :TDoubleM2;
        function Inverse :TDoubleM2;
-       class function Rotate( const Angle_:Double ) :TDoubleM2; static;
+       ///// C O N S T A N T
+       class function Identity :TDoubleM2; static;
        ///// F I E L D
      case Byte of
        0: ( _1D :array [ 0..2*2-1       ] of Double; );
@@ -97,8 +95,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 implementation //############################################################### ■
-
-uses System.Math;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
@@ -116,44 +112,6 @@ end;
 procedure TSingleM2.SetD2( const Y_,X_:Integer; const D2_:Single );
 begin
      _2D[ X_-1, Y_-1 ] := D2_;
-end;
-
-//------------------------------------------------------------------------------
-
-function TSingleM2.GetAxisX :TSingle2D;
-begin
-     with Result do
-     begin
-          X := _11; {X := _12;}
-          Y := _21; {Y := _22;}
-     end;
-end;
-
-procedure TSingleM2.SetAxisX( const AxisX_:TSingle2D );
-begin
-     with AxisX_ do
-     begin
-          _11 := X; {_12 := X;}
-          _21 := Y; {_22 := Y;}
-     end;
-end;
-
-function TSingleM2.GetAxisY :TSingle2D;
-begin
-     with Result do
-     begin
-         {X := _11;} X := _12;
-         {Y := _21;} Y := _22;
-     end;
-end;
-
-procedure TSingleM2.SetAxisY( const AxisY_:TSingle2D );
-begin
-     with AxisY_ do
-     begin
-         {_11 := X;} _12 := X;
-         {_21 := Y;} _22 := Y;
-     end;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -272,7 +230,24 @@ begin
      end;
 end;
 
+//////////////////////////////////////////////////////////////////////// C A S T
+
+class operator TSingleM2.Implicit( const V_:Single ) :TSingleM2;
+begin
+     with Result do
+     begin
+          _11 := V_;  _12 := 0 ;
+          _21 := 0 ;  _22 := V_;
+     end;
+end;
+
 //////////////////////////////////////////////////////////////////// M E T H O D
+
+function TSingleM2.Transpose :TSingleM2;
+begin
+     Result._11 := _11;  Result._12 := _21;
+     Result._21 := _12;  Result._22 := _22;
+end;
 
 function TSingleM2.Det :Single;
 begin
@@ -290,18 +265,14 @@ begin
      Result := Adjugate / Det;
 end;
 
-//------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
-class function TSingleM2.Rotate( const Angle_:Single ) :TSingleM2;
-var
-   S, C :Single;
+class function TSingleM2.Identity :TSingleM2;
 begin
-     SinCos( Angle_, S, C );
-
      with Result do
      begin
-          _11 :=  C;  _12 := -S;
-          _21 := +S;  _22 :=  C;
+          _11 := 1;  _12 := 0;
+          _21 := 0;  _22 := 1;
      end;
 end;
 
@@ -319,44 +290,6 @@ end;
 procedure TDoubleM2.SetD2( const Y_,X_:Integer; const D2_:Double );
 begin
      _2D[ X_-1, Y_-1 ] := D2_;
-end;
-
-//------------------------------------------------------------------------------
-
-function TDoubleM2.GetAxisX :TDouble2D;
-begin
-     with Result do
-     begin
-          X := _11; {X := _12;}
-          Y := _21; {Y := _22;}
-     end;
-end;
-
-procedure TDoubleM2.SetAxisX( const AxisX_:TDouble2D );
-begin
-     with AxisX_ do
-     begin
-          _11 := X; {_12 := X;}
-          _21 := Y; {_22 := Y;}
-     end;
-end;
-
-function TDoubleM2.GetAxisY :TDouble2D;
-begin
-     with Result do
-     begin
-         {X := _11;} X := _12;
-         {Y := _21;} Y := _22;
-     end;
-end;
-
-procedure TDoubleM2.SetAxisY( const AxisY_:TDouble2D );
-begin
-     with AxisY_ do
-     begin
-         {_11 := X;} _12 := X;
-         {_21 := Y;} _22 := Y;
-     end;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -475,7 +408,42 @@ begin
      end;
 end;
 
+//////////////////////////////////////////////////////////////////////// C A S T
+
+class operator TDoubleM2.Implicit( const V_:Double ) :TDoubleM2;
+begin
+     with Result do
+     begin
+          _11 := V_;  _12 := 0 ;
+          _21 := 0 ;  _22 := V_;
+     end;
+end;
+
+class operator TDoubleM2.Implicit( const V_:TSingleM2 ) :TDoubleM2;
+begin
+     with Result do
+     begin
+          _11 := V_._11;  _12 := V_._12;
+          _21 := V_._21;  _22 := V_._22;
+     end;
+end;
+
+class operator TDoubleM2.Explicit( const V_:TDoubleM2 ) :TSingleM2;
+begin
+     with Result do
+     begin
+          _11 := V_._11;  _12 := V_._12;
+          _21 := V_._21;  _22 := V_._22;
+     end;
+end;
+
 //////////////////////////////////////////////////////////////////// M E T H O D
+
+function TDoubleM2.Transpose :TDoubleM2;
+begin
+     Result._11 := _11;  Result._12 := _21;
+     Result._21 := _12;  Result._22 := _22;
+end;
 
 function TDoubleM2.Det :Double;
 begin
@@ -493,18 +461,14 @@ begin
      Result := Adjugate / Det;
 end;
 
-//------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////// C O N S T A N T
 
-class function TDoubleM2.Rotate( const Angle_:Double ) :TDoubleM2;
-var
-   S, C :Double;
+class function TDoubleM2.Identity :TDoubleM2;
 begin
-     SinCos( Angle_, S, C );
-
      with Result do
      begin
-          _11 :=  C;  _12 := -S;
-          _21 := +S;  _22 :=  C;
+          _11 := 1;  _12 := 0;
+          _21 := 0;  _22 := 1;
      end;
 end;
 
