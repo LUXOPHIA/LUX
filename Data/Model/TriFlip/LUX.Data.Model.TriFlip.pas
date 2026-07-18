@@ -16,6 +16,16 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TVertLR
+
+     // 頂点番号（1..3）の巡回表の行。
+     TVertLR = record
+     private
+     public
+       L :Byte;
+       R :Byte;
+     end;
+
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TCornIter
 
      TCornIter<_TPos_> = record
@@ -152,8 +162,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
 
-      _Inc_ :array [ 1..3 ] of Byte = ( 2, 3, 1 );
-      _Dec_ :array [ 1..3 ] of Byte = ( 3, 1, 2 );
+      VertTableInc :array [ 1..3 ] of TVertLR = ( ( L:2; R:3 ), ( L:3; R:1 ), ( L:1; R:2 ) );  // L = 次の頂点, R = 前の頂点
+      VertTableDec :array [ 1..3 ] of TVertLR = ( ( L:3; R:2 ), ( L:1; R:3 ), ( L:2; R:1 ) );  // L = 前の頂点, R = 次の頂点
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
@@ -179,14 +189,14 @@ end;
 
 function TCornIter<_TPos_>.GetFacePrev :TCornIter<_TPos_>;
 begin
-     Result.Face :=        _Face  ;
-     Result.Corn := _Dec_[ _Corn ];
+     Result.Face :=               _Face    ;
+     Result.Corn := VertTableDec[ _Corn ].L;
 end;
 
 function TCornIter<_TPos_>.GetFaceNext :TCornIter<_TPos_>;
 begin
-     Result.Face :=        _Face  ;
-     Result.Corn := _Inc_[ _Corn ];
+     Result.Face :=               _Face    ;
+     Result.Corn := VertTableInc[ _Corn ].L;
 end;
 
 function TCornIter<_TPos_>.GetVertPrev :TCornIter<_TPos_>;
@@ -249,12 +259,12 @@ end;
 
 procedure TCornIter<_TPos_>.GoFacePrev;
 begin
-     _Corn := _Dec_[ _Corn ];
+     _Corn := VertTableDec[ _Corn ].L;
 end;
 
 procedure TCornIter<_TPos_>.GoFaceNext;
 begin
-     _Corn := _Inc_[ _Corn ];
+     _Corn := VertTableInc[ _Corn ].L;
 end;
 
 procedure TCornIter<_TPos_>.GoVertPrev;
@@ -309,7 +319,7 @@ begin
      if Face <> nil then
      begin
           F := Face;
-          C := _Inc_[ Corn ];
+          C := VertTableInc[ Corn ].L;
 
           repeat
                 Inc( Result );
@@ -317,8 +327,8 @@ begin
                 F0 := F;
                 C0 := C;
 
-                F :=        F0.Face[ C0 ];
-                C := _Dec_[ F0.Corn[ C0 ] ];
+                F :=               F0.Face[ C0 ]   ;
+                C := VertTableDec[ F0.Corn[ C0 ] ].L;
 
           until F = Face;
      end;
@@ -640,8 +650,8 @@ begin
      begin
           V := PoinSet.Childrs[ I ];
 
-          F0 :=      V.Face;
-          C0 := _Inc_[ V.Corn ];
+          F0 :=               V.Face    ;
+          C0 := VertTableInc[ V.Corn ].L;
 
           F1 := F0;
           C1 := C0;
@@ -650,8 +660,8 @@ begin
                 F := F1;
                 C := C1;
 
-                F1 :=        F.Face[ C ];
-                C1 := _Dec_[ F.Corn[ C ] ];
+                F1 :=               F.Face[ C ]   ;
+                C1 := VertTableDec[ F.Corn[ C ] ].L;
           end;
 
           if F1 <> F0 then Inc( Result );
