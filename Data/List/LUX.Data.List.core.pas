@@ -115,8 +115,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure _InsertTail( const Childr_:TListChildr );
        ///// E V E N T
        procedure OnInit; virtual;
-       procedure OnInsertChild( const Childr_:TListChildr ); overload; virtual;
-       procedure OnRemoveChild( const Childr_:TListChildr ); overload; virtual;
+       procedure OnInsertChildr( const Childr_:TListChildr ); overload; virtual;
+       procedure OnRemoveChildr( const Childr_:TListChildr ); overload; virtual;
      public
        constructor Create; overload; override;
        destructor Destroy; override;
@@ -264,7 +264,7 @@ end;
 
 procedure TListChildr._Remove;
 begin
-     _Parent.OnRemoveChild( Self );
+     _Parent.OnRemoveChildr( Self );
 
      Bind( _Prev, _Next );
 
@@ -511,7 +511,7 @@ begin
 
      Inc( _ChildrsN );
 
-     OnInsertChild( C1_ );
+     OnInsertChildr( C1_ );
 end;
 
 procedure TListParent._InsertHead( const Childr_:TListChildr );
@@ -535,12 +535,12 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TListParent.OnInsertChild( const Childr_:TListChildr );
+procedure TListParent.OnInsertChildr( const Childr_:TListChildr );
 begin
 
 end;
 
-procedure TListParent.OnRemoveChild( const Childr_:TListChildr );
+procedure TListParent.OnRemoveChildr( const Childr_:TListChildr );
 begin
 
 end;
