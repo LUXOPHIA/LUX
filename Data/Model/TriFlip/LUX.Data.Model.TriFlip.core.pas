@@ -1,4 +1,4 @@
-﻿unit LUX.Data.Model.TriFlip;
+﻿unit LUX.Data.Model.TriFlip.core;
 
 interface //#################################################################### ■
 
