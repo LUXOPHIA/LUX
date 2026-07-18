@@ -7,7 +7,7 @@
 //     TTriPoin   <TPos_;TFace_>            … Face を TFace_ に
 //     TTriPoinSet<TPos_;TPoin_>            … Childrs / 列挙を TPoin_ に
 //     TTriFace   <TPos_;TPoin_,TFace_>     … Poin / Face を TPoin_ / TFace_ に
-//     TTriFaceSet<TPos_;TFace_,TPoinSet_>  … 列挙を TFace_ に、Poinset を TPoinSet_ に
+//     TTriFaceSet<TPos_;TFace_,TPoinSet_>  … 列挙を TFace_ に、PoinSet を TPoinSet_ に
 //   利用側は自分の派生クラスを型引数に与えるだけでよい（自己再帰・相互再帰可）。
 //     TMyPoin = class( TTriPoin<TSingle2D,TMyFace> )
 //     TMyFace = class( TTriFace<TSingle2D,TMyPoin,TMyFace> )
@@ -78,13 +78,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        ///// A C C E S S O R
-       function GetPoinset :TPoinSet_; reintroduce;
-       procedure SetPoinset( const Poinset_:TPoinSet_ ); reintroduce;
+       function GetPoinSet :TPoinSet_; reintroduce;
+       procedure SetPoinSet( const PoinSet_:TPoinSet_ ); reintroduce;
        ///// M E T H O D
        function NewPoinSet :TTriPoinSet<TPos_>; override;  // 点集合を TPoinSet_ として生成する
      public
        ///// P R O P E R T Y
-       property Poinset :TPoinSet_ read GetPoinset write SetPoinset;
+       property PoinSet :TPoinSet_ read GetPoinSet write SetPoinSet;
        ///// M E T H O D
        function GetEnumerator :TListEnumer<TFace_>;
      end;
@@ -165,19 +165,19 @@ end;
 
 //////////////////////////////////////////////////////////////// A C C E S S O R
 
-function TTriFaceSet<TPos_,TFace_,TPoinSet_>.GetPoinset :TPoinSet_;
+function TTriFaceSet<TPos_,TFace_,TPoinSet_>.GetPoinSet :TPoinSet_;
 begin
-     Result := TPoinSet_( TObject( inherited GetPoinset ) );
+     Result := TPoinSet_( TObject( inherited GetPoinSet ) );
 end;
 
-procedure TTriFaceSet<TPos_,TFace_,TPoinSet_>.SetPoinset( const Poinset_:TPoinSet_ );
+procedure TTriFaceSet<TPos_,TFace_,TPoinSet_>.SetPoinSet( const PoinSet_:TPoinSet_ );
 begin
-     inherited SetPoinset( TTriPoinSet<TPos_>( TObject( Poinset_ ) ) );
+     inherited SetPoinSet( TTriPoinSet<TPos_>( TObject( PoinSet_ ) ) );
 end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
-function TTriFaceSet<TPos_,TFace_,TPoinSet_>.NewPoinset :TTriPoinSet<TPos_>;
+function TTriFaceSet<TPos_,TFace_,TPoinSet_>.NewPoinSet :TTriPoinSet<TPos_>;
 begin
      Result := TTriPoinSet<TPos_>( TObject( TPoinSet_.Create ) );
 end;

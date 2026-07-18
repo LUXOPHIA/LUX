@@ -144,17 +144,17 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        type TPoinSet_ = TTriPoinSet<TPos_>;
        type TFace_    = TTriFace   <TPos_>;
      protected
-       _Poinset :TPoinSet_;
+       _PoinSet :TPoinSet_;
        ///// A C C E S S O R
-       function GetPoinset :TPoinSet_; virtual;
-       procedure SetPoinset( const Poinset_:TPoinSet_ ); virtual;
+       function GetPoinSet :TPoinSet_; virtual;
+       procedure SetPoinSet( const PoinSet_:TPoinSet_ ); virtual;
        ///// M E T H O D
        function NewPoinSet :TPoinSet_; virtual;  // 点集合を生成する。override で点集合の型を差し替えられる
      public
        constructor Create; override;
        destructor Destroy; override;
        ///// P R O P E R T Y
-       property Poinset :TPoinSet_ read GetPoinset write SetPoinset;
+       property PoinSet :TPoinSet_ read GetPoinSet write SetPoinSet;
        ///// M E T H O D
        function CheckEdges :Integer;
        function CheckFaceLings :Integer;
@@ -575,14 +575,14 @@ end;
 
 //////////////////////////////////////////////////////////////// A C C E S S O R
 
-function TTriFaceSet<TPos_>.GetPoinset :TPoinSet_;
+function TTriFaceSet<TPos_>.GetPoinSet :TPoinSet_;
 begin
-     Result := _Poinset;
+     Result := _PoinSet;
 end;
 
-procedure TTriFaceSet<TPos_>.SetPoinset( const Poinset_:TPoinSet_ );
+procedure TTriFaceSet<TPos_>.SetPoinSet( const PoinSet_:TPoinSet_ );
 begin
-     _Poinset := Poinset_;
+     _PoinSet := PoinSet_;
 end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
@@ -598,12 +598,12 @@ constructor TTriFaceSet<TPos_>.Create;
 begin
      inherited;
 
-     _Poinset := NewPoinSet;
+     _PoinSet := NewPoinSet;
 end;
 
 destructor TTriFaceSet<TPos_>.Destroy;
 begin
-     _Poinset.Free;
+     _PoinSet.Free;
 
      inherited;
 end;
