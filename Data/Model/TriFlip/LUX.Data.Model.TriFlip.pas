@@ -1,4 +1,4 @@
-﻿unit LUX.Data.Model.TriFlip.Typed;
+﻿unit LUX.Data.Model.TriFlip;
 
 // TriFlip の型付け層
 //
@@ -21,7 +21,7 @@ interface //####################################################################
 
 uses LUX.Data.List.core,
      LUX.Data.List,
-     LUX.Data.Model.TriFlip;
+     LUX.Data.Model.TriFlip.core;
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
