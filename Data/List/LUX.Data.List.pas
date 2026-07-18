@@ -23,6 +23,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// A C C E S S O R
        function GetCurrent :TChildr_; inline;
      public
+       constructor Create( const Enumer_:TListEnumer );  // 派生リストが列挙子を型付けし直すために使う
        ///// P R O P E R T Y
        property Current :TChildr_ read GetCurrent;
        ///// M E T H O D
@@ -120,6 +121,11 @@ begin
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+constructor TListEnumer<TChildr_>.Create( const Enumer_:TListEnumer );
+begin
+     _Enumer := Enumer_;
+end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
