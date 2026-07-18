@@ -28,14 +28,25 @@
 //【保護と通知】
 // ・木を壊す操作 — 循環（自分の先祖や自分自身を子にする）・TTreeRoot の所属・受け入れ不可の子型 —
 //   は ETreeError を送出する（Release ビルドでも有効）。
-// ・子の増減は AcceptChild（受け入れ判定）→ ChildAdopted / ChildOrphaned（通知）として親ノードに
-//   届く。いずれも override 可。通知の中で子リストを操作しないこと。破棄中の親には通知されない。
+// ・子の増減は AcceptChildr（受け入れ判定）→ OnInsertChildr / OnRemoveChildr（通知）として親ノードに
+//   届く。いずれも override 可。通知の中で子リストを操作しないこと。親の破棄（部分木の解放）でも
+//   子の取り外しごとに OnRemoveChildr が呼ばれる（フィールドはまだ有効）が、破棄中の親は
+//   Updating 状態にあるため、Updating を検査する通知実装は自然に沈黙する。
 // ・List 層由来の低水準操作（InsertPrev / InsertNext）は循環検査と Root の所属検査を通らない。
 //   木の操作は本ユニットの API（Add / InsertHead / InsertTail / Parent / Create）で行うこと。
 //
+//【一括更新】
+// ・BeginUpdate / EndUpdate は子を持てるノード（TTreeStem 系）すべてで使え、その部分木の
+//   通知を止める（費用はノードあたり 1 Byte。255 段まで入れ子可）。派生クラスは通知処理の
+//   入口で Updating を検査して発火を止め、最外殻の EndUpdate で Updated が（変更の有無に
+//   関わらず）1回だけ呼ばれる。
+// ・破棄（Destroy）は「終わらない一括更新」として扱われる。破棄中のノードは Updating に
+//   なるため通知は発火せず、購読を外してから木を壊すといった配慮は不要。生きている親には
+//   部分木の取り外しとして通知が1回だけ届く。
+//
 //【拡張】
 // ・挿抜の操作（Parent / Add / InsertHead / InsertTail / Remove / Clear）と、受け入れ判定・通知
-//   （AcceptChild / ChildAdopted / ChildOrphaned）は virtual であり、派生クラスで拡張できる。
+//   （AcceptChildr / OnInsertChildr / OnRemoveChildr）は virtual であり、派生クラスで拡張できる。
 //   子リストの型は ForceChildrs の override で差し替えられる。
 
 interface //#################################################################### ■
@@ -93,7 +104,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        ///// A C C E S S O R
-       function GetChildrsRef :TTreeChildrs; virtual;  // 子リスト参照。子を持てるのは TTreeStem 系だけ（既定は nil）
+       function Get_Childrs :TTreeChildrs; virtual;  // 子リスト参照。子を持てるのは TTreeStem 系だけ（既定は nil）
        function GetParent :TTreeNode; reintroduce; virtual;
        function GetRoot :TTreeNode; virtual;
        function GetLevel :Integer; virtual;
@@ -123,13 +134,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeChildrs
 
-     // 子リスト。挿抜の関所として、受け入れ判定（AcceptChild）と親への通知（ChildAdopted / ChildOrphaned）を行う。
+     // 子リスト。挿抜の関所として、受け入れ判定（AcceptChildr）と親への通知（OnInsertChildr / OnRemoveChildr）を行う。
      TTreeChildrs = class( TListParent<TTreeNode,TTreeNode> )
      private
      protected
        ///// E V E N T
-       procedure OnInsertChild( const Childr_:TTreeNode ); override;
-       procedure OnRemoveChild( const Childr_:TTreeNode ); override;
+       procedure OnInsertChildr( const Childr_:TTreeNode ); override;
+       procedure OnRemoveChildr( const Childr_:TTreeNode ); override;
      public
      end;
 
@@ -154,18 +165,25 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TTreeStem = class( TTreeNode )
      private
        _Childrs :TTreeChildrs;  // 子リスト（遅延生成。子を持たない限り nil）
-       _Doomed  :Boolean;       // 破棄中（子の増減通知を止める）
+       _UpdateL :Byte;          // BeginUpdate の深さ（0 = 通知可。最大 255 段）
      protected
        ///// A C C E S S O R
-       function GetChildrsRef :TTreeChildrs; override;
+       function Get_Childrs :TTreeChildrs; override;
+       function GetUpdating :Boolean;
+       ///// P R O P E R T Y
+       property Updating :Boolean read GetUpdating;  // 更新中。派生クラスは通知処理の入口で検査して発火を止める
        ///// M E T H O D
        function ForceChildrs :TTreeChildrs; virtual;  // 子リストを（必要なら生成して）返す。override で子リストの型を差し替えられる
        ///// E V E N T
-       function AcceptChild( const Childr_:TTreeNode ) :Boolean; virtual;  // 子として受け入れるか。override で子の型や状態を制限できる（拒否は ETreeError）
-       procedure ChildAdopted( const Childr_:TTreeNode ); virtual;   // 子が付いた直後に呼ばれる。中で子リストを操作しないこと
-       procedure ChildOrphaned( const Childr_:TTreeNode ); virtual;  // 子が外れる直前に呼ばれる。中で子リストを操作しないこと（破棄中の親では呼ばれない）
+       function AcceptChildr( const Childr_:TTreeNode ) :Boolean; virtual;  // 子として受け入れるか。override で子の型や状態を制限できる（拒否は ETreeError）
+       procedure OnInsertChildr( const Childr_:TTreeNode ); virtual;   // 子が付いた直後に呼ばれる。中で子リストを操作しないこと
+       procedure OnRemoveChildr( const Childr_:TTreeNode ); virtual;  // 子が外れる直前に呼ばれる。中で子リストを操作しないこと（親の破棄中にも呼ばれる）
+       procedure Updated; virtual;  // 最外殻の EndUpdate で（変更の有無に関わらず）1回だけ呼ばれる
      public
        destructor Destroy; override;  // 部分木ごと解放
+       ///// M E T H O D
+       procedure BeginUpdate; virtual;  // 部分木の通知を一時停止する（入れ子可）
+       procedure EndUpdate; virtual;    // 再開する（最外殻なら Updated を1回呼ぶ）
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeStem<TChildr_>
@@ -182,7 +200,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetHeader :TChildr_; reintroduce; virtual;
        function GetTailer :TChildr_; reintroduce; virtual;
        ///// E V E N T
-       function AcceptChild( const Childr_:TTreeNode ) :Boolean; override;  // 既定実装: Childr_ is TChildr_
+       function AcceptChildr( const Childr_:TTreeNode ) :Boolean; override;  // 既定実装: Childr_ is TChildr_
      public
        ///// P R O P E R T Y
        property Childrs[ const I_:Integer ] :TChildr_ read GetChildrs; default;
@@ -301,7 +319,7 @@ end;
 
 //////////////////////////////////////////////////////////////// A C C E S S O R
 
-function TTreeNode.GetChildrsRef :TTreeChildrs;
+function TTreeNode.Get_Childrs :TTreeChildrs;
 begin
      Result := nil;  // 子リストは TTreeStem 系だけが持つ
 end;
@@ -362,7 +380,7 @@ function TTreeNode.GetChildrs( const I_:Integer ) :TTreeNode;
 var
    C :TTreeChildrs;
 begin
-     C := GetChildrsRef;
+     C := Get_Childrs;
 
      if not Assigned( C ) then raise EArgumentOutOfRangeException.CreateFmt( 'TTreeNode.Childrs[%d]: 子がありません', [ I_ ] );
 
@@ -373,7 +391,7 @@ function TTreeNode.GetChildrsN :Integer;
 var
    C :TTreeChildrs;
 begin
-     C := GetChildrsRef;
+     C := Get_Childrs;
 
      if Assigned( C ) then Result := C.ChildrsN
                       else Result := 0;
@@ -385,7 +403,7 @@ function TTreeNode.GetHeader :TTreeNode;
 var
    C :TTreeChildrs;
 begin
-     C := GetChildrsRef;
+     C := Get_Childrs;
 
      if Assigned( C ) then Result := C.Header
                       else Result := nil;
@@ -395,7 +413,7 @@ function TTreeNode.GetTailer :TTreeNode;
 var
    C :TTreeChildrs;
 begin
-     C := GetChildrsRef;
+     C := Get_Childrs;
 
      if Assigned( C ) then Result := C.Tailer
                       else Result := nil;
@@ -444,7 +462,7 @@ end;
 
 ////////////////////////////////////////////////////////////////////// E V E N T
 
-procedure TTreeChildrs.OnInsertChild( const Childr_:TTreeNode );
+procedure TTreeChildrs.OnInsertChildr( const Childr_:TTreeNode );
 var
    S :TTreeStem;
 begin
@@ -452,19 +470,15 @@ begin
 
      S := TTreeStem( Ownere );  // 子リストの持ち主は必ず TTreeStem（ForceChildrs でしか生成されない）
 
-     if not S.AcceptChild( Childr_ )
+     if not S.AcceptChildr( Childr_ )
      then raise ETreeError.Create( 'TTreeChildrs: この親には所属できない型のノードです' );
 
-     S.ChildAdopted( Childr_ );
+     S.OnInsertChildr( Childr_ );
 end;
 
-procedure TTreeChildrs.OnRemoveChild( const Childr_:TTreeNode );
-var
-   S :TTreeStem;
+procedure TTreeChildrs.OnRemoveChildr( const Childr_:TTreeNode );
 begin
-     S := TTreeStem( Ownere );
-
-     if not S._Doomed then S.ChildOrphaned( Childr_ );  // 破棄中の親には通知しない
+     TTreeStem( Ownere ).OnRemoveChildr( Childr_ );  // 子リストの持ち主は必ず TTreeStem（ForceChildrs でしか生成されない）
 
      inherited;
 end;
@@ -493,9 +507,16 @@ end;
 
 //////////////////////////////////////////////////////////////// A C C E S S O R
 
-function TTreeStem.GetChildrsRef :TTreeChildrs;
+function TTreeStem.Get_Childrs :TTreeChildrs;
 begin
      Result := _Childrs;
+end;
+
+//------------------------------------------------------------------------------
+
+function TTreeStem.GetUpdating :Boolean;
+begin
+     Result := _UpdateL > 0;
 end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
@@ -509,17 +530,24 @@ end;
 
 ////////////////////////////////////////////////////////////////////// E V E N T
 
-function TTreeStem.AcceptChild( const Childr_:TTreeNode ) :Boolean;
+function TTreeStem.AcceptChildr( const Childr_:TTreeNode ) :Boolean;
 begin
      Result := True;  // 無型の Stem は何でも受け入れる
 end;
 
-procedure TTreeStem.ChildAdopted( const Childr_:TTreeNode );
+procedure TTreeStem.OnInsertChildr( const Childr_:TTreeNode );
 begin
 
 end;
 
-procedure TTreeStem.ChildOrphaned( const Childr_:TTreeNode );
+procedure TTreeStem.OnRemoveChildr( const Childr_:TTreeNode );
+begin
+
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TTreeStem.Updated;
 begin
 
 end;
@@ -528,11 +556,29 @@ end;
 
 destructor TTreeStem.Destroy;
 begin
-     _Doomed := True;  // 以後、子の増減通知（ChildOrphaned）は発しない
+     BeginUpdate;    // 破棄をひとつの更新として扱い、通知の発火を止める（対応する EndUpdate は無い）
 
-     _Childrs.Free;    // 子は所有物なので部分木ごと解放される（nil なら何もしない）
+     _Childrs.Free;  // 子は所有物なので部分木ごと解放される（nil なら何もしない）
 
-     inherited;        // 親から自分を外す
+     inherited;      // 親から自分を外す
+end;
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+procedure TTreeStem.BeginUpdate;
+begin
+     Assert( _UpdateL < High( Byte ), 'TTreeStem.BeginUpdate: 入れ子が深すぎます' );
+
+     Inc( _UpdateL );
+end;
+
+procedure TTreeStem.EndUpdate;
+begin
+     Assert( _UpdateL > 0, 'TTreeStem.EndUpdate: BeginUpdate と対応していません' );
+
+     Dec( _UpdateL );
+
+     if _UpdateL = 0 then Updated;  // 変更の有無に関わらず1回呼ばれる
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTreeStem<TChildr_>
@@ -558,7 +604,7 @@ end;
 
 ////////////////////////////////////////////////////////////////////// E V E N T
 
-function TTreeStem<TChildr_>.AcceptChild( const Childr_:TTreeNode ) :Boolean;
+function TTreeStem<TChildr_>.AcceptChildr( const Childr_:TTreeNode ) :Boolean;
 begin
      Result := Childr_ is TChildr_;  // 宣言した子型の派生だけを受け入れる
 end;
@@ -649,7 +695,7 @@ begin
           S := TTreeStem( TObject( Parent_ ) );
 
           if S.IsUnder( Self ) then raise ETreeError.Create( 'TTreeKnot.SetParent: 自分の子孫（または自分自身）には所属できません' );
-          if not S.AcceptChild( Self ) then raise ETreeError.Create( 'TTreeKnot.SetParent: この親には所属できない型のノードです' );
+          if not S.AcceptChildr( Self ) then raise ETreeError.Create( 'TTreeKnot.SetParent: この親には所属できない型のノードです' );
 
           inherited SetParent( S.ForceChildrs );  // 旧親から自動で移籍
      end
@@ -664,7 +710,7 @@ begin
      begin
           if not ( TObject( Parent_ ) is TTreeStem ) then raise ETreeError.Create( 'TTreeKnot.Create: 子を持てない型には所属できません' );
 
-          inherited Create( TTreeStem( TObject( Parent_ ) ).ForceChildrs );  // 子型の可否の事前検査は不要。挿入時に AcceptChild が検査し、失敗時はコンストラクタ例外で自動的に離脱する
+          inherited Create( TTreeStem( TObject( Parent_ ) ).ForceChildrs );  // 子型の可否の事前検査は不要。挿入時に AcceptChildr が検査し、失敗時はコンストラクタ例外で自動的に離脱する
      end
      else inherited Create;
 end;
@@ -690,7 +736,7 @@ begin
 
           S := TTreeStem( TObject( Parent_ ) );
 
-          if not S.AcceptChild( Self ) then raise ETreeError.Create( 'TTreeLeaf.SetParent: この親には所属できない型のノードです' );
+          if not S.AcceptChildr( Self ) then raise ETreeError.Create( 'TTreeLeaf.SetParent: この親には所属できない型のノードです' );
 
           inherited SetParent( S.ForceChildrs );  // 旧親から自動で移籍
      end
@@ -705,7 +751,7 @@ begin
      begin
           if not ( TObject( Parent_ ) is TTreeStem ) then raise ETreeError.Create( 'TTreeLeaf.Create: 子を持てない型には所属できません' );
 
-          inherited Create( TTreeStem( TObject( Parent_ ) ).ForceChildrs );  // 子型の可否の事前検査は不要。挿入時に AcceptChild が検査し、失敗時はコンストラクタ例外で自動的に離脱する
+          inherited Create( TTreeStem( TObject( Parent_ ) ).ForceChildrs );  // 子型の可否の事前検査は不要。挿入時に AcceptChildr が検査し、失敗時はコンストラクタ例外で自動的に離脱する
      end
      else inherited Create;
 end;
