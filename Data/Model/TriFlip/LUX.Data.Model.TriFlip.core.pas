@@ -134,6 +134,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Flag                  :Boolean read GetFlag write SetFlag;
        ///// M E T H O D
        procedure BasteCorn( const Corn_:Byte );
+       procedure BindPoins;  // 3頂点のアンカー（Poin.Face / Poin.Corn）を自分に向ける
+       procedure FlipEdge( const Corn_:Byte );  // 角 Corn_ の対辺を隣の面と張り替える（対角線の交換）。両面が縫合済みであること
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTriFaceSet<TPos_>
@@ -534,7 +536,16 @@ begin
 end;
 
 destructor TTriFace<TPos_>.Destroy;
+var
+   I :Byte;
+   V :TPoin_;
 begin
+     for I := 1 to 3 do  // 自分を指しているアンカーを外す（宙吊り防止）
+     begin
+          V := _Poin[ I ];
+
+          if Assigned( V ) and ( V._Face = Self ) then V._Face := nil;
+     end;
 
      inherited;
 end;
@@ -565,6 +576,55 @@ begin
 
      V._Face := Self;
      V._Corn := Corn_;
+end;
+
+procedure TTriFace<TPos_>.BindPoins;
+var
+   I :Byte;
+   V :TPoin_;
+begin
+     for I := 1 to 3 do
+     begin
+          V := _Poin[ I ];
+
+          if Assigned( V ) then
+          begin
+               V._Face := Self;  V._Corn := I;
+          end;
+     end;
+end;
+
+procedure TTriFace<TPos_>.FlipEdge( const Corn_:Byte );
+var
+   F, G, Nbe, Nda :TFace_;
+   cF, cG, Nbc, Ndc :Byte;
+   Pa, Pb, Pd, Pe :TPoin_;
+begin
+     F  := Self;
+     cF := Corn_;
+
+     G  := F.Face[ cF ];
+     cG := F.Corn[ cF ];
+
+     Pa := F.Poin[ cF ];                        // F = ( Pa, Pb, Pd )
+     Pb := F.Poin[ VertTableInc[ cF ].L ];      // G = ( Pe, Pd, Pb )
+     Pd := F.Poin[ VertTableInc[ cF ].R ];      // 共有辺 ( Pb, Pd ) を対角線 ( Pa, Pe ) に張り替える
+     Pe := G.Poin[ cG ];
+
+     Nbe := G.Face[ VertTableInc[ cG ].L ];  Nbc := G.Corn[ VertTableInc[ cG ].L ];  // 辺 ( Pb, Pe ) の外側
+     Nda := F.Face[ VertTableInc[ cF ].L ];  Ndc := F.Corn[ VertTableInc[ cF ].L ];  // 辺 ( Pd, Pa ) の外側
+
+     F.Poin[ VertTableInc[ cF ].R ] := Pe;  // F = ( Pa, Pb, Pe )
+     G.Poin[ VertTableInc[ cG ].R ] := Pa;  // G = ( Pe, Pd, Pa )
+
+     F.Face[ cF ] := Nbe;  F.Corn[ cF ] := Nbc;   Nbe.Face[ Nbc ] := F;  Nbe.Corn[ Nbc ] := cF;
+     G.Face[ cG ] := Nda;  G.Corn[ cG ] := Ndc;   Nda.Face[ Ndc ] := G;  Nda.Corn[ Ndc ] := cG;
+
+     F.Face[ VertTableInc[ cF ].L ] := G;  F.Corn[ VertTableInc[ cF ].L ] := VertTableInc[ cG ].L;
+     G.Face[ VertTableInc[ cG ].L ] := F;  G.Corn[ VertTableInc[ cG ].L ] := VertTableInc[ cF ].L;
+
+     Pb._Face := F;  Pb._Corn := VertTableInc[ cF ].L;  // 空いた席を指していた可能性のある頂点を席替えする
+     Pd._Face := G;  Pd._Corn := VertTableInc[ cG ].L;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTriFaceSet<TPos_>
