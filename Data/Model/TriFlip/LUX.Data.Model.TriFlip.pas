@@ -138,6 +138,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// A C C E S S O R
        function GetPoinset :TPoinSet_; virtual;
        procedure SetPoinset( const Poinset_:TPoinSet_ ); virtual;
+       ///// M E T H O D
+       function NewPoinSet :TPoinSet_; virtual;  // 点集合を生成する。override で点集合の型を差し替えられる
      public
        constructor Create; override;
        destructor Destroy; override;
@@ -573,13 +575,20 @@ begin
      _Poinset := Poinset_;
 end;
 
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+function TTriFaceSet<TPos_>.NewPoinSet :TPoinSet_;
+begin
+     Result := TPoinSet_.Create;
+end;
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
 
 constructor TTriFaceSet<TPos_>.Create;
 begin
      inherited;
 
-     _Poinset := TPoinSet_.Create;
+     _Poinset := NewPoinSet;
 end;
 
 destructor TTriFaceSet<TPos_>.Destroy;
@@ -610,9 +619,9 @@ begin
                begin
                     F1 := F0.Face[ C0 ];
 
-                    if F1 = nil            then Inc( Result )
-                                           else
-                    if F1.Face[ C1 ] <> F0 then Inc( Result );
+                    if F1 = nil then Inc( Result )
+                                else
+                    if ( F1.Face[ C1 ] <> F0 ) or ( F1.Corn[ C1 ] <> C0 ) then Inc( Result );
                end
                else Inc( Result );
           end;
