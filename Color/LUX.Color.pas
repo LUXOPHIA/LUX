@@ -96,6 +96,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class operator Positive( const V_:TSingleRGB ) :TSingleRGB;
        class operator Add( const A_,B_:TSingleRGB ) :TSingleRGB;
        class operator Subtract( const A_,B_:TSingleRGB ) :TSingleRGB;
+       class operator Multiply( const A_,B_:TSingleRGB ): TSingleRGB;
        class operator Multiply( const A_:Single; const B_:TSingleRGB ): TSingleRGB;
        class operator Multiply( const A_:TSingleRGB; const B_:Single ): TSingleRGB;
        class operator Divide( const A_:TSingleRGB; const B_:Single ): TSingleRGB;
@@ -524,6 +525,16 @@ begin
           R := A_.R - B_.R;
           G := A_.G - B_.G;
           B := A_.B - B_.B;
+     end;
+end;
+
+class operator TSingleRGB.Multiply( const A_,B_:TSingleRGB ): TSingleRGB;
+begin
+     with Result do
+     begin
+          R := A_.R * B_.R;
+          G := A_.G * B_.G;
+          B := A_.B * B_.B;
      end;
 end;
 
