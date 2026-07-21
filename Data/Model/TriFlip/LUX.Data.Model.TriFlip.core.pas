@@ -663,6 +663,8 @@ end;
 
 destructor TTriFaceSet<TPos_>.Destroy;
 begin
+     Clear;  // 面を先に解放する（面の破棄は頂点のアンカーに触れるため、点集合より前でなければならない）
+
      _PoinSet.Free;
 
      inherited;
