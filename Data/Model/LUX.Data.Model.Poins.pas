@@ -2,7 +2,8 @@
 
 interface //#################################################################### ■
 
-uses LUX,
+uses System.Classes,
+     LUX,
      LUX.Data.List;
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
@@ -35,7 +36,12 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TPoinSet<TPos_;TPoin_:class> = class( TListParent<TPoin_> )
      private
      protected
+       ///// M E T H O D
+       function LoadPoin( const Pos_:TPos_ ) :TPoin_; virtual; abstract;  // 読み込む点を生成する。点の型を知る派生が実装する
      public
+       ///// M E T H O D
+       procedure SaveToStream( const Stream_:TStream ); virtual; abstract;  // 全ての点の座標を書き込む。点の型を知る派生が実装する
+       procedure LoadFromStream( const Stream_:TStream; const PoinsN_:Integer ); virtual;  // 座標列から点を生成して置き換える
      end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
@@ -87,6 +93,23 @@ end;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+procedure TPoinSet<TPos_,TPoin_>.LoadFromStream( const Stream_:TStream; const PoinsN_:Integer );
+var
+   I :Integer;
+   V :TPos_;
+begin
+     Clear;  // 既存の点は置き換わる（点を参照している要素の解放は呼び出し側の責務）
+
+     for I := 1 to PoinsN_ do
+     begin
+          Stream_.ReadBuffer( V, SizeOf( TPos_ ) );
+
+          LoadPoin( V );  // 生成順 = 保存順 = 点の番号
+     end;
+end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
