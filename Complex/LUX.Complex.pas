@@ -894,8 +894,8 @@ begin
      S := Power( X_.Abso, N_ );
      A :=        X_.Angle * N_;
 
-     Result.R := S * Cos( A );
-     Result.I := S * Sin( A );
+     Result.R := S * System.Cos( A );
+     Result.I := S * System.Sin( A );
 end;
 
 function Pow( const X_:TDoubleC; const N_:Double ) :TDoubleC;
@@ -905,8 +905,8 @@ begin
      S := Power( X_.Abso, N_ );
      A :=        X_.Angle * N_;
 
-     Result.R := S * Cos( A );
-     Result.I := S * Sin( A );
+     Result.R := S * System.Cos( A );
+     Result.I := S * System.Sin( A );
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Roo2
@@ -918,8 +918,8 @@ begin
      S := Roo2( X_.Abso );
      A :=       X_.Angle / 2;
 
-     Result.R := S * Cos( A );
-     Result.I := S * Sin( A );
+     Result.R := S * System.Cos( A );
+     Result.I := S * System.Sin( A );
 end;
 
 function Roo2( const X_:TDoubleC ) :TDoubleC;
@@ -929,8 +929,8 @@ begin
      S := Roo2( X_.Abso );
      A :=       X_.Angle / 2;
 
-     Result.R := S * Cos( A );
-     Result.I := S * Sin( A );
+     Result.R := S * System.Cos( A );
+     Result.I := S * System.Sin( A );
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Cos
@@ -939,8 +939,8 @@ function Cos( const A_:TSingleC ) :TSingleC;
 begin
      with A_ do
      begin
-          Result.R := +Cos( R ) * Cosh( I );
-          Result.I := -Sin( R ) * Sinh( I );
+          Result.R := +System.Cos( R ) * Cosh( I );
+          Result.I := -System.Sin( R ) * Sinh( I );
      end;
 end;
 
@@ -948,8 +948,8 @@ function Cos( const A_:TDoubleC ) :TDoubleC;
 begin
      with A_ do
      begin
-          Result.R := +Cos( R ) * Cosh( I );
-          Result.I := -Sin( R ) * Sinh( I );
+          Result.R := +System.Cos( R ) * Cosh( I );
+          Result.I := -System.Sin( R ) * Sinh( I );
      end;
 end;
 
@@ -959,8 +959,8 @@ function Sin( const A_:TSingleC ) :TSingleC;
 begin
      with A_ do
      begin
-          Result.R := +Sin( R ) * Cosh( I );
-          Result.I := +Cos( R ) * Sinh( I );
+          Result.R := +System.Sin( R ) * Cosh( I );
+          Result.I := +System.Cos( R ) * Sinh( I );
      end;
 end;
 
@@ -968,8 +968,8 @@ function Sin( const A_:TDoubleC ) :TDoubleC;
 begin
      with A_ do
      begin
-          Result.R := +Sin( R ) * Cosh( I );
-          Result.I := +Cos( R ) * Sinh( I );
+          Result.R := +System.Sin( R ) * Cosh( I );
+          Result.I := +System.Cos( R ) * Sinh( I );
      end;
 end;
 
@@ -993,10 +993,10 @@ var
 begin
      with A_ do
      begin
-          E := Exp( R );
+          E := System.Exp( R );
 
-          Result.R := E * Cos( I );
-          Result.I := E * Sin( I );
+          Result.R := E * System.Cos( I );
+          Result.I := E * System.Sin( I );
      end;
 end;
 
@@ -1006,10 +1006,10 @@ var
 begin
      with A_ do
      begin
-          E := Exp( R );
+          E := System.Exp( R );
 
-          Result.R := E * Cos( I );
-          Result.I := E * Sin( I );
+          Result.R := E * System.Cos( I );
+          Result.I := E * System.Sin( I );
      end;
 end;
 
@@ -1029,13 +1029,13 @@ end;
 
 function Ln( const A_:TSingleC ) :TSingleC;
 begin
-     Result.R := Ln( A_.Abso );
+     Result.R := System.Ln( A_.Abso );
      Result.I :=     A_.Angle ;
 end;
 
 function Ln( const A_:TDoubleC ) :TDoubleC;
 begin
-     Result.R := Ln( A_.Abso );
+     Result.R := System.Ln( A_.Abso );
      Result.I :=     A_.Angle ;
 end;
 
