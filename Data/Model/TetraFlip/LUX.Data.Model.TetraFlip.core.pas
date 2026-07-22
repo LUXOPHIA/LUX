@@ -26,7 +26,8 @@
 
 interface //#################################################################### ■
 
-uses LUX,
+uses System.Classes,
+     LUX,
      LUX.Data.Model.Poins,
      LUX.Data.Model.Cells;
 
@@ -75,7 +76,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TTetraPoinSet<TPos_> = class( TPoinSet<TPos_,TTetraPoin<TPos_>> )
      private
      protected
+       ///// M E T H O D
+       function LoadPoin( const Pos_:TPos_ ) :TTetraPoin<TPos_>; override;  // 読み込む点を生成する。override で点の型を差し替えられる
      public
+       ///// M E T H O D
+       procedure SaveToStream( const Stream_:TStream ); override;  // 全ての点の座標を書き込む
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTetraCell<TPos_>
@@ -134,6 +139,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetPoinSet( const PoinSet_:TPoinSet_ ); virtual;
        ///// M E T H O D
        function NewPoinSet :TPoinSet_; virtual;  // 点集合を生成する。override で点集合の型を差し替えられる
+       function PoinCode( const Poin_:TPoin_ ) :Integer; virtual;  // 集合に属さない点 → 負の符号（既定 -1 = nil。派生が固有の点に符号を割り当てる）
+       function CodePoin( const Code_:Integer ) :TPoin_; virtual;  // 負の符号 → 集合に属さない点（既定は nil。派生が固有の点へ写す）
+       function LoadCell :TCell_; virtual;                         // 読み込む胞を生成する。override で胞の型を差し替えられる
      public
        constructor Create; override;
        destructor Destroy; override;
@@ -141,6 +149,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property PoinSet :TPoinSet_ read GetPoinSet write SetPoinSet;
        ///// M E T H O D
        function CheckCells :Integer;  // 全面の相互接続（Cell / Corn / Bond / 頂点対応）の破れの数
+       procedure SaveToFile( const FileName_:String ); virtual;    // *.lxtc へ保存（UTF-8 テキストヘッダ ＋ 空行 ＋ バイナリ）
+       procedure LoadFromFile( const FileName_:String ); virtual;  // *.lxtc から復元（点も胞も接続ごと全て置き換わる）
      end;
 
 const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
@@ -159,6 +169,9 @@ const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 implementation //############################################################### ■
+
+uses System.SysUtils,
+     LUX.Data;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
@@ -200,7 +213,31 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
 
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+function TTetraPoinSet<TPos_>.LoadPoin( const Pos_:TPos_ ) :TTetraPoin<TPos_>;
+begin
+     Result := TTetraPoin<TPos_>.Create( Pos_, Self );
+end;
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+procedure TTetraPoinSet<TPos_>.SaveToStream( const Stream_:TStream );
+var
+   I :Integer;
+   V :TPos_;
+begin
+     for I := 0 to ChildrsN-1 do
+     begin
+          V := Childrs[ I ].Pos;
+
+          Stream_.WriteBuffer( V, SizeOf( TPos_ ) );
+     end;
+end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTetraCell<TPos_>
 
@@ -441,6 +478,161 @@ begin
                     if C1.Poin[ C0.Join[ K0, F ] ] <> C0.Poin[ VertTable[ K0 ]._[ F ] ] then Inc( Result );
                end;
           end;
+     end;
+end;
+
+//------------------------------------------------------------------------------
+
+function TTetraCellSet<TPos_>.PoinCode( const Poin_:TPoin_ ) :Integer;
+begin
+     Result := -1;  // 集合に属さない点は、既定では nil として保存される
+end;
+
+function TTetraCellSet<TPos_>.CodePoin( const Code_:Integer ) :TPoin_;
+begin
+     Result := nil;  // 負の符号は、既定では nil として復元される
+end;
+
+function TTetraCellSet<TPos_>.LoadCell :TCell_;
+begin
+     Result := TCell_.Create( Self );
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TTetraCellSet<TPos_>.SaveToFile( const FileName_:String );
+// LUXOPHIA コンテナ形式（LUX.Data 参照）。点は座標のみ（アンカーは導出情報なので保存しない）、
+// 胞は「頂点番号 ×4 ＋ 隣接胞番号 ×4 ＋ 角・回転・旗（_Corn / _Bond / _Flag）」で、接続構造がそのまま往復する
+var
+   S :TFileStream;
+   I, C :Integer;
+   K :Byte;
+   T :TCell_;
+   P :TPoin_;
+   D :Byte;
+begin
+     S := TFileStream.Create( FileName_, fmCreate );
+     try
+        WriteHead( S, 'LUXOPHIA TetFlip 1.0', [ 'PoinsN='  + IntToStr( PoinSet.ChildrsN ),
+                                                'CellsN='  + IntToStr( ChildrsN         ),
+                                                'PosSize=' + IntToStr( SizeOf( TPos_ )  ) ] );
+
+        PoinSet.SaveToStream( S );
+
+        for I := 0 to ChildrsN-1 do
+        begin
+             T := Childrs[ I ];
+
+             for K := 0 to 3 do  // 点 → 番号（集合の中 = 添字、外 = 負の符号）
+             begin
+                  P := T._Poin[ K ];
+
+                  if      P = nil            then C := -1
+                  else if P.Parent = PoinSet then C := P.Order
+                                             else C := PoinCode( P );
+
+                  S.WriteBuffer( C, 4 );
+             end;
+
+             for K := 0 to 3 do
+             begin
+                  if T._Cell[ K ] = nil then C := -1
+                                        else C := T._Cell[ K ].Order;
+
+                  S.WriteBuffer( C, 4 );
+             end;
+
+             D := T._Corn;  S.WriteBuffer( D, 1 );
+             D := T._Bond;  S.WriteBuffer( D, 1 );
+             D := T._Flag;  S.WriteBuffer( D, 1 );
+        end;
+     finally
+        S.Free;
+     end;
+end;
+
+procedure TTetraCellSet<TPos_>.LoadFromFile( const FileName_:String );
+var
+   S :TFileStream;
+   PoinsN, CellsN, PosSize :Integer;
+   I, C, E :Integer;
+   K :Byte;
+   T :TCell_;
+   P :TPoin_;
+   D :Byte;
+   L, N :String;
+begin
+     S := TFileStream.Create( FileName_, fmOpenRead or fmShareDenyWrite );
+     try
+        PoinsN  := -1;
+        CellsN  := -1;
+        PosSize := SizeOf( TPos_ );
+
+        for L in ReadHead( S, 'LUXOPHIA TetFlip 1.0' ) do  // オプション行（名前=値）
+        begin
+             E := Pos( '=', L );
+
+             if E <= 0 then Continue;  // 知らない行は読み飛ばす
+
+             N := Copy( L, 1, E-1 );
+
+             if N = 'PoinsN'  then PoinsN  := StrToIntDef( Copy( L, E+1, MaxInt ), -1 ) else
+             if N = 'CellsN'  then CellsN  := StrToIntDef( Copy( L, E+1, MaxInt ), -1 ) else
+             if N = 'PosSize' then PosSize := StrToIntDef( Copy( L, E+1, MaxInt ), -1 );
+        end;
+
+        if ( PoinsN < 0 ) or ( CellsN < 0 ) then raise EInOutError.Create( 'TTetraCellSet.LoadFromFile: PoinsN / CellsN が無い: ' + FileName_ );
+
+        if PosSize <> SizeOf( TPos_ ) then raise EInOutError.Create( 'TTetraCellSet.LoadFromFile: 座標の型が合わない: ' + FileName_ );
+
+        Clear;  // 胞 → 点の順で全て置き換える（胞の破棄は頂点のアンカーに触れる）
+
+        PoinSet.LoadFromStream( S, PoinsN );
+
+        for I := 1 to CellsN do LoadCell;  // 生成順 = 保存順 = 胞の番号
+
+        for I := 0 to CellsN-1 do
+        begin
+             T := Childrs[ I ];
+
+             for K := 0 to 3 do
+             begin
+                  S.ReadBuffer( C, 4 );
+
+                  if C >= PoinsN then raise EInOutError.Create( 'TTetraCellSet.LoadFromFile: 頂点番号が壊れている: ' + FileName_ );
+
+                  if C >= 0 then T._Poin[ K ] := PoinSet[ C ]
+                            else T._Poin[ K ] := CodePoin( C );
+             end;
+
+             for K := 0 to 3 do
+             begin
+                  S.ReadBuffer( C, 4 );
+
+                  if C >= CellsN then raise EInOutError.Create( 'TTetraCellSet.LoadFromFile: 隣接胞番号が壊れている: ' + FileName_ );
+
+                  if C >= 0 then T._Cell[ K ] := Childrs[ C ]
+                            else T._Cell[ K ] := nil;
+             end;
+
+             S.ReadBuffer( D, 1 );  T._Corn := D;
+             S.ReadBuffer( D, 1 );  T._Bond := D;
+             S.ReadBuffer( D, 1 );  T._Flag := D;
+        end;
+
+        for I := 0 to CellsN-1 do  // アンカー（導出情報）を張り直す
+        begin
+             T := Childrs[ I ];
+
+             for K := 0 to 3 do
+             begin
+                  P := T._Poin[ K ];
+
+                  if Assigned( P ) then begin  P._Cell := T;  P._Corn := K;  end;
+             end;
+        end;
+     finally
+        S.Free;
      end;
 end;
 
