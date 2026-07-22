@@ -2,7 +2,8 @@
 
 interface //#################################################################### ■
 
-uses LUX,
+uses System.Classes,
+     LUX,
      LUX.Data.Model.Poins,
      LUX.Data.Model.Faces;
 
@@ -98,7 +99,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      TTriPoinSet<TPos_> = class( TPoinSet<TPos_,TTriPoin<TPos_>> )
      private
      protected
+       ///// M E T H O D
+       function LoadPoin( const Pos_:TPos_ ) :TTriPoin<TPos_>; override;  // 読み込む点を生成する。override で点の型を差し替えられる
      public
+       ///// M E T H O D
+       procedure SaveToStream( const Stream_:TStream ); override;  // 全ての点の座標を書き込む
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTriFace<TPos_>
@@ -152,6 +157,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetPoinSet( const PoinSet_:TPoinSet_ ); virtual;
        ///// M E T H O D
        function NewPoinSet :TPoinSet_; virtual;  // 点集合を生成する。override で点集合の型を差し替えられる
+       function PoinCode( const Poin_:TPoin_ ) :Integer; virtual;  // 集合に属さない点 → 負の符号（既定 -1 = nil。派生が固有の点に符号を割り当てる）
+       function CodePoin( const Code_:Integer ) :TPoin_; virtual;  // 負の符号 → 集合に属さない点（既定は nil。派生が固有の点へ写す）
+       function LoadFace :TFace_; virtual;                         // 読み込む面を生成する。override で面の型を差し替えられる
      public
        constructor Create; override;
        destructor Destroy; override;
@@ -160,6 +168,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// M E T H O D
        function CheckEdges :Integer;
        function CheckFaceLings :Integer;
+       procedure SaveToFile( const FileName_:String ); virtual;    // *.lxtf へ保存（UTF-8 テキストヘッダ ＋ 空行 ＋ バイナリ）
+       procedure LoadFromFile( const FileName_:String ); virtual;  // *.lxtf から復元（点も面も接続ごと全て置き換わる）
      end;
 
 const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
@@ -170,6 +180,9 @@ const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 implementation //############################################################### ■
+
+uses System.SysUtils,
+     LUX.Data;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
@@ -453,7 +466,29 @@ end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+function TTriPoinSet<TPos_>.LoadPoin( const Pos_:TPos_ ) :TTriPoin<TPos_>;
+begin
+     Result := TTriPoin<TPos_>.Create( Pos_, Self );
+end;
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+procedure TTriPoinSet<TPos_>.SaveToStream( const Stream_:TStream );
+var
+   I :Integer;
+   V :TPos_;
+begin
+     for I := 0 to ChildrsN-1 do
+     begin
+          V := Childrs[ I ].Pos;
+
+          Stream_.WriteBuffer( V, SizeOf( TPos_ ) );
+     end;
+end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TTriFace<TPos_>
 
@@ -728,6 +763,161 @@ begin
 
           if F1 <> F0 then Inc( Result );
      end
+end;
+
+//------------------------------------------------------------------------------
+
+function TTriFaceSet<TPos_>.PoinCode( const Poin_:TPoin_ ) :Integer;
+begin
+     Result := -1;  // 集合に属さない点は、既定では nil として保存される
+end;
+
+function TTriFaceSet<TPos_>.CodePoin( const Code_:Integer ) :TPoin_;
+begin
+     Result := nil;  // 負の符号は、既定では nil として復元される
+end;
+
+function TTriFaceSet<TPos_>.LoadFace :TFace_;
+begin
+     Result := TFace_.Create( Self );
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TTriFaceSet<TPos_>.SaveToFile( const FileName_:String );
+// LUXOPHIA コンテナ形式（LUX.Data 参照）。点は座標のみ（アンカーは導出情報なので保存しない）、
+// 面は「頂点番号 ×3 ＋ 隣接面番号 ×3 ＋ 角と旗（_Data）」で、接続構造がそのまま往復する
+var
+   S :TFileStream;
+   I, C :Integer;
+   K :Byte;
+   F :TFace_;
+   P :TPoin_;
+   D :Byte;
+begin
+     S := TFileStream.Create( FileName_, fmCreate );
+     try
+        WriteHead( S, 'LUXOPHIA TriFlip 1.0', [ 'PoinsN='  + IntToStr( PoinSet.ChildrsN ),
+                                                'FacesN='  + IntToStr( ChildrsN         ),
+                                                'PosSize=' + IntToStr( SizeOf( TPos_ )  ) ] );
+
+        PoinSet.SaveToStream( S );
+
+        for I := 0 to ChildrsN-1 do
+        begin
+             F := Childrs[ I ];
+
+             for K := 1 to 3 do  // 点 → 番号（集合の中 = 添字、外 = 負の符号）
+             begin
+                  P := F._Poin[ K ];
+
+                  if      P = nil            then C := -1
+                  else if P.Parent = PoinSet then C := P.Order
+                                             else C := PoinCode( P );
+
+                  S.WriteBuffer( C, 4 );
+             end;
+
+             for K := 1 to 3 do
+             begin
+                  if F._Face[ K ] = nil then C := -1
+                                        else C := F._Face[ K ].Order;
+
+                  S.WriteBuffer( C, 4 );
+             end;
+
+             D := F._Data;
+
+             S.WriteBuffer( D, 1 );
+        end;
+     finally
+        S.Free;
+     end;
+end;
+
+procedure TTriFaceSet<TPos_>.LoadFromFile( const FileName_:String );
+var
+   S :TFileStream;
+   PoinsN, FacesN, PosSize :Integer;
+   I, C, E :Integer;
+   K :Byte;
+   F :TFace_;
+   P :TPoin_;
+   D :Byte;
+   L, N :String;
+begin
+     S := TFileStream.Create( FileName_, fmOpenRead or fmShareDenyWrite );
+     try
+        PoinsN  := -1;
+        FacesN  := -1;
+        PosSize := SizeOf( TPos_ );
+
+        for L in ReadHead( S, 'LUXOPHIA TriFlip 1.0' ) do  // オプション行（名前=値）
+        begin
+             E := Pos( '=', L );
+
+             if E <= 0 then Continue;  // 知らない行は読み飛ばす
+
+             N := Copy( L, 1, E-1 );
+
+             if N = 'PoinsN'  then PoinsN  := StrToIntDef( Copy( L, E+1, MaxInt ), -1 ) else
+             if N = 'FacesN'  then FacesN  := StrToIntDef( Copy( L, E+1, MaxInt ), -1 ) else
+             if N = 'PosSize' then PosSize := StrToIntDef( Copy( L, E+1, MaxInt ), -1 );
+        end;
+
+        if ( PoinsN < 0 ) or ( FacesN < 0 ) then raise EInOutError.Create( 'TTriFaceSet.LoadFromFile: PoinsN / FacesN が無い: ' + FileName_ );
+
+        if PosSize <> SizeOf( TPos_ ) then raise EInOutError.Create( 'TTriFaceSet.LoadFromFile: 座標の型が合わない: ' + FileName_ );
+
+        Clear;  // 面 → 点の順で全て置き換える（面の破棄は頂点のアンカーに触れる）
+
+        PoinSet.LoadFromStream( S, PoinsN );
+
+        for I := 1 to FacesN do LoadFace;  // 生成順 = 保存順 = 面の番号
+
+        for I := 0 to FacesN-1 do
+        begin
+             F := Childrs[ I ];
+
+             for K := 1 to 3 do
+             begin
+                  S.ReadBuffer( C, 4 );
+
+                  if C >= PoinsN then raise EInOutError.Create( 'TTriFaceSet.LoadFromFile: 頂点番号が壊れている: ' + FileName_ );
+
+                  if C >= 0 then F._Poin[ K ] := PoinSet[ C ]
+                            else F._Poin[ K ] := CodePoin( C );
+             end;
+
+             for K := 1 to 3 do
+             begin
+                  S.ReadBuffer( C, 4 );
+
+                  if C >= FacesN then raise EInOutError.Create( 'TTriFaceSet.LoadFromFile: 隣接面番号が壊れている: ' + FileName_ );
+
+                  if C >= 0 then F._Face[ K ] := Childrs[ C ]
+                            else F._Face[ K ] := nil;
+             end;
+
+             S.ReadBuffer( D, 1 );
+
+             F._Data := D;
+        end;
+
+        for I := 0 to FacesN-1 do  // アンカー（導出情報）を張り直す
+        begin
+             F := Childrs[ I ];
+
+             for K := 1 to 3 do
+             begin
+                  P := F._Poin[ K ];
+
+                  if Assigned( P ) then begin  P._Face := F;  P._Corn := K;  end;
+             end;
+        end;
+     finally
+        S.Free;
+     end;
 end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
