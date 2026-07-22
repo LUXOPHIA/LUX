@@ -38,8 +38,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
      protected
        ///// A C C E S S O R
-       function GetParent :TParent_; reintroduce; virtual;
-       procedure SetParent( const Parent_:TParent_ ); reintroduce; virtual;
+       // virtual 化すると、深いジェネリック連鎖の実体化で dcc64 内部エラー（F2084: URW1402）が生じるため非仮想とする
+       function GetParent :TParent_; reintroduce;
+       procedure SetParent( const Parent_:TParent_ ); reintroduce;
      public
        constructor Create( const Parent_:TParent_ ); overload; virtual;
        ///// P R O P E R T Y
