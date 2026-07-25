@@ -1,4 +1,4 @@
-﻿# LUX.Data.Image
+# LUX.Data.Image
 
 Ultra-high-resolution image library for Delphi / FireMonkey.
 
@@ -230,8 +230,22 @@ no callback, and progress therefore stands still until the decode completes.
 
 | Format | Read | Write | Notes |
 |---|---|---|---|
-| PNG | ✔ | ✔ | Implemented directly on `System.ZLib`. Streams row by row, so no whole-image temporary is needed. Reads 8 and 16 bit, colour types 0/2/4/6, non-interlaced. Writes RGBA: 8 bit for `TLuxImageUInt08`, 16 bit otherwise. |
+| PNG | ✔ | ✔ | Implemented directly on `System.ZLib`. Reads every variant the format defines; writes RGBA, 8 bit for `TLuxImageUInt08` and 16 bit otherwise. |
 | JPEG | ✔ | ✔ | Uses the Skia codec. |
+
+The PNG reader covers the whole format:
+
+| | supported |
+|---|---|
+| Bit depths | 1, 2, 4, 8, 16 |
+| Colour types | 0 grayscale, 2 truecolour, 3 palette, 4 grayscale + alpha, 6 truecolour + alpha |
+| Transparency | `tRNS` in all three of its forms — palette alpha, grayscale colour key, RGB colour key |
+| Interlacing | none, and Adam7 |
+
+Non-interlaced images are decoded a row at a time and written straight into the tiles, so no
+whole-image temporary is ever allocated regardless of the size of the file. Adam7 images are
+decoded pass by pass and the pixels scattered to their final positions, which is slower but
+equally free of a full-size buffer.
 
 JPEG passes through Skia, which requires the whole image in one contiguous buffer, so
 reading or writing a JPEG temporarily needs `width × height × 4` bytes in addition to the
