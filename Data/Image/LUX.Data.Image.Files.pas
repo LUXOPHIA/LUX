@@ -46,6 +46,31 @@ uses System.SysUtils, System.Math, System.ZLib,
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TPngHead
+
+     ///// IHDR ＋ PLTE ＋ tRNS をまとめた、復号に必要な情報
+
+     TPngHead = record
+     public
+       Width     :Integer;
+       Height    :Integer;
+       Depth     :Integer;   // 1 / 2 / 4 / 8 / 16
+       Color     :Integer;   // 0=グレイ 2=RGB 3=パレット 4=グレイ+α 6=RGBA
+       Interlace :Integer;   // 0=無し 1=Adam7
+       Chans     :Integer;   // 標本の数／画素
+       BitsPix   :Integer;   // ビット数／画素
+       FiltBpp   :Integer;   // フィルタ用のバイト数／画素（最低 1 ）
+       MaxVal    :Integer;   // ( 1 shl Depth ) - 1
+       /////
+       Pal       :array [ 0..255 ] of TSingleRGBA;  // カラータイプ 3 用（ tRNS 適用済み）
+       PalN      :Integer;
+       /////
+       HasTrns   :Boolean;                          // カラータイプ 0 / 2 用の透明色
+       Trns      :array [ 0..2 ] of Integer;        // 標本値そのもの（ Depth の単位）
+       ///// M E T H O D
+       function RowBytes( const W_:Integer ) :Integer;  // W_ 画素ぶんのバイト数
+     end;
+
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TPngIdatReader
 
      ///// 連続する IDAT チャンクの中身だけを繋げて読み出すストリーム
@@ -54,6 +79,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      private
        _Stream :TStream;
        _Rest   :Integer;   // 現チャンクの残りバイト数
+       _Pos    :Int64;     // 読み出した総バイト数（＝このストリーム上の位置）
        _Ended  :Boolean;
        ///// M E T H O D
        function NextChunk :Boolean;
@@ -74,6 +100,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _Stream :TStream;
        _Buffer :TBytes;
        _Count  :Integer;
+       _Pos    :Int64;     // 書き込んだ総バイト数（＝このストリーム上の位置）
      public
        constructor Create( const Stream_:TStream );
        destructor Destroy; override;
@@ -89,6 +116,13 @@ const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
       PNG_SIGN :array [ 0..7 ] of Byte = ( $89, $50, $4E, $47, $0D, $0A, $1A, $0A );
 
       PNG_IDAT_MAX = 1 shl 20;  // IDAT チャンク１個の最大バイト数
+
+      ///// Adam7 インターレースの７つのパス（開始位置と刻み）
+
+      PNG_PASS_X0 :array [ 0..6 ] of Integer = ( 0, 4, 0, 2, 0, 1, 0 );
+      PNG_PASS_Y0 :array [ 0..6 ] of Integer = ( 0, 0, 4, 0, 2, 0, 1 );
+      PNG_PASS_DX :array [ 0..6 ] of Integer = ( 8, 8, 4, 4, 2, 2, 1 );
+      PNG_PASS_DY :array [ 0..6 ] of Integer = ( 8, 8, 8, 4, 4, 2, 2 );
 
 var //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 V A R I A B L E 】
 
@@ -139,11 +173,114 @@ begin
      Stream_.ReadBuffer( Result, 4 );  Result := SwapU32( Result );
 end;
 
+function ReadU08( const Stream_:TStream ) :Byte;
+begin
+     Stream_.ReadBuffer( Result, 1 );
+end;
+
 procedure WriteU32( const Stream_:TStream; const V_:UInt32 );
 var
    T :UInt32;
 begin
      T := SwapU32( V_ );  Stream_.WriteBuffer( T, 4 );
+end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PNG の復号
+
+///// 1 / 2 / 4 / 8 / 16 ビットの標本を取り出す（ PNG は上位ビットから詰める）
+
+function PngSample( const P_:PByte; const I_,Depth_:Integer ) :Integer; inline;
+var
+   B, S :Integer;
+begin
+     case Depth_ of
+       16: Result := ( P_[ I_ * 2 ] shl 8 ) or P_[ I_ * 2 + 1 ];
+        8: Result :=   P_[ I_ ];
+     else
+       B := ( I_ * Depth_ ) shr 3;                  // 何バイト目か
+       S := 8 - Depth_ - ( ( I_ * Depth_ ) and 7 ); // そのバイト内で何ビット右へ寄せるか
+       Result := ( P_[ B ] shr S ) and ( ( 1 shl Depth_ ) - 1 );
+     end;
+end;
+
+///// 行フィルタを解除する（ Cur_ を書き換える。Prv_ は解除済みの前行）
+
+procedure PngUnfilter( const Filt_:Byte; const Cur_,Prv_:PByte; const N_,Bpp_:Integer );
+var
+   I, A, B, C, P, PA, PB, PC :Integer;
+begin
+     case Filt_ of
+       0: ;                                                                                  // None
+       1: for I := Bpp_ to N_-1 do Cur_[ I ] := ( Cur_[ I ] + Cur_[ I - Bpp_ ] ) and $FF;     // Sub
+       2: for I := 0    to N_-1 do Cur_[ I ] := ( Cur_[ I ] + Prv_[ I        ] ) and $FF;     // Up
+       3: for I := 0    to N_-1 do                                                            // Average
+          begin
+               if I >= Bpp_ then A := Cur_[ I - Bpp_ ] else A := 0;
+
+               Cur_[ I ] := ( Cur_[ I ] + ( A + Prv_[ I ] ) div 2 ) and $FF;
+          end;
+       4: for I := 0    to N_-1 do                                                            // Paeth
+          begin
+               if I >= Bpp_ then begin  A := Cur_[ I - Bpp_ ];  C := Prv_[ I - Bpp_ ];  end
+                            else begin  A := 0               ;  C := 0               ;  end;
+
+               B := Prv_[ I ];
+
+               P := A + B - C;  PA := Abs( P - A );  PB := Abs( P - B );  PC := Abs( P - C );
+
+               if ( PA <= PB ) and ( PA <= PC ) then P := A
+                                                else if PB <= PC then P := B
+                                                                 else P := C;
+
+               Cur_[ I ] := ( Cur_[ I ] + P ) and $FF;
+          end;
+     else raise EInOutError.Create( 'PNG のフィルタ種別 ' + Filt_.ToString + ' が不正' );
+     end;
+end;
+
+///// 解除済みの 1 行を色へ変換する（全ビット深度・全カラータイプ）
+
+procedure PngRowToColors( const H_:TPngHead; const Raw_:PByte; const N_:Integer; const Dst_:PSingleRGBA );
+var
+   X, I, S :Integer;
+   V       :array [ 0..3 ] of Integer;
+   M       :Single;
+begin
+     M := 1 / H_.MaxVal;
+
+     for X := 0 to N_-1 do
+     begin
+          if H_.Color = 3 then
+          begin
+               S := PngSample( Raw_, X, H_.Depth );
+
+               if S < H_.PalN then Dst_[ X ] := H_.Pal[ S ]
+                              else Dst_[ X ] := TSingleRGBA.Create( 0, 0, 0, 1 );  // 範囲外は黒
+
+               Continue;
+          end;
+
+          for I := 0 to H_.Chans-1 do V[ I ] := PngSample( Raw_, X * H_.Chans + I, H_.Depth );
+
+          case H_.Color of
+            0: begin  // グレイ
+                    Dst_[ X ] := TSingleRGBA.Create( V[0] * M, V[0] * M, V[0] * M, 1 );
+
+                    if H_.HasTrns and ( V[0] = H_.Trns[0] ) then Dst_[ X ].A := 0;
+               end;
+            2: begin  // RGB
+                    Dst_[ X ] := TSingleRGBA.Create( V[0] * M, V[1] * M, V[2] * M, 1 );
+
+                    if H_.HasTrns and ( V[0] = H_.Trns[0] )
+                                  and ( V[1] = H_.Trns[1] )
+                                  and ( V[2] = H_.Trns[2] ) then Dst_[ X ].A := 0;
+               end;
+            4:      // グレイ ＋ α
+                    Dst_[ X ] := TSingleRGBA.Create( V[0] * M, V[0] * M, V[0] * M, V[1] * M );
+            6:      // RGBA
+                    Dst_[ X ] := TSingleRGBA.Create( V[0] * M, V[1] * M, V[2] * M, V[3] * M );
+          end;
+     end;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% WriteChunk
@@ -221,6 +358,19 @@ begin
      end;
 end;
 
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TPngHead
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+function TPngHead.RowBytes( const W_:Integer ) :Integer;
+begin
+     Result := ( W_ * BitsPix + 7 ) div 8;
+end;
+
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TPngIdatReader
@@ -257,6 +407,7 @@ begin
 
      _Stream := Stream_;
      _Rest   := Rest_;
+     _Pos    := 0;
      _Ended  := False;
 end;
 
@@ -290,6 +441,8 @@ begin
 
           Inc( D, C );  Dec( _Rest, C );  Inc( Result, C );
      end;
+
+     Inc( _Pos, Result );
 end;
 
 function TPngIdatReader.Write( const Buffer; Count:Longint ) :Longint;
@@ -299,7 +452,14 @@ end;
 
 function TPngIdatReader.Seek( const Offset:Int64; Origin:TSeekOrigin ) :Int64;
 begin
-     if ( Offset = 0 ) and ( Origin = soCurrent ) then Exit( 0 );
+     ///// TZDecompressionStream は読み出しの度に Position を照会し、ずれていれば
+     ///// 引き戻そうとする。現在位置を正しく返せば、その引き戻しは起こらない。
+
+     case Origin of
+       soBeginning: if Offset = _Pos then Exit( _Pos );
+       soCurrent  : if Offset = 0    then Exit( _Pos );
+       soEnd      : ;
+     end;
 
      raise EInOutError.Create( 'TPngIdatReader は順次読み込み専用' );
 end;
@@ -314,6 +474,7 @@ begin
 
      _Stream := Stream_;
      _Count  := 0;
+     _Pos    := 0;
 
      SetLength( _Buffer, PNG_IDAT_MAX );
 end;
@@ -359,11 +520,21 @@ begin
 
           if _Count = PNG_IDAT_MAX then Flush;
      end;
+
+     Inc( _Pos, Result );
 end;
 
 function TPngIdatWriter.Seek( const Offset:Int64; Origin:TSeekOrigin ) :Int64;
 begin
-     Result := 0;
+     ///// TZCompressionStream も Position を照会する（読み出し側と同じ理由）
+
+     case Origin of
+       soBeginning: if Offset = _Pos then Exit( _Pos );
+       soCurrent  : if Offset = 0    then Exit( _Pos );
+       soEnd      : ;
+     end;
+
+     raise EInOutError.Create( 'TPngIdatWriter は順次書き込み専用' );
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TLuxImageFiler
@@ -418,150 +589,209 @@ end;
 
 class procedure TLuxImageFiler.LoadFromPng( const Image_:TLuxImage; const Stream_:TStream );
 var
-   Sign             :array [ 0..7 ] of Byte;
-   Kind             :array [ 0..3 ] of Byte;
-   Size             :UInt32;
-   W, H             :Integer;
-   Depth, Color     :Byte;
-   Chans, Bpp, RowN :Integer;
-   Idat             :TPngIdatReader;
-   Zlib             :TZDecompressionStream;
+   Sign     :array [ 0..7 ] of Byte;
+   Kind     :array [ 0..3 ] of Byte;
+   Size     :UInt32;
+   Hd       :TPngHead;
+   Buf      :TBytes;
+   Idat     :TPngIdatReader;
+   Zlib     :TZDecompressionStream;
    Raw0, Raw1, Swap :TBytes;
-   Row              :TArray<TSingleRGBA>;
-   Filt             :Byte;
-   X, Y, I          :Integer;
-   A, B, C, P, PA, PB, PC :Integer;
-   Q                :PByte;
-   V                :array [ 0..3 ] of Single;
-   Found            :Boolean;
+   Row      :TArray<TSingleRGBA>;
+   Filt     :Byte;
+   I, X, Y  :Integer;
+   Pass     :Integer;
+   PW, PH   :Integer;
+   RowN     :Integer;
+   Done, All :Integer;
+   Found    :Boolean;
+
+   ///// パスの 1 行を読んで解除し、色へ変換して Row へ入れる
+
+   procedure ReadPassRow( const W_:Integer );
+   begin
+        RowN := Hd.RowBytes( W_ );
+
+        Zlib.ReadBuffer( Filt, 1 );
+        Zlib.ReadBuffer( Raw0[ 0 ], RowN );
+
+        PngUnfilter( Filt, @Raw0[ 0 ], @Raw1[ 0 ], RowN, Hd.FiltBpp );
+
+        PngRowToColors( Hd, @Raw0[ 0 ], W_, @Row[ 0 ] );
+
+        Swap := Raw1;  Raw1 := Raw0;  Raw0 := Swap;  // 解除済みの行が次の「前行」になる
+   end;
+
 begin
      Stream_.ReadBuffer( Sign[ 0 ], 8 );
 
      if not CompareMem( @Sign[ 0 ], @PNG_SIGN[ 0 ], 8 ) then raise EInOutError.Create( 'PNG の署名ではない' );
 
-     W := 0;  H := 0;  Depth := 0;  Color := 0;  Found := False;
+     FillChar( Hd, SizeOf( Hd ), 0 );
 
-     ///// IHDR ～ 最初の IDAT まで
+     Size  := 0;
+     Found := False;
+
+     ///// IHDR ～ 最初の IDAT まで（ PLTE と tRNS を拾う）
 
      repeat
+           if Stream_.Position + 8 > Stream_.Size then Break;
+
            Size := ReadU32( Stream_ );
 
            Stream_.ReadBuffer( Kind[ 0 ], 4 );
 
+           ///// IHDR
+
            if ( Kind[0] = Ord('I') ) and ( Kind[1] = Ord('H') ) and ( Kind[2] = Ord('D') ) and ( Kind[3] = Ord('R') ) then
            begin
-                W := ReadU32( Stream_ );
-                H := ReadU32( Stream_ );
+                Hd.Width  := ReadU32( Stream_ );
+                Hd.Height := ReadU32( Stream_ );
 
-                Stream_.ReadBuffer( Depth, 1 );
-                Stream_.ReadBuffer( Color, 1 );
+                Hd.Depth     := ReadU08( Stream_ );
+                Hd.Color     := ReadU08( Stream_ );
 
-                Stream_.Seek( 3, soCurrent );  // 圧縮法・フィルタ法・インターレース法
+                Stream_.Seek( 2, soCurrent );  // 圧縮法・フィルタ法（ともに 0 のみ）
+
+                Hd.Interlace := ReadU08( Stream_ );
+
                 Stream_.Seek( 4, soCurrent );  // CRC
-
-                if Stream_.Position >= Stream_.Size then Break;
            end
            else
+           ///// PLTE
+
+           if ( Kind[0] = Ord('P') ) and ( Kind[1] = Ord('L') ) and ( Kind[2] = Ord('T') ) and ( Kind[3] = Ord('E') ) then
+           begin
+                Hd.PalN := Min( Integer( Size ) div 3, 256 );
+
+                SetLength( Buf, Size );  Stream_.ReadBuffer( Buf[ 0 ], Size );
+
+                for I := 0 to Hd.PalN-1 do
+                  Hd.Pal[ I ] := TSingleRGBA.Create( Buf[ I*3 ] / 255, Buf[ I*3+1 ] / 255, Buf[ I*3+2 ] / 255, 1 );
+
+                Stream_.Seek( 4, soCurrent );  // CRC
+           end
+           else
+           ///// tRNS
+
+           if ( Kind[0] = Ord('t') ) and ( Kind[1] = Ord('R') ) and ( Kind[2] = Ord('N') ) and ( Kind[3] = Ord('S') ) then
+           begin
+                SetLength( Buf, Size );  if Size > 0 then Stream_.ReadBuffer( Buf[ 0 ], Size );
+
+                case Hd.Color of
+                  0: if Size >= 2 then
+                     begin
+                          Hd.HasTrns := True;
+                          Hd.Trns[0] := Buf[0] * 256 + Buf[1];
+                     end;
+                  2: if Size >= 6 then
+                     begin
+                          Hd.HasTrns := True;
+                          Hd.Trns[0] := Buf[0] * 256 + Buf[1];
+                          Hd.Trns[1] := Buf[2] * 256 + Buf[3];
+                          Hd.Trns[2] := Buf[4] * 256 + Buf[5];
+                     end;
+                  3: for I := 0 to Min( Integer( Size ), Hd.PalN ) - 1 do Hd.Pal[ I ].A := Buf[ I ] / 255;
+                end;
+
+                Stream_.Seek( 4, soCurrent );  // CRC
+           end
+           else
+           ///// IDAT
+
            if ( Kind[0] = Ord('I') ) and ( Kind[1] = Ord('D') ) and ( Kind[2] = Ord('A') ) and ( Kind[3] = Ord('T') ) then
            begin
                 Found := True;  Break;
            end
-           else
-           begin
-                Stream_.Seek( Size + 4, soCurrent );  // 中身 ＋ CRC
-
-                if Stream_.Position >= Stream_.Size then Break;
-           end;
+           else Stream_.Seek( Size + 4, soCurrent );  // 中身 ＋ CRC
      until False;
 
      if not Found then raise EInOutError.Create( 'PNG に IDAT が無い' );
 
-     if ( Depth <> 8 ) and ( Depth <> 16 ) then raise EInOutError.Create( 'PNG のビット深度 ' + Depth.ToString + ' は未対応（8/16 のみ）' );
+     ///// ビット深度とカラータイプの組み合わせを検証する
 
-     case Color of
-       0: Chans := 1;  // グレイ
-       2: Chans := 3;  // RGB
-       4: Chans := 2;  // グレイ＋α
-       6: Chans := 4;  // RGBA
-     else raise EInOutError.Create( 'PNG のカラータイプ ' + Color.ToString + ' は未対応（0/2/4/6 のみ）' );
+     case Hd.Color of
+       0: begin  Hd.Chans := 1;  if not ( Hd.Depth in [ 1, 2, 4, 8, 16 ] ) then Found := False;  end;
+       2: begin  Hd.Chans := 3;  if not ( Hd.Depth in [       8, 16 ] ) then Found := False;  end;
+       3: begin  Hd.Chans := 1;  if not ( Hd.Depth in [ 1, 2, 4, 8     ] ) then Found := False;  end;
+       4: begin  Hd.Chans := 2;  if not ( Hd.Depth in [       8, 16 ] ) then Found := False;  end;
+       6: begin  Hd.Chans := 4;  if not ( Hd.Depth in [       8, 16 ] ) then Found := False;  end;
+     else raise EInOutError.Create( 'PNG のカラータイプ ' + Hd.Color.ToString + ' が不正' );
      end;
 
-     Bpp  := Chans * ( Depth div 8 );
-     RowN := W * Bpp;
+     if not Found then raise EInOutError.Create( 'PNG のカラータイプ ' + Hd.Color.ToString +
+                                                 ' とビット深度 ' + Hd.Depth.ToString + ' の組み合わせが不正' );
 
-     Image_.SetSize( W, H );
+     if Hd.Interlace > 1 then raise EInOutError.Create( 'PNG のインターレース法 ' + Hd.Interlace.ToString + ' が不正' );
 
-     SetLength( Raw0, RowN );
-     SetLength( Raw1, RowN );
-     SetLength( Row , W    );
+     if ( Hd.Color = 3 ) and ( Hd.PalN = 0 ) then raise EInOutError.Create( 'PNG のパレット（ PLTE ）が無い' );
 
-     FillChar( Raw1[ 0 ], RowN, 0 );
+     Hd.BitsPix := Hd.Chans * Hd.Depth;
+     Hd.FiltBpp := Max( 1, Hd.BitsPix div 8 );
+     Hd.MaxVal  := ( 1 shl Hd.Depth ) - 1;
+
+     Image_.SetSize( Hd.Width, Hd.Height );
+
+     ///// 行バッファは、どのパスでも足りるように最大幅で確保する
+
+     SetLength( Raw0, Hd.RowBytes( Hd.Width ) + 1 );
+     SetLength( Raw1, Hd.RowBytes( Hd.Width ) + 1 );
+     SetLength( Row , Hd.Width );
 
      Idat := TPngIdatReader.Create( Stream_, Integer( Size ) );
      try
           Zlib := TZDecompressionStream.Create( Idat );
           try
-               for Y := 0 to H-1 do
+               if Hd.Interlace = 0 then
                begin
-                    Zlib.ReadBuffer( Filt, 1 );
-                    Zlib.ReadBuffer( Raw0[ 0 ], RowN );
+                    FillChar( Raw1[ 0 ], Length( Raw1 ), 0 );
 
-                    ///// フィルタ解除
-
-                    case Filt of
-                      0: ;
-                      1: for I := Bpp to RowN-1 do Raw0[ I ] := ( Raw0[ I ] + Raw0[ I - Bpp ] ) and $FF;
-                      2: for I := 0 to RowN-1 do Raw0[ I ] := ( Raw0[ I ] + Raw1[ I ] ) and $FF;
-                      3: for I := 0 to RowN-1 do
-                         begin
-                              if I >= Bpp then A := Raw0[ I - Bpp ] else A := 0;
-
-                              Raw0[ I ] := ( Raw0[ I ] + ( A + Raw1[ I ] ) div 2 ) and $FF;
-                         end;
-                      4: for I := 0 to RowN-1 do
-                         begin
-                              if I >= Bpp then begin  A := Raw0[ I - Bpp ];  C := Raw1[ I - Bpp ];  end
-                                          else begin  A := 0             ;  C := 0             ;  end;
-
-                              B := Raw1[ I ];
-
-                              P := A + B - C;  PA := Abs( P - A );  PB := Abs( P - B );  PC := Abs( P - C );
-
-                              if ( PA <= PB ) and ( PA <= PC ) then P := A
-                                                               else if PB <= PC then P := B
-                                                                                else P := C;
-
-                              Raw0[ I ] := ( Raw0[ I ] + P ) and $FF;
-                         end;
-                    else raise EInOutError.Create( 'PNG のフィルタ種別 ' + Filt.ToString + ' が不正' );
-                    end;
-
-                    ///// 画素へ変換
-
-                    Q := @Raw0[ 0 ];
-
-                    for X := 0 to W-1 do
+                    for Y := 0 to Hd.Height-1 do
                     begin
-                         if Depth = 8 then for I := 0 to Chans-1 do V[ I ] := Q[ I ] / $FF
-                                      else for I := 0 to Chans-1 do V[ I ] := ( Q[ I*2 ] * 256 + Q[ I*2+1 ] ) / $FFFF;
+                         ReadPassRow( Hd.Width );
 
-                         case Chans of
-                           1: Row[ X ] := TSingleRGBA.Create( V[0], V[0], V[0], 1    );
-                           2: Row[ X ] := TSingleRGBA.Create( V[0], V[0], V[0], V[1] );
-                           3: Row[ X ] := TSingleRGBA.Create( V[0], V[1], V[2], 1    );
-                           4: Row[ X ] := TSingleRGBA.Create( V[0], V[1], V[2], V[3] );
-                         end;
+                         Image_.SetRow( 0, 0, Y, Hd.Width, @Row[ 0 ] );
 
-                         Inc( Q, Bpp );
+                         Image_.DoProgress( ( Y + 1 ) / Hd.Height );
+                    end;
+               end
+               else
+               begin
+                    ///// Adam7 ： 7 つのパスを順に読み、画素を最終位置へ散らす
+
+                    All := 0;
+
+                    for Pass := 0 to 6 do
+                    begin
+                         PH := ( Hd.Height - PNG_PASS_Y0[ Pass ] + PNG_PASS_DY[ Pass ] - 1 ) div PNG_PASS_DY[ Pass ];
+
+                         if ( Hd.Width - PNG_PASS_X0[ Pass ] ) > 0 then Inc( All, Max( PH, 0 ) );
                     end;
 
-                    Image_.SetRow( 0, 0, Y, W, @Row[ 0 ] );
+                    Done := 0;
 
-                    Image_.DoProgress( ( Y + 1 ) / H );
+                    for Pass := 0 to 6 do
+                    begin
+                         PW := ( Hd.Width  - PNG_PASS_X0[ Pass ] + PNG_PASS_DX[ Pass ] - 1 ) div PNG_PASS_DX[ Pass ];
+                         PH := ( Hd.Height - PNG_PASS_Y0[ Pass ] + PNG_PASS_DY[ Pass ] - 1 ) div PNG_PASS_DY[ Pass ];
 
-                    ///// 次行のために入れ替え（Raw0 は次の ReadBuffer で全上書きされる）
+                         if ( PW <= 0 ) or ( PH <= 0 ) then Continue;
 
-                    Swap := Raw1;  Raw1 := Raw0;  Raw0 := Swap;
+                         FillChar( Raw1[ 0 ], Length( Raw1 ), 0 );  // パス毎に前行は 0 から
+
+                         for Y := 0 to PH-1 do
+                         begin
+                              ReadPassRow( PW );
+
+                              for X := 0 to PW-1 do
+                                Image_.SetRow( 0, PNG_PASS_X0[ Pass ] + X * PNG_PASS_DX[ Pass ],
+                                                  PNG_PASS_Y0[ Pass ] + Y * PNG_PASS_DY[ Pass ], 1, @Row[ X ] );
+
+                              Inc( Done );
+
+                              Image_.DoProgress( Done / All );
+                         end;
+                    end;
                end;
           finally
                Zlib.Free;
