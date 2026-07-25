@@ -81,8 +81,10 @@ begin
   ...
 ```
 
-With this in place `TSkPaintBox` draws straight into the window surface: there is no
-intermediate raster surface and no per-frame texture upload of the whole window.
+With this in place the viewer draws straight into the window surface: there is no
+intermediate raster surface and no per-frame texture upload of the whole window. Without it
+the viewer still works — it renders through an intermediate raster bitmap instead — but that
+costs a full-window blit every frame.
 
 ### Loading and displaying an image
 

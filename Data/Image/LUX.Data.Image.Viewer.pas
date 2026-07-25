@@ -4,9 +4,10 @@ interface //####################################################################
 
 {$POINTERMATH ON}
 
-uses System.Classes, System.Types, System.UITypes, System.Generics.Collections,
-     FMX.Types, FMX.Controls, FMX.Forms,
-     System.Skia, FMX.Skia,
+uses System.Classes, System.Types, System.UITypes, System.Math.Vectors,
+     System.Generics.Collections,
+     FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics,
+     System.Skia, FMX.Skia, FMX.Skia.Canvas,
      LUX, LUX.Color, LUX.Data.Image;
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
@@ -17,6 +18,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      ///// TLuxImage をリアルタイムに表示するフレーム
      /////
+     ///// ・Skia への描画機構（TSkCustomControl 相当）をこのクラス自身が実装する。
+     /////   子コントロールは持たない。FMX キャンバスが Skia なら同じサーフェスへ
+     /////   直接描くので転写が発生しない。
      ///// ・可視タイルだけを ISkImage 化して Skia に描かせるので、画像の大きさに関わらず
      /////   １フレームあたりの描画コストは画面の大きさだけで決まる。
      ///// ・段（ミップマップ）は「段内では常に等倍～２倍の拡大」になるように選ぶので、
@@ -26,7 +30,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      ///// ・トーンマッピングとガンマ補正は SkSL のランタイム効果（GPU）で行う。
 
      TLuxImageViewer = class( TFrame )
-       SkPaintBox :TSkPaintBox;
      private type
        TTileKey = record
          L :Integer;
@@ -53,6 +56,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _Apron  :TArray<Byte>;
        _Stamp  :Integer;
        _Effect :ISkRuntimeEffect;
+       ///// TSkCustomControl 相当の描画機構
+       _Buffer        :TBitmap;           // Skia キャンバスでない環境用の中間ラスタ
+       _DrawCached    :Boolean;
+       _DrawCacheKind :TSkDrawCacheKind;
+       _OnDraw        :TSkDrawEvent;
        /////
        _Draggin :Boolean;
        _DragP   :TPointF;
@@ -70,13 +78,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetBackground( const Background_:TAlphaColor );
        procedure SetScale( const Scale_:Single );
        procedure SetOrigin( const Origin_:TPointF );
+       procedure SetDrawCacheKind( const Value_:TSkDrawCacheKind );
+       procedure SetOnDraw( const Value_:TSkDrawEvent );
        ///// E V E N T
        procedure ImageChanged( Sender_:TObject );
-       procedure PaintBoxDraw( ASender:TObject; const ACanvas:ISkCanvas; const ADest:TRectF; const AOpacity:Single );
-       procedure PaintBoxMouseDown( Sender_:TObject; Button_:TMouseButton; Shift_:TShiftState; X_,Y_:Single );
-       procedure PaintBoxMouseMove( Sender_:TObject; Shift_:TShiftState; X_,Y_:Single );
-       procedure PaintBoxMouseUp( Sender_:TObject; Button_:TMouseButton; Shift_:TShiftState; X_,Y_:Single );
-       procedure PaintBoxMouseWheel( Sender_:TObject; Shift_:TShiftState; WheelDelta_:Integer; var Handled_:Boolean );
        ///// M E T H O D
        function TileImage( const L_,TX_,TY_:Integer ) :ISkImage;
        function ViewCenter :TPointF;
@@ -85,10 +90,21 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SweepCache;
        procedure DropCache;
      protected
+       ///// M E T H O D
+       procedure Draw( const ACanvas:ISkCanvas; const ADest:TRectF; const AOpacity:Single ); virtual;
+       function NeedsRedraw :Boolean; virtual;
+       procedure Paint; override;
+       procedure MouseDown( Button:TMouseButton; Shift:TShiftState; X,Y:Single ); override;
+       procedure MouseMove( Shift:TShiftState; X,Y:Single ); override;
+       procedure MouseUp( Button:TMouseButton; Shift:TShiftState; X,Y:Single ); override;
+       procedure MouseWheel( Shift:TShiftState; WheelDelta:Integer; var Handled:Boolean ); override;
      public
        constructor Create( AOwner_:TComponent ); override;
        destructor Destroy; override;
        ///// P R O P E R T Y
+       property DrawCacheKind :TSkDrawCacheKind read _DrawCacheKind write SetDrawCacheKind default TSkDrawCacheKind.Never;
+       property OnDraw        :TSkDrawEvent     read _OnDraw        write SetOnDraw;
+       /////
        property Image      :TLuxImage   read _Image      write SetImage     ;
        property Gamma      :Single      read _Gamma      write SetGamma     ;  // 表示ガンマ（out = in^(1/Gamma)）
        property ToneMap    :Boolean     read _ToneMap    write SetToneMap   ;  // Reinhard のトーンマッピング
@@ -117,6 +133,13 @@ uses System.SysUtils, System.Math,
 const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
 
       CACHE_MAX = 512;  // 保持するタイル画像の上限
+
+      ///// 中間ラスタが GPU テクスチャの上限を超えたときの警告（TSkCustomControl と同趣旨）
+
+      LUXIMAGEVIEWER_EXCEEDED = 'A control has exceeded the size allowed for a bitmap ' +
+                                '(class %s, name "%s"). We will reduce the drawing quality ' +
+                                'to avoid this exception. Consider using "GlobalUseSkia := True" ' +
+                                'to avoid this kind of problem.';
 
       ///// トーンマッピング（Reinhard 2002）とガンマ補正
       ///// uP = ( 1/Gamma, 1/White², トーンマップの有無, 予備 )
@@ -233,9 +256,29 @@ begin
      DropCache;  Redraw;
 end;
 
+procedure TLuxImageViewer.SetDrawCacheKind( const Value_:TSkDrawCacheKind );
+begin
+     if _DrawCacheKind = Value_ then Exit;
+
+     _DrawCacheKind := Value_;
+
+     if _DrawCacheKind <> TSkDrawCacheKind.Always then Repaint;
+end;
+
 //------------------------------------------------------------------------------
 
-procedure TLuxImageViewer.PaintBoxDraw( ASender:TObject; const ACanvas:ISkCanvas; const ADest:TRectF; const AOpacity:Single );
+procedure TLuxImageViewer.SetOnDraw( const Value_:TSkDrawEvent );
+begin
+     if TMethod( _OnDraw ) = TMethod( Value_ ) then Exit;
+
+     _OnDraw := Value_;  Redraw;
+end;
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+///// Skia への実際の描画。TSkCustomControl.Draw の override に相当する。
+
+procedure TLuxImageViewer.Draw( const ACanvas:ISkCanvas; const ADest:TRectF; const AOpacity:Single );
 var
    L, TX, TY, TX0, TX1, TY0, TY1, TW, TH :Integer;
    S, OX, OY                             :Single;
@@ -248,6 +291,11 @@ begin
      try
           ACanvas.ClipRect( ADest );
           ACanvas.Clear( _Background );
+
+          if ( csDesigning in ComponentState ) and not Locked then
+          begin
+               FMX.Skia.DrawDesignBorder( ACanvas, ADest, AOpacity );  Exit;
+          end;
 
           if not Assigned( _Image ) or ( _Image.Width < 1 ) or ( _Image.Height < 1 ) then Exit;
 
@@ -334,47 +382,147 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TLuxImageViewer.PaintBoxMouseDown( Sender_:TObject; Button_:TMouseButton; Shift_:TShiftState; X_,Y_:Single );
+///// TSkCustomControl.NeedsRedraw に相当する。
+
+function TLuxImageViewer.NeedsRedraw :Boolean;
 begin
-     if Button_ <> TMouseButton.mbLeft then Exit;
+     Result := ( not _DrawCached ) or ( _DrawCacheKind = TSkDrawCacheKind.Never );
+end;
+
+//------------------------------------------------------------------------------
+
+///// TSkCustomControl.Paint に相当する。
+///// FMX キャンバスが Skia なら、そのキャンバスへ直接描く（中間ラスタも転写も無し）。
+///// そうでない環境では、いったんラスタへ描いてから転写する。
+
+procedure TLuxImageViewer.Paint;
+var
+   AbsoluteBimapSize :TSize;
+   AbsoluteScale     :TPointF;
+   AbsoluteSize      :TSize;
+   ExceededRatio     :Single;
+   MaxBitmapSize     :Integer;
+   SceneScale        :Single;
+begin
+     if ( ( _DrawCacheKind = TSkDrawCacheKind.Never  ) and ( Canvas is TSkCanvasCustom ) ) or
+        ( ( _DrawCacheKind = TSkDrawCacheKind.Raster ) and ( Canvas is TGrCanvas       ) ) then
+     begin
+          Draw( TSkCanvasCustom( Canvas ).Canvas, LocalRect, AbsoluteOpacity );
+
+          if Assigned( _OnDraw ) then _OnDraw( Self, TSkCanvasCustom( Canvas ).Canvas, LocalRect, AbsoluteOpacity );
+
+          FreeAndNil( _Buffer );
+     end
+     else
+     begin
+          if Assigned( Scene ) then SceneScale := Scene.GetSceneScale
+                               else SceneScale := 1;
+
+          AbsoluteScale := Self.AbsoluteScale;
+          AbsoluteSize  := TSize.Create( Round( Width  * AbsoluteScale.X * SceneScale ),
+                                         Round( Height * AbsoluteScale.Y * SceneScale ) );
+
+          MaxBitmapSize := Canvas.GetAttribute( TCanvasAttribute.MaxBitmapSize );
+
+          if ( AbsoluteSize.Width > MaxBitmapSize ) or ( AbsoluteSize.Height > MaxBitmapSize ) then
+          begin
+               AbsoluteBimapSize := RectF( 0, 0, AbsoluteSize.Width, AbsoluteSize.Height )
+                                    .FitInto( RectF( 0, 0, MaxBitmapSize, MaxBitmapSize ), ExceededRatio ).Size.Round;
+
+               Log.d( Format( LUXIMAGEVIEWER_EXCEEDED, [ ClassName, Name ] ) );
+          end
+          else
+          begin
+               AbsoluteBimapSize := AbsoluteSize;  ExceededRatio := 1;
+          end;
+
+          if NeedsRedraw or ( _Buffer = nil )
+                         or ( TSize.Create( _Buffer.Width, _Buffer.Height ) <> AbsoluteBimapSize ) then
+          begin
+               if _Buffer = nil then _Buffer := TBitmap.Create( AbsoluteBimapSize.Width, AbsoluteBimapSize.Height )
+               else
+               if TSize.Create( _Buffer.Width, _Buffer.Height ) <> AbsoluteBimapSize then
+                 _Buffer.SetSize( AbsoluteBimapSize.Width, AbsoluteBimapSize.Height );
+
+               _Buffer.SkiaDraw( procedure ( const ACanvas:ISkCanvas )
+                                 var
+                                    AbsoluteScale :TPointF;
+                                 begin
+                                      ACanvas.Clear( TAlphaColors.Null );
+
+                                      AbsoluteScale := Self.AbsoluteScale * SceneScale / ExceededRatio;
+
+                                      ACanvas.Concat( TMatrix.CreateScaling( AbsoluteScale.X, AbsoluteScale.Y ) );
+
+                                      Draw( ACanvas, LocalRect, 1 );
+
+                                      if Assigned( _OnDraw ) then _OnDraw( Self, ACanvas, LocalRect, 1 );
+                                 end, False );
+
+               _DrawCached := True;
+          end;
+
+          Canvas.DrawBitmap( _Buffer,
+                             RectF( 0, 0, _Buffer.Width, _Buffer.Height ),
+                             RectF( 0, 0, _Buffer.Width  / ( AbsoluteScale.X * SceneScale / ExceededRatio ),
+                                          _Buffer.Height / ( AbsoluteScale.Y * SceneScale / ExceededRatio ) ),
+                             AbsoluteOpacity );
+     end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TLuxImageViewer.MouseDown( Button:TMouseButton; Shift:TShiftState; X,Y:Single );
+begin
+     inherited;
+
+     if Button <> TMouseButton.mbLeft then Exit;
 
      _Draggin := True;
-     _DragP   := PointF( X_, Y_ );
+     _DragP   := PointF( X, Y );
      _DragO   := _Origin;
 end;
 
-procedure TLuxImageViewer.PaintBoxMouseMove( Sender_:TObject; Shift_:TShiftState; X_,Y_:Single );
+procedure TLuxImageViewer.MouseMove( Shift:TShiftState; X,Y:Single );
 begin
-     _MouseP := PointF( X_, Y_ );  _MouseOn := True;
+     inherited;
+
+     _MouseP := PointF( X, Y );  _MouseOn := True;
 
      if not _Draggin then Exit;
 
      ///// 枠外で放されるなどして MouseUp を取り逃がした場合の保険
 
-     if not ( ssLeft in Shift_ ) then
+     if not ( ssLeft in Shift ) then
      begin
           _Draggin := False;  Exit;
      end;
 
-     _Origin := PointF( _DragO.X - ( X_ - _DragP.X ) / _Scale,
-                        _DragO.Y - ( Y_ - _DragP.Y ) / _Scale );
+     _Origin := PointF( _DragO.X - ( X - _DragP.X ) / _Scale,
+                        _DragO.Y - ( Y - _DragP.Y ) / _Scale );
 
      Redraw;
 end;
 
-procedure TLuxImageViewer.PaintBoxMouseUp( Sender_:TObject; Button_:TMouseButton; Shift_:TShiftState; X_,Y_:Single );
+procedure TLuxImageViewer.MouseUp( Button:TMouseButton; Shift:TShiftState; X,Y:Single );
 begin
+     inherited;
+
      _Draggin := False;
 end;
 
-procedure TLuxImageViewer.PaintBoxMouseWheel( Sender_:TObject; Shift_:TShiftState; WheelDelta_:Integer; var Handled_:Boolean );
+procedure TLuxImageViewer.MouseWheel( Shift:TShiftState; WheelDelta:Integer; var Handled:Boolean );
 begin
-     ZoomWheel( WheelDelta_ );
+     inherited;
 
-     Handled_ := True;
+     if Handled then Exit;
+
+     ZoomWheel( WheelDelta );
+
+     Handled := True;
 end;
 
-//////////////////////////////////////////////////////////////////// M E T H O D
+//------------------------------------------------------------------------------
 
 function TLuxImageViewer.TileImage( const L_,TX_,TY_:Integer ) :ISkImage;
 var
@@ -438,8 +586,8 @@ function TLuxImageViewer.ViewCenter :TPointF;
 var
    W, H :Single;
 begin
-     W := _ViewW;  if W < 1 then W := SkPaintBox.Width ;  // まだ一度も描いていない場合
-     H := _ViewH;  if H < 1 then H := SkPaintBox.Height;
+     W := _ViewW;  if W < 1 then W := Width ;  // まだ一度も描いていない場合
+     H := _ViewH;  if H < 1 then H := Height;
 
      Result := PointF( W / 2, H / 2 );
 end;
@@ -517,6 +665,9 @@ begin
      _ViewW      := 0;
      _ViewH      := 0;
 
+     _DrawCached    := False;
+     _DrawCacheKind := TSkDrawCacheKind.Never;  // 画は毎フレーム描き直す（拡縮・移動が主用途）
+
      _Cache := TDictionary<TTileKey,TTileImg>.Create;
 
      _Effect := TSkRuntimeEffect.MakeForColorFilter( SKSL_TONE, E );
@@ -524,16 +675,9 @@ begin
      if not Assigned( _Effect ) then
        raise Exception.Create( 'SkSL のコンパイルに失敗： ' + E );
 
-     SkPaintBox.DrawCacheKind := TSkDrawCacheKind.Never;  // 毎フレーム描き直す
-
-     SkPaintBox.OnDraw       := PaintBoxDraw;
-     SkPaintBox.OnMouseDown  := PaintBoxMouseDown;
-     SkPaintBox.OnMouseMove  := PaintBoxMouseMove;
-     SkPaintBox.OnMouseUp    := PaintBoxMouseUp;
-     SkPaintBox.OnMouseWheel := PaintBoxMouseWheel;
-
-     SkPaintBox.CanFocus    := True;
-     SkPaintBox.AutoCapture := True;  // 枠外で放しても MouseUp を受け取る
+     HitTest     := True;   // フレーム自身がマウスを受け取る
+     CanFocus    := True;
+     AutoCapture := True;   // 枠外で放しても MouseUp を受け取る
 end;
 
 destructor TLuxImageViewer.Destroy;
@@ -541,6 +685,7 @@ begin
      if Assigned( _Image ) then _Image.OnChange.Del( ImageChanged );
 
      _Cache.Free;
+     _Buffer.Free;
 
      inherited;
 end;
@@ -591,9 +736,11 @@ begin
                        ( P_.Y - _Origin.Y ) * _Scale );
 end;
 
+///// TSkCustomControl.Redraw に相当する。キャッシュを捨てて描き直させる。
+
 procedure TLuxImageViewer.Redraw;
 begin
-     SkPaintBox.Redraw;
+     _DrawCached := False;  Repaint;
 end;
 
 end. //######################################################################### ■
