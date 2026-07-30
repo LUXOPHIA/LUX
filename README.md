@@ -3,6 +3,10 @@
 
 LUX is the base library of the LUXOPHIA collection. It supplies value-semantics numeric types — scalars, vectors, matrices, quaternions, complex numbers and colours — each with a forward-mode automatic-differentiation twin, together with generic container, mesh and image data structures. Every unit lives in the single `LUX` namespace and, apart from a few clearly separated presentation units, depends on nothing beyond the Delphi RTL.
 
+## 利用ライブラリ
+
+* [**LUX.FMX.Graphics.D3**](https://github.com/LUXOPHIA/LUX.FMX.Graphics.D3) ：Used only by the presentation unit `LUX.Complex.FMX.D3` ( `TComplex3D` ).
+
 ## 1. Overview
 
 ### 1.1 Scope
