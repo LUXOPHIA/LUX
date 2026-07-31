@@ -1,7 +1,7 @@
 # LUX.Data.Image
 [English](../README.md) | [日本語](README.md)
 
-Delphi / FireMonkey 向けの超高解像度画像ライブラリ。`TLuxImage` は画素をすべて CPU メモリ上のタイル化された縮小ピラミッドとして保持するので、扱える大きさは GPU のテクスチャ制限ではなく RAM で決まり、付属のビューアは 100,000 × 100,000 画素の画像を、画像の大きさではなく窓の大きさで決まるコストでリアルタイムに表示する。
+Delphi / FireMonkey 向けの超高解像度画像ライブラリ。`TLuxImage` は画素をすべて CPU メモリ上のタイル化された縮小ピラミッドとして保持するので、扱える大きさは GPU のテクスチャ制限に縛られず、RAM の許す限り無制限である。付属のビューアは、画像の大きさではなく窓の大きさで決まるコストでリアルタイムに表示する。
 
 ## 1. 概要
 
@@ -354,23 +354,13 @@ procedure Redraw;
 
 CPU 側でのリサンプルは一切行わない。1 フレームあたりの CPU 仕事は、新しく現れたタイルののりしろ集約だけで、しかもキャッシュミス時のみ。
 
-## 7. メモリ使用量
-
-| 画素数 | UInt08 | UInt16 / SFlo16 | SFlo32 |
-|---|---|---|---|
-| 16,384 × 16,384 | 1 GB | 2 GB | 4 GB |
-| 32,768 × 32,768 | 4 GB | 8 GB | 16 GB |
-| 100,000 × 100,000 | 40 GB | 80 GB | 160 GB |
-
-縮小ピラミッドを構築すると、(2.3) により約 33% が加わる。
-
-## 8. 制限
+## 7. 制限
 
 - ディスクへの退避機構は持たない。RAM に載らない画像は開けない。
 - TIFF ・ OpenEXR ・ Radiance HDR は未実装。
 - Skia のコーデックが確実に変換できるのは 8bit までなので、JPEG は常に BGRA8888 で受けて、対象クラスがそれより広い場合は後から変換する。JPEG は 8bit の形式なので損失は無い。
 
-## 9. デモ
+## 8. デモ
 
 リポジトリのルートにある `LuxImage.dproj` が `_DATA\Image 16384x16384.jpg` を読み込んで表示し、保存もできる。
 
@@ -378,7 +368,7 @@ CPU 側でのリサンプルは一切行わない。1 フレームあたりの C
 LuxImage.exe [ 画像ファイル ] [ 画素形式の番号 0..3 ]
 ```
 
-## 10. 参考文献
+## 9. 参考文献
 
 1. W3C, [*Portable Network Graphics (PNG) Specification (Third Edition)*](https://www.w3.org/TR/png-3/), W3C Recommendation, 2025.
 2. P. Deutsch, [*DEFLATE Compressed Data Format Specification version 1.3*](https://www.rfc-editor.org/rfc/rfc1951), RFC 1951, IETF, 1996.

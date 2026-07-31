@@ -1,7 +1,7 @@
 # LUX.Data.Image
 [English](README.md) | [日本語](ja/README.md)
 
-An ultra-high-resolution image library for Delphi / FireMonkey. `TLuxImage` keeps every pixel in CPU memory as a tiled mip pyramid, so the usable size is bounded by RAM rather than by the GPU's texture limit, and the accompanying viewer displays a 100,000 × 100,000 pixel image in real time at a cost that depends on the size of the window rather than the size of the image.
+An ultra-high-resolution image library for Delphi / FireMonkey. `TLuxImage` keeps every pixel in CPU memory as a tiled mip pyramid, so the usable size is not bounded by the GPU's texture limit — it is unlimited as far as RAM allows — and the accompanying viewer displays an image in real time at a cost that depends on the size of the window rather than the size of the image.
 
 ## 1. Overview
 
@@ -354,23 +354,13 @@ Rolling the wheel towards you zooms in — the factor applied is $2^{-\Delta / 4
 
 Nothing is resampled on the CPU. The only per-frame CPU work is gathering the aprons of newly exposed tiles, and only on a cache miss.
 
-## 7. Memory Footprint
-
-| Size | UInt08 | UInt16 / SFlo16 | SFlo32 |
-|---|---|---|---|
-| 16,384 × 16,384 | 1 GB | 2 GB | 4 GB |
-| 32,768 × 32,768 | 4 GB | 8 GB | 16 GB |
-| 100,000 × 100,000 | 40 GB | 80 GB | 160 GB |
-
-Add roughly 33 % once the mip pyramid has been built, per (2.3).
-
-## 8. Limitations
+## 7. Limitations
 
 - There is no paging to disk. An image that does not fit in RAM cannot be opened.
 - TIFF, OpenEXR and Radiance HDR are not implemented.
 - Skia's codec converts reliably only to 8-bit, so a JPEG is always decoded as BGRA8888 and converted afterwards when the target class is wider. As JPEG is an 8-bit format, nothing is lost.
 
-## 9. Demo
+## 8. Demo
 
 `LuxImage.dproj` in the repository root loads `_DATA\Image 16384x16384.jpg`, displays it and can save it again.
 
@@ -378,7 +368,7 @@ Add roughly 33 % once the mip pyramid has been built, per (2.3).
 LuxImage.exe [ image file ] [ pixel format index 0..3 ]
 ```
 
-## 10. References
+## 9. References
 
 1. W3C, [*Portable Network Graphics (PNG) Specification (Third Edition)*](https://www.w3.org/TR/png-3/), W3C Recommendation, 2025.
 2. P. Deutsch, [*DEFLATE Compressed Data Format Specification version 1.3*](https://www.rfc-editor.org/rfc/rfc1951), RFC 1951, IETF, 1996.
