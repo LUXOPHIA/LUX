@@ -38,7 +38,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        end;
        TTileImg = record
          Img   :ISkImage;
-         Stamp :Integer;
+         Stamp :Cardinal;   // 作った時点のタイルの版（ TLuxImage.TileStamp ）。違えば作り直す
+         Seen  :Integer;    // 最後に使った描画の番号（掃除用）
        end;
      private
        _Image      :TLuxImage;
@@ -84,6 +85,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure ImageChanged( Sender_:TObject );
        ///// M E T H O D
        function TileImage( const L_,TX_,TY_:Integer ) :ISkImage;
+       function AreaStamp( const L_,TX_,TY_:Integer ) :Cardinal;   // タイルとその周囲８枚の版の和（のりしろ込みの照合用）
        function ViewCenter :TPointF;
        procedure CenterImage;
        procedure DoFit( const W_,H_:Single );
@@ -299,7 +301,7 @@ begin
 
           if not Assigned( _Image ) or ( _Image.Width < 1 ) or ( _Image.Height < 1 ) then Exit;
 
-          if _Image.Busy then Exit;  // 非同期の読み書き中は別スレッドが画素を触っているので描かない
+          if _Image.Busy then Exit;  // 非同期の読み書き中は構造が変わり得るので描かない
 
           if _Version <> _Image.Version then
           begin
@@ -316,12 +318,14 @@ begin
 
           Inc( _Stamp );
 
+          ///// 変更されたタイルの足跡を上の段へ反映してから描く（描画中の書き込みはタイル単位で追跡される）
+
+          _Image.UpdateLevels;
+
           ///// 段は「段内では常に等倍～２倍の拡大」になるように選ぶ
 
           L := Max( 0, Ceil( -Log2( _Scale ) ) );
           L := Min( L, _Image.LevelsN - 1 );
-
-          _Image.NeedLevel( L );
 
           S := _Scale * ( 1 shl L );  // 段 L の１画素あたりの画面画素数（１≦ S ＜２）
 
@@ -528,6 +532,7 @@ function TLuxImageViewer.TileImage( const L_,TX_,TY_:Integer ) :ISkImage;
 var
    Key           :TTileKey;
    Ent           :TTileImg;
+   St            :Cardinal;
    TW, TH, Z     :Integer;
    LW, LH        :Integer;
    X0, Y, SY, SX :Integer;
@@ -536,9 +541,13 @@ var
 begin
      Key.L := L_;  Key.X := TX_;  Key.Y := TY_;
 
-     if _Cache.TryGetValue( Key, Ent ) then
+     ///// のりしろは隣のタイルの画素なので、隣も含めた版で照合する
+
+     St := AreaStamp( L_, TX_, TY_ );
+
+     if _Cache.TryGetValue( Key, Ent ) and ( Ent.Stamp = St ) then
      begin
-          Ent.Stamp := _Stamp;  _Cache.AddOrSetValue( Key, Ent );  Exit( Ent.Img );
+          Ent.Seen := _Stamp;  _Cache.AddOrSetValue( Key, Ent );  Exit( Ent.Img );
      end;
 
      TW := _Image.TileWidth ( L_, TX_ );
@@ -575,11 +584,25 @@ begin
                                  @_Apron[ 0 ], NativeUInt( TW + 2 ) * NativeUInt( Z ) );
 
      Ent.Img   := TSkImage.MakeRasterCopy( Pixmap );  // Skia 側にコピーさせる
-     Ent.Stamp := _Stamp;
+     Ent.Stamp := St;
+     Ent.Seen  := _Stamp;
 
      _Cache.AddOrSetValue( Key, Ent );
 
      Result := Ent.Img;
+end;
+
+function TLuxImageViewer.AreaStamp( const L_,TX_,TY_:Integer ) :Cardinal;
+var
+   X, Y, NX, NY :Integer;
+begin
+     NX := _Image.LevelTilesX( L_ );
+     NY := _Image.LevelTilesY( L_ );
+
+     Result := 0;
+
+     for Y := Max( TY_-1, 0 ) to Min( TY_+1, NY-1 ) do
+     for X := Max( TX_-1, 0 ) to Min( TX_+1, NX-1 ) do Inc( Result, _Image.TileStamp( L_, X, Y ) );
 end;
 
 function TLuxImageViewer.ViewCenter :TPointF;
@@ -630,7 +653,7 @@ begin
      begin
           _Cache.TryGetValue( Key, Ent );
 
-          if Ent.Stamp < _Stamp then Dies := Dies + [ Key ];
+          if Ent.Seen < _Stamp then Dies := Dies + [ Key ];
      end;
 
      for Key in Dies do _Cache.Remove( Key );
