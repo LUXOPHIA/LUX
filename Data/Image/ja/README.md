@@ -1,7 +1,7 @@
 # LUX.Data.Image
 [English](../README.md) | [日本語](README.md)
 
-Delphi / FireMonkey 向けの超高解像度画像ライブラリ。`TLuxImage` は画素をすべて CPU メモリ上のタイル化された縮小ピラミッドとして保持するので、扱える大きさは GPU のテクスチャ制限に縛られず、RAM の許す限り無制限である。付属のビューアは、画像の大きさではなく窓の大きさで決まるコストでリアルタイムに表示する。
+Delphi / FireMonkey 向けの超高解像度画像ライブラリ。`TLuxImage` は画素をすべて CPU メモリ上のタイル化された縮小ピラミッドとして保持するので、扱える大きさは GPU のテクスチャ制限に縛られず、RAM の許す限り無制限である。付属のビューアは、画像の大きさではなく窓の大きさで決まるコストでリアルタイムに表示する。タイルは自身の変更を追跡するので、多数のスレッドが同時に描き込みながら、その進行をブロック単位で画面に映し出せる。
 
 ## 1. 概要
 
@@ -10,9 +10,12 @@ FireMonkey の `TBitmap` は GPU とデータを共有するため GPU のテク
 ### 1.1 特徴
 
 - **GPU のサイズ制限を受けない。** 画素は CPU メモリ上に 256 × 256 のタイルで保持する。
+- **メモリは前もって全て確保する。** `SetSize` が全段の全タイルを確保する。載らなければその場で `EOutOfMemory` になり、後から失敗することはない。
 - **4 つの画素形式**。いずれも Skia のネイティブなカラータイプに 1 対 1 で対応する。8bit ・ 16bit の符号無整数、16bit ・ 32bit の浮動小数、すべて RGBA。
-- **縮小ピラミッドを内蔵**。全景表示も拡大表示も同じコストで描ける。
-- **リアルタイムビューア**。滑らかなホイールズームとドラッグスクロール、GPU によるトーンマッピングとガンマ補正。
+- **縮小ピラミッドを内蔵**し、全景表示も拡大表示も同じコストで描ける。加えて**タイル単位の変更追跡**により、1 タイルの変更は画像の 3 分の 1 ではなくタイルの 3 分の 1 の費用でピラミッドへ反映される。
+- **ロック無しの並行書き込み。** 任意の数のスレッドが互いに素な領域へ同時に書き、終えたタイルを `TileChanged` で報せる。ビューアはそれをリアルタイムに拾う。
+- **`TLuxImageWorker`**。任意のブロック処理を画像全体にわたって全コアで実行するスケジューラ。ブロックを 1 個ずつ配るので、レイトレーシングやフラクタルのように画素ごとの計算量が桁で違っても均される。
+- **リアルタイムビューア**。滑らかなホイールズームとドラッグスクロール、GPU によるトーンマッピングとガンマ補正。描画途中の画像をブロック単位で映し出す。
 - **非同期のファイル入出力**。進捗の通知と完了イベントを備える。
 - 依存は RTL ・ FireMonkey ・ Skia のみ。いずれも RAD Studio に標準搭載。
 
@@ -26,7 +29,9 @@ FireMonkey の `TBitmap` は GPU とデータを共有するため GPU のテク
 
 ### 2.1 タイル保持と縮小ピラミッド
 
-画素は一辺 `LUXIMAGE_TILE`（256）のタイルに分けて、タイルごとに別々のヒープ領域へ保持する。これにより巨大な連続確保を避けられ、バイリニア補間はふつう同一タイル内に収まり、触っていない領域は未確保のままにできる。
+画素は一辺 `LUXIMAGE_TILE`（256）のタイルに分けて、タイルごとに別々のヒープ領域へ保持する。これにより巨大な連続確保を避けられ、読み書きやバイリニア補間はふつう同一タイル内に収まる。タイルに余白は無い。1 枚のタイルは `256 × 256 × PixelSize` バイトの素の領域で、行ピッチは 256 画素である。
+
+全段の全タイルは `SetSize` が確保する。遅延確保は一切しないので、`TileData` が返すポインタは常に有効であり、互いに素な領域へ書き込む 2 つのスレッドが確保で競合することもなく、メモリに載らない画像は読み込みや描画の途中ではなく `SetSize` の時点で拒否される。`SetSize` は確保に先立って必要量を物理メモリの空きと比べ、超えていれば確保を試みずに拒否する ── 上限は RAM であってページファイルではない、というのがこのライブラリの前提である。
 
 各画像は半分ずつの縮小段を持つ。段 0 が原寸で、以降は縦横とも半分（切り上げ）になり 1 × 1 まで続く。
 
@@ -40,7 +45,7 @@ $T$ を `LUXIMAGE_TILE` とすると、段 $\ell$ が保持するタイル数は
 \mathrm{TilesX}_\ell = \left\lceil \frac{W_\ell}{T} \right\rceil, \qquad \mathrm{TilesY}_\ell = \left\lceil \frac{H_\ell}{T} \right\rceil \qquad \text{(2.2)}
 ```
 
-であり、右端と下端のタイルは部分的にしか埋まらない。段は `NeedLevel` で必要に応じて構築され、画素を書き換えると段 1 以上は無効化される。
+であり、右端と下端のタイルは部分的にしか埋まらない。
 
 各段は一つ下の段の 4 分の 1 の画素しか持たないので、ピラミッドの費用は基底段に対して有界な割合に収まる。
 
@@ -48,42 +53,68 @@ $T$ を `LUXIMAGE_TILE` とすると、段 $\ell$ が保持するタイル数は
 \sum_{\ell=1}^{\infty} \frac{1}{4^{\ell}} = \frac{1}{3} \qquad \text{(2.3)}
 ```
 
-したがって完全に構築されたピラミッドは、段 0 のメモリに約 33% を加える。
+したがってピラミッドは段 0 のメモリに約 33% を加え、`SetSize` が確保する総量はおよそ $\tfrac{4}{3}\,W H \cdot$ `PixelSize` である。
 
-### 2.2 段の選択
+### 2.2 変更の追跡と縮小段の差分更新
+
+段 0 の各タイルは *Dirty* フラグを、全段の各タイルは内容が変わるたびに進む *Stamp* を持つ。`TileChanged` はフラグを立てて Stamp を進める。不可分操作の 2 回で済むので、どのスレッドからでもロック無しに呼べる。
+
+`UpdateLevels` は Dirty なタイルを集め、その*足跡*だけを上の段に作り直す。段 0 のタイル $(t_x, t_y)$ の段 $\ell$ における足跡は正方形
+
+```math
+\left[\, t_x \frac{T}{2^{\ell}},\; (t_x + 1) \frac{T}{2^{\ell}} \right) \times \left[\, t_y \frac{T}{2^{\ell}},\; (t_y + 1) \frac{T}{2^{\ell}} \right) \qquad \text{(2.4)}
+```
+
+であり、$\ell \le \log_2 T = 8$ の範囲では 1 画素以上の大きさを持ち、同じタイルの段 $\ell - 1$ における足跡だけから計算できる。したがってタイルごとの連鎖は段 8 まで互いに独立で、Dirty なタイル 1 枚につき 1 連鎖を並列に走らせる。段 8 より上では足跡が 1 画素未満になって隣のタイルと混ざるので、それらの段は丸ごと作り直す ── 画素数は高々 $W H / 4^{9}$ で、無視できる。
+
+1 連鎖の仕事量はタイルの 4 分の 1、16 分の 1、…であるから
+
+```math
+\sum_{\ell=1}^{8} \frac{1}{4^{\ell}} \approx \frac{1}{3} \qquad \text{(2.5)}
+```
+
+となり、変更の反映には変わったタイルの約 3 分の 1 の費用しかかからない。画像全体の変更（`Changed`、あるいはファイルの読み込み）も全タイルを Dirty にして同じ経路を通り、その費用は従来のピラミッド全構築と同じ画像の 3 分の 1 である。
+
+ビューアはタイルごとの GPU キャッシュを Stamp で検証し（キャッシュ画像はのりしろとして周囲 8 枚の画素も含むので、それらの Stamp も合わせて）、毎フレームの描画前に `UpdateLevels` を呼ぶ。したがって多数のスレッドからタイルを書き込むレンダラの結果は、`TileChanged` と `Notify` 以外に何の結合も無しに、ブロック単位で画面に現れる。
+
+### 2.3 並列ブロックスケジューリング
+
+`TLuxImageWorker` は段 0 をタイルをまたがない正方形のブロックに刻み、ラスタ順に番号を振り、単一の不可分カウンタで $N$ 本のワーカースレッドに 1 個ずつ配る。範囲を静的に割り当てないので、画素ごとの計算量がどう分布していても最後の待ちは高々ブロック 1 個ぶんに収まる ── 隣り合う画素で計算量が桁違いになるレイトレーシングでは、この性質が効く。全タイルが確保済みでブロックは互いに素なので、ワーカーはロックを必要としない。各ワーカーは終えたブロックを `TileChanged` で報せ、約 30 Hz に間引いて画像に `Notify` させ、メインスレッドで `OnProgress` を発火する。
+
+### 2.4 段の選択
 
 画像 1 画素あたりの画面画素数を表示倍率 $s$ とすると、ビューアが描画に用いる段は
 
 ```math
-\ell = \min\!\left( \max\!\left( 0, \left\lceil -\log_2 s \right\rceil \right), \; \mathrm{LevelsN} - 1 \right) \qquad \text{(2.4)}
+\ell = \min\!\left( \max\!\left( 0, \left\lceil -\log_2 s \right\rceil \right), \; \mathrm{LevelsN} - 1 \right) \qquad \text{(2.6)}
 ```
 
 であり、その段における実効倍率は
 
 ```math
-S = s \cdot 2^{\ell} \in [\,1, 2\,) \qquad \text{(2.5)}
+S = s \cdot 2^{\ell} \in [\,1, 2\,) \qquad \text{(2.7)}
 ```
 
 となる。常に $S \ge 1$ であるから、段の中で縮小が起きることはなく、縮小によるエイリアシングは原理的に発生しない。可視タイル数は画像ではなく窓によって上から抑えられる。
 
 ```math
-N_{\text{tiles}} \le \left( \left\lceil \frac{W_{\text{view}}}{S \cdot T} \right\rceil + 1 \right) \left( \left\lceil \frac{H_{\text{view}}}{S \cdot T} \right\rceil + 1 \right) \qquad \text{(2.6)}
+N_{\text{tiles}} \le \left( \left\lceil \frac{W_{\text{view}}}{S \cdot T} \right\rceil + 1 \right) \left( \left\lceil \frac{H_{\text{view}}}{S \cdot T} \right\rceil + 1 \right) \qquad \text{(2.8)}
 ```
 
 1920 × 1080 の窓なら、画像がどれだけ大きくても最大でおよそ 9 × 6 = 54 枚である。
 
-### 2.3 表示の伝達関数
+### 2.5 表示の伝達関数
 
 ビューアはガンマ補正
 
 ```math
-C' = C^{\,1/\gamma} \qquad \text{(2.7)}
+C' = C^{\,1/\gamma} \qquad \text{(2.9)}
 ```
 
 を適用し、任意で白色点 $L_w$（`White` プロパティ。既定 1）による拡張 Reinhard のトーンマッピング演算子 [4] を適用する。
 
 ```math
-C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + C}, \; 0, \; 1 \right) \qquad \text{(2.8)}
+C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + C}, \; 0, \; 1 \right) \qquad \text{(2.10)}
 ```
 
 いずれも SkSL のランタイムカラーフィルタ、つまり GPU で評価されるので、`Gamma` ・ `ToneMap` ・ `White` の変更はただ同然で、タイルキャッシュも無効化しない。
@@ -97,6 +128,7 @@ C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + 
 
 ・LUX.Data.Image                      ･･･ RTL only
   ┣・TLuxPixel                       ･･･ ( bpUInt08 … bpSFlo32 )
+  ┣・TLuxTile                        ･･･ ( Data, Stamp, Dirty )
   ┣・TLuxLevel                       ･･･ ( Width, Height, Tiles* )
   ┣・TLuxImage                       ･･･ ( see the class hierarchy below )
   ┣・LUX.Data.Image.Files            ･･･ [ Skia ]
@@ -105,10 +137,13 @@ C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + 
   ┃  ┃  ┗・LoadFromJpg / SaveToJpg ･･･ Skia codec
   ┃  ┣・LuxSkColorType
   ┃  ┗・LuxImageSize
+  ┣・LUX.Data.Image.Worker           ･･･ RTL only
+  ┃  ┣・TLuxBlockProc                ･･･ procedure( ThreadI_, X_,Y_,W_,H_ )
+  ┃  ┗・TLuxImageWorker              ･･･ block scheduler on N threads
   ┗・LUX.Data.Image.Viewer           ･･･ [ FireMonkey + Skia ]
      ┗・TLuxImageViewer              ･･･ ( TFrame )
         ┣・TTileKey  TTileImg
-        ┣・ISkImage cache + apron
+        ┣・ISkImage cache + apron    ･･･ validated by tile stamps
         ┣・SkSL colour filter
         ┗・wheel zoom / drag scroll
 
@@ -123,12 +158,20 @@ C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + 
 [ pixel path ]  tiles → mip pyramid → Skia
 
 ・TLuxImage
-  ┗・level 0                         ･･･ original pixels, 256 × 256 tiles
-     ┗・mip pyramid                  ･･･ level ℓ+1 = half of ℓ ( NeedLevel )
-        ┗・level chosen by (2.4)     ･･･ effective scale S ∈ [ 1, 2 )
-           ┗・visible tiles of it    ･･･ bounded by (2.6), not by the image
-              ┗・ISkImage + apron    ･･･ cached as TTileImg under TTileKey
+  ┗・level 0                         ･･･ original pixels, 256 × 256 tiles, Dirty + Stamp
+     ┗・mip pyramid                  ･･･ level ℓ+1 = half of ℓ ( UpdateLevels, footprints of dirty tiles )
+        ┗・level chosen by (2.6)     ･･･ effective scale S ∈ [ 1, 2 )
+           ┗・visible tiles of it    ･･･ bounded by (2.8), not by the image
+              ┗・ISkImage + apron    ･･･ cached as TTileImg under TTileKey, rebuilt when a stamp moves
                  ┗・DrawImageRect    ･･･ SkSL colour filter: tone map + gamma
+
+[ writer path ]  any thread → tiles → viewer
+
+・TLuxImageWorker ( or your own threads )
+  ┗・block                           ･･･ SetRow / SetRaws / TileData, disjoint per block
+     ┗・TileChanged                  ･･･ Dirty := 1, Stamp++  ( atomic, no lock )
+        ┗・Notify  ( ≤ 30 Hz )       ･･･ OnChange on the main thread
+           ┗・viewer frame           ･･･ UpdateLevels, then draw
 
 [ supporting units of the LUX standard library ]
 
@@ -139,7 +182,7 @@ C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + 
      ┗・LUX.D1.Half.DIff             ･･･ TdHalf, automatic differentiation
 ```
 
-`LUX.Data.Image.pas` は FireMonkey も Skia も uses していない。それらへの依存はファイル入出力とビューアのユニットに閉じている。
+`LUX.Data.Image.pas` と `LUX.Data.Image.Worker.pas` は FireMonkey も Skia も uses していない。それらへの依存はファイル入出力とビューアのユニットに閉じている。
 
 ### 3.2 ファイル構成
 
@@ -147,6 +190,7 @@ C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + 
 ・Data/Image/
   ┣・LUX.Data.Image.pas        ･･･ TLuxImage と 4 つの具象クラス
   ┣・LUX.Data.Image.Files.pas  ･･･ ファイルの読み書き
+  ┣・LUX.Data.Image.Worker.pas ･･･ TLuxImageWorker、並列ブロックスケジューラ
   ┗・LUX.Data.Image.Viewer.pas ･･･ TLuxImageViewer（TFrame 継承）
 ```
 
@@ -196,6 +240,41 @@ begin
 end;
 ```
 
+### 4.3 全コアで画像へ描き込む
+
+`TLuxImageWorker` は、利用者の手続きを画像の全ブロックについて実行する。手続きにはワーカー番号と段 0 の画素座標でのブロック矩形が渡され、そこで何を計算するか ── レイトレーシングの場面、フラクタル、別の画像に対するフィルタ ── は手続き次第である。ビューアが付いていれば、終わったブロックから順に表示される。
+
+```pascal
+Image := TLuxImageSFlo32.Create( 16384, 16384 );  // ここで全メモリを確保。載らなければ EOutOfMemory
+
+Viewer.Image := Image;
+Viewer.FitToWindow;
+
+Worker := TLuxImageWorker.Create( Image );
+
+Worker.OnProgress.Add( WorkerProgress );  // 約 30 Hz、メインスレッド
+Worker.OnFinished.Add( WorkerFinished );  // メインスレッド。Cancel 後も発火する
+
+Worker.Start( procedure( const ThreadI_,X_,Y_,W_,H_:Integer )
+              var
+                 Row  :TArray<TSingleRGBA>;
+                 I, J :Integer;
+              begin
+                   SetLength( Row, W_ );
+
+                   for J := Y_ to Y_+H_-1 do
+                   begin
+                        for I := 0 to W_-1 do Row[ I ] := Shade( X_+I, J );  // 任意の計算
+
+                        Image.SetRow( 0, X_, J, W_, @Row[ 0 ] );
+                   end;
+              end );
+```
+
+`Block`（既定 64）はブロックの一辺、`ThreadsN`（既定は全プロセッサグループの論理 CPU 数）はスレッド数である。画像を読むだけの処理では `Writing := False` にすると、タイルが変更扱いにならない。
+
+自前のスレッドでも同じことができる。互いに素な領域を `SetRow` ・ `SetRaws` ・ `TileData` で書き、書き終えた段 0 のタイルごとに `TileChanged` を呼び、表示を追い付かせたい時に（頻度は自分で抑えて）`Notify` を呼べばよい。
+
 ## 5. 画素形式
 
 | クラス | 画素レコード | バイト/画素 | Skia のカラータイプ | 表示ガンマの既定値 |
@@ -216,9 +295,9 @@ end;
 ### 6.1 TLuxImage
 
 ```pascal
-///// 寸法
+///// 寸法（ SetSize は全段の全タイルを確保する。できなければ EOutOfMemory を送出し、画像は空のまま ）
 procedure SetSize( const W_,H_:Integer );
-procedure Clear;
+procedure Clear;                        // 全段を 0 で埋める
 property  Width  :Integer;
 property  Height :Integer;
 
@@ -251,9 +330,14 @@ function LevelTilesX( const L_:Integer ) :Integer;
 function LevelTilesY( const L_:Integer ) :Integer;
 function TileWidth  ( const L_,TX_:Integer ) :Integer;
 function TileHeight ( const L_,TY_:Integer ) :Integer;
-function TileData( const L_,TX_,TY_:Integer ) :Pointer;  // 未確保なら確保する
-function TilePeek( const L_,TX_,TY_:Integer ) :Pointer;  // 未確保なら nil
-procedure NeedLevel( const L_:Integer );                 // 段 L_ までを構築する
+function TileData ( const L_,TX_,TY_:Integer ) :Pointer;   // 常に有効。行ピッチは LUXIMAGE_TILE 画素
+function TileStamp( const L_,TX_,TY_:Integer ) :Cardinal;  // タイルの内容が変わるたびに進む
+
+///// 変更の追跡
+procedure TileChanged( const TX_,TY_:Integer );  // 段 0 のタイルを書いた：Dirty にして Stamp を進める（任意スレッド・ロック無し・イベント無し）
+procedure Notify;                                // OnChange をメインスレッドで発火する
+procedure Changed;                               // 全体が変わった：全タイル Dirty、Version++、Notify
+procedure UpdateLevels;                          // Dirty なタイルを段 1 以上へ反映する（呼び出しは直列化される）
 
 ///// ファイル（同期）
 procedure LoadFromFile( const FileName_:String );
@@ -267,29 +351,57 @@ property  Busy     :Boolean;
 property  Progress :Single;      // 0 〜 1
 
 ///// 通知
-procedure Changed;
-property  Version    :Cardinal;  // 変更の度に増える
+property  Version    :Cardinal;  // SetSize ・ Clear ・ Changed で増える（ビューアは全キャッシュを捨てる）
 property  OnChange   :TDelegates;
 property  OnProgress :TDelegates;
 property  OnLoaded   :TDelegates;
 property  OnSaved    :TDelegates;
 ```
 
-`SetRow` と `SetRaws` は段を無効化するが `OnChange` は発火しない。まとめて書き換えた後に `Changed` を 1 回呼ぶこと。1 画素ずつのプロパティセッタは自分で `Changed` を呼ぶ。
+画素の書き込み ── `SetRow` ・ `SetRaws` ・ `TileData` 経由の直書き ── はそれ自体では何も印を付けない。書き終えた段 0 のタイルごとに `TileChanged` を、あるいは画像全体を触った後に `Changed` を 1 回呼び、表示を追い付かせたい時に `Notify` を呼ぶ。`Changed` は自分で通知する。1 画素ずつのプロパティセッタは、触ったタイルについて `TileChanged` を呼び、通知はしない。
+
+`UpdateLevels` が Dirty なタイルを最新の縮小段に変える。ビューアは毎フレームの前に、ローダはファイルを読み終えた後に 1 回呼ぶ。段を自分で読むプログラムも呼ぶ必要がある。任意のスレッドから呼べて、同時の呼び出しは直列化される。他のスレッドがまだ別のタイルを書いている最中に呼んでも安全で、タイルは Dirty を降ろした後にしか読まれない。
+
+`Colors[]` と `Pixels[]` は手軽だが、1 画素ごとにタイルを引くので一括処理には遅い。ローダやレンダラは行単位の呼び出しを使う。
 
 保持しているタイルは余白を持たない。ビューアは描画キャッシュを作る際に、必要な 1 画素ののりしろを自分で集める。
 
-### 6.2 非同期のファイル入出力
+### 6.2 TLuxImageWorker
+
+```pascal
+constructor Create( const Image_:TLuxImage );
+
+property Image     :TLuxImage;
+property Block     :Integer;    // ブロックの一辺。既定 64（ 1 〜 LUXIMAGE_TILE ）
+property ThreadsN  :Integer;    // 既定：全プロセッサグループの論理 CPU 数
+property Writing   :Boolean;    // 既定 True：ブロックごとに TileChanged。読むだけなら False
+property Busy      :Boolean;
+property Cancelled :Boolean;
+property Progress  :Single;     // 完了ブロック数 ／ 総ブロック数
+
+procedure Start( const Proc_:TLuxBlockProc );   // TLuxBlockProc = reference to procedure( const ThreadI_,X_,Y_,W_,H_:Integer )
+procedure Cancel;                               // 実行中のブロックを終えた時点で止まる
+procedure Wait;                                 // 全スレッドを待つ。メインスレッドからなら OnFinished も流し切る
+
+property OnProgress :TDelegates;  // メインスレッド。約 30 Hz が上限
+property OnFinished :TDelegates;  // メインスレッド。完了でも中止でも 1 回
+```
+
+ブロックはタイル内に収まり、ラスタ順に、共有カウンタの不可分加算 1 回につき 1 個ずつ配られる。したがって末尾の待ちは高々ブロック 1 個ぶんである。`ThreadI_` は 0 〜 `ThreadsN` − 1 で、乱数生成器や作業バッファなどのスレッド別状態を引くためのものである。ワーカーは RTL の共有プールではなく専用のスレッドで走る。`TParallel.For` で並列化している `UpdateLevels` が、描画中に飢えないためである。
+
+手続きが例外を送出すると実行は中止され、`OnFinished` の後にメインスレッドで再送出される。デストラクタは中止して待つので、実行中のワーカーを破棄してもよい。
+
+### 6.3 非同期のファイル入出力
 
 `LoadFromFileAsync` と `SaveToFileAsync` は、同じ入出力処理を `TTask` で実行し、通知はすべて `TThread.Queue` でメインスレッドへ戻す。したがってハンドラから直接 UI を触ってよい。
 
-`Busy` はワーカの開始前に立ち、`OnLoaded` / `OnSaved` の直前に降りる。ビューアは `Busy` の間まったく描画しない。これによりワーカはロック無しに画素を書き込める。デストラクタはワーカの終了を待ち、保留中の通知も流し切るので、読み込み中に画像を破棄しても問題ない。
+`Busy` はタスクの開始前に立ち、`OnLoaded` / `OnSaved` の直前に降りる。ビューアは `Busy` の間まったく描画しない。読み込みは `SetSize` から始まり、タイルの構造そのものが入れ替わるためである。デストラクタはタスクの終了を待ち、保留中の通知も流し切るので、読み込み中に画像を破棄しても問題ない。
 
-読み込みでは縮小ピラミッドの構築までワーカスレッドで、利用可能なコアを使って行う。最初の再描画時に構築すると、その分だけ UI が止まってしまうためである。
+読み込みでは縮小ピラミッドの構築までタスクのスレッドで、全タイルを Dirty にした `UpdateLevels` により、利用可能なコアを使って行う。最初の再描画時に構築すると、その分だけ UI が止まってしまうためである。
 
 `Progress` はピラミッドの構築も含めた全体を 0 から 1 で表す。行単位で報告するため PNG は滑らかに進むが、JPEG は Skia の復号がコールバックを持たない単一の呼び出しであるため、復号が終わるまで進まない。
 
-### 6.3 対応ファイル形式
+### 6.4 対応ファイル形式
 
 | 形式 | 読み | 書き | 備考 |
 |---|---|---|---|
@@ -318,7 +430,7 @@ function LuxSkColorType( const Kind_:TLuxPixel ) :TSkColorType;
 function LuxImageSize( const FileName_:String; out Width_,Height_:Integer ) :Boolean;
 ```
 
-### 6.4 TLuxImageViewer
+### 6.5 TLuxImageViewer
 
 ```pascal
 property Image      :TLuxImage;
@@ -345,28 +457,26 @@ procedure Redraw;
 
 ホイールを手前に回すと拡大する。掛かる倍率は $2^{-\Delta / 480}$ なので、4 ノッチで 2 倍になる。左ドラッグでスクロールする。
 
-### 6.5 1 フレームの描き方
+### 6.6 1 フレームの描き方
 
-1. 段は (2.4) によって選ばれ、段内では常に 1〜2 倍の拡大になる。段の中で縮小が起きないので、縮小によるエイリアシングは原理的に発生しない。
-2. その段の可視タイルを列挙する。枚数の上限は (2.6) で与えられる。
-3. 各タイルを `ISkImage` 化し、`TTileKey`（段とタイル番号）を鍵としてキャッシュする。キャッシュする画像は隣のタイルから集めた 1 画素ののりしろを持つので、タイル境界でも補間が本物の隣接画素を読み、継ぎ目が出ない。
-4. `DrawImageRect` で並べる。`Scale` ≧ 1 では最近傍で採取するので、等倍を超えて拡大すると画素が四角として見える（それ未満では線形）。トーンマッピングとガンマ補正は SkSL のランタイムカラーフィルタ、つまり GPU で行うので、`Gamma` ・ `ToneMap` ・ `White` の変更はただ同然で、キャッシュも無効化しない。
+1. `Version` が変わっていればタイルキャッシュを全て捨てる。続いて `UpdateLevels` で、前のフレーム以降に変わったタイルを上の段へ反映する。
+2. 段は (2.6) によって選ばれ、段内では常に 1〜2 倍の拡大になる。段の中で縮小が起きないので、縮小によるエイリアシングは原理的に発生しない。
+3. その段の可視タイルを列挙する。枚数の上限は (2.8) で与えられる。
+4. 各タイルを `ISkImage` 化し、`TTileKey`（段とタイル番号）を鍵としてキャッシュし、そのタイルと周囲 8 枚の Stamp の和で検証する。キャッシュする画像は隣のタイルから集めた 1 画素ののりしろを持つので、タイル境界でも補間が本物の隣接画素を読み、継ぎ目が出ない。隣を検証に含めるのは、隣が変わった時にのりしろを最新に保つためである。
+5. `DrawImageRect` で並べる。`Scale` ≧ 1 では最近傍で採取するので、等倍を超えて拡大すると画素が四角として見える（それ未満では線形）。トーンマッピングとガンマ補正は SkSL のランタイムカラーフィルタ、つまり GPU で行うので、`Gamma` ・ `ToneMap` ・ `White` の変更はただ同然で、キャッシュも無効化しない。
 
-CPU 側でのリサンプルは一切行わない。1 フレームあたりの CPU 仕事は、新しく現れたタイルののりしろ集約だけで、しかもキャッシュミス時のみ。
+CPU 側でのリサンプルは一切行わない。1 フレームあたりの CPU 仕事は、変わったタイルぶんのピラミッド更新と、作り直したり新しく現れたりしたタイルののりしろ集約だけである。
 
 ## 7. 制限
 
-- ディスクへの退避機構は持たない。RAM に載らない画像は開けない。
+- ディスクへの退避機構は持たない。`SetSize` は、タイルが物理メモリの空きに載らない画像を拒否する。
 - TIFF ・ OpenEXR ・ Radiance HDR は未実装。
 - Skia のコーデックが確実に変換できるのは 8bit までなので、JPEG は常に BGRA8888 で受けて、対象クラスがそれより広い場合は後から変換する。JPEG は 8bit の形式なので損失は無い。
+- `TLuxImageWorker` が向くのはブロックごとに独立な処理である。走査順や画像全体への依存を持つアルゴリズム（積分画像、FFT）には別のスケジューリングが要る。
 
 ## 8. デモ
 
-リポジトリのルートにある `LuxImage.dproj` が `_DATA\Image 16384x16384.jpg` を読み込んで表示し、保存もできる。
-
-```
-LuxImage.exe [ 画像ファイル ] [ 画素形式の番号 0..3 ]
-```
+リポジトリのルートにある `LuxImage.dproj` は、PNG または JPEG を 4 つの形式のいずれかで開くか、`TLuxImageWorker` で 4,096² 〜 65,536² 画素のマンデルブロ集合を全コアで描き、終わったブロックから順に表示する。結果は PNG または JPEG に保存できる。
 
 ## 9. 参考文献
 
