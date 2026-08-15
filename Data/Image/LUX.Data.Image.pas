@@ -18,6 +18,15 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R E C O R D 】
 
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TLuxTile
+
+     TLuxTile = record
+     public
+       Data  :TArray<Byte>;   // LUXIMAGE_TILE² 画素ぶん。SetSize で確保され常に有効
+       Stamp :Cardinal;       // 内容が変わるたびに増える（表示側のキャッシュ判定用）
+       Dirty :Integer;        // 段 0 のみ：1 なら上の段への反映が未了
+     end;
+
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TLuxLevel
 
      TLuxLevel = record
@@ -26,7 +35,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        Height :Integer;              // この段の画素数（縦）
        TilesX :Integer;              // この段のタイル数（横）
        TilesY :Integer;              // この段のタイル数（縦）
-       Tiles  :TArray<TArray<Byte>>; // TilesY * TilesX 個。未確保のタイルは長さ 0
+       Tiles  :TArray<TLuxTile>;     // TilesY * TilesX 個
      end;
 
      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
@@ -34,9 +43,18 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TLuxImage
 
      ///// 超高解像度画像の基底クラス
+     /////
      ///// ・画素は LUXIMAGE_TILE 角のタイルに分割して保持する（巨大な連続確保を避けるため）
-     ///// ・縮小ピラミッド（ミップマップ）を段として保持し、必要な段だけ遅延生成する
+     ///// ・縮小ピラミッド（段）も含めて、全メモリを SetSize の時点で確保する。
+     /////   確保できなければその場で EOutOfMemory になり、画像は空（ 0×0 ）に戻る。
      ///// ・GPU を一切前提としないので、CPU メモリの許す限りの大きさを扱える
+     /////
+     ///// 変更の追跡
+     ///// ・段 0 のタイルには Dirty、全タイルには Stamp がある。
+     ///// ・TileChanged( TX,TY ) ：段 0 のタイルを書き終えたら呼ぶ。任意のスレッドから、ロック無しで呼べる。
+     /////   イベントは発火しない。表示を更新させたいときは Notify を（頻度を抑えて）呼ぶ。
+     ///// ・UpdateLevels ：Dirty なタイルの足跡だけを段 1 以上に反映する。表示側が描画前に呼ぶ。
+     ///// ・全タイルが確保済みなので、互いに素な領域への書き込みは複数スレッドから同時に行える。
 
      TLuxImage = class
      private
@@ -48,7 +66,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _Width   :Integer;
        _Height  :Integer;
        _Levels  :TArray<TLuxLevel>;
-       _LevelUp :TArray<Boolean>;   // 段が最新なら True（段 0 は常に True）
        _Version :Cardinal;
        ///// 非同期
        _Task     :ITask;
@@ -65,9 +82,16 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _OnSaved    :TDelegates;
        ///// M E T H O D
        procedure InitLevels;
+       procedure FillLevels;
        procedure StartAsync( const Work_:TProc; const Saving_:Boolean );
        procedure ProgRange( const A_,B_:Single );  // 以降の DoProgress を全体の A_〜B_ に割り当てる
-       procedure DoChange;                         // 段を無効化せずに変更だけ通知する
+       /////
+       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer ); virtual; abstract;  // 記憶形式 → TSingleRGBA
+       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer ); virtual; abstract;  // TSingleRGBA → 記憶形式
+       procedure MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer ); virtual; abstract;             // 2N_×2 画素 → N_ 画素（平均）
+       /////
+       procedure MakeBlock( const L_,X_,Y_,W_,H_:Integer; const R0_,R1_,D_:Pointer );  // 段 L_-1 から段 L_ の矩形を作る
+       procedure MakeChain( const TX_,TY_:Integer; const R0_,R1_,D_:Pointer );          // 段 0 のタイルの足跡を段 1〜LUXIMAGE_TILE_LOG に反映する
      public
        constructor Create; overload;
        constructor Create( const W_,H_:Integer ); overload;
@@ -78,17 +102,21 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function IsFloat :Boolean; virtual;                 // 浮動小数形式か
        class function DefaultGamma :Single; virtual;             // 表示ガンマの既定値
        ///// P R O P E R T Y
-       property Width                       :Integer      read _Width           ;
-       property Height                      :Integer      read _Height          ;
-       property LevelsN                     :Integer      read GetLevelsN       ;
-       property Version                     :Cardinal     read _Version         ;  // 内容の版（変わったら表示側の資源を破棄する）
-       property Busy                        :Boolean      read _Busy            ;  // 非同期の読み書きが進行中
-       property Progress                    :Single       read _Progress        ;  // 0 〜 1
+       property Width                         :Integer     read _Width    ;
+       property Height                        :Integer     read _Height   ;
+       property LevelsN                       :Integer     read GetLevelsN;
+       property Version                       :Cardinal    read _Version  ;  // 構造か全体が変わった版（表示側は全キャッシュを破棄する）
+       property Busy                          :Boolean     read _Busy     ;  // 非同期の読み書きが進行中
+       property Progress                      :Single      read _Progress ;  // 0 〜 1
        property Colors[ const X_,Y_:Integer ] :TSingleRGBA read GetColors write SetColors; default;
        ///// M E T H O D
-       procedure SetSize( const W_,H_:Integer );
-       procedure Clear;
-       procedure Changed;
+       procedure SetSize( const W_,H_:Integer );  // 全段を確保する。確保できなければ EOutOfMemory
+       procedure Clear;                           // 全段を 0 で埋める
+       /////
+       procedure Changed;                                 // 全体が変わった：全タイルを Dirty にし、Version を上げ、Notify する
+       procedure TileChanged( const TX_,TY_:Integer );    // 段 0 のタイルが変わった：Dirty と Stamp を更新する（通知はしない）
+       procedure Notify;                                  // OnChange をメインスレッドで発火する
+       procedure UpdateLevels;                            // Dirty なタイルの足跡を段 1 以上へ反映する（呼び出しは直列化される）
        /////
        function LevelWidth ( const L_:Integer ) :Integer;
        function LevelHeight( const L_:Integer ) :Integer;
@@ -97,18 +125,14 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function TileWidth  ( const L_,TX_:Integer ) :Integer;
        function TileHeight ( const L_,TY_:Integer ) :Integer;
        /////
-       function TileData( const L_,TX_,TY_:Integer ) :Pointer;  // タイルの先頭（未確保なら確保して 0 埋め）
-       function TilePeek( const L_,TX_,TY_:Integer ) :Pointer;  // タイルの先頭（未確保なら nil）
+       function TileData ( const L_,TX_,TY_:Integer ) :Pointer;   // タイルの先頭（常に有効。行ピッチは LUXIMAGE_TILE 画素）
+       function TileStamp( const L_,TX_,TY_:Integer ) :Cardinal;  // タイルの内容の版
        /////
        procedure GetRaws( const L_,X_,Y_,N_:Integer; const Dst_:Pointer );  // 生画素を N_ 個読む（タイル跨ぎ対応）
        procedure SetRaws( const L_,X_,Y_,N_:Integer; const Src_:Pointer );  // 生画素を N_ 個書く（タイル跨ぎ対応）
        /////
-       procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA ); virtual; abstract;  // 書式非依存の行読み
-       procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA ); virtual; abstract;  // 書式非依存の行書き
-       procedure MakeTileMip( const L_,TX_,TY_:Integer ); virtual; abstract;  // 段 L_-1 から段 L_ のタイルを作る
-       procedure GetMipRows( const L_,TX_,TY_,Y_:Integer; const Row0_,Row1_:Pointer; out N_:Integer );
-       /////
-       procedure NeedLevel( const L_:Integer );  // 段 L_ までを最新にする
+       procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );  // 書式非依存の行読み
+       procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );  // 書式非依存の行書き
        /////
        procedure LoadFromFile( const FileName_:String );
        procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90 );
@@ -134,16 +158,16 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetPixels( const X_,Y_:Integer ) :TByteRGBA;
        procedure SetPixels( const X_,Y_:Integer; const P_:TByteRGBA );
      protected
+       ///// M E T H O D
+       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer ); override;
+       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer ); override;
+       procedure MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer ); override;
      public
        ///// C L A S S
        class function PixelKind :TLuxPixel; override;
        class function PixelSize :Integer; override;
        ///// P R O P E R T Y
        property Pixels[ const X_,Y_:Integer ] :TByteRGBA read GetPixels write SetPixels;
-       ///// M E T H O D
-       procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA ); override;
-       procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA ); override;
-       procedure MakeTileMip( const L_,TX_,TY_:Integer ); override;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TLuxImageUInt16
@@ -154,16 +178,16 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetPixels( const X_,Y_:Integer ) :TWordRGBA;
        procedure SetPixels( const X_,Y_:Integer; const P_:TWordRGBA );
      protected
+       ///// M E T H O D
+       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer ); override;
+       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer ); override;
+       procedure MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer ); override;
      public
        ///// C L A S S
        class function PixelKind :TLuxPixel; override;
        class function PixelSize :Integer; override;
        ///// P R O P E R T Y
        property Pixels[ const X_,Y_:Integer ] :TWordRGBA read GetPixels write SetPixels;
-       ///// M E T H O D
-       procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA ); override;
-       procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA ); override;
-       procedure MakeTileMip( const L_,TX_,TY_:Integer ); override;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TLuxImageSFlo16
@@ -174,6 +198,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetPixels( const X_,Y_:Integer ) :THalfRGBA;
        procedure SetPixels( const X_,Y_:Integer; const P_:THalfRGBA );
      protected
+       ///// M E T H O D
+       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer ); override;
+       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer ); override;
+       procedure MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer ); override;
      public
        ///// C L A S S
        class function PixelKind :TLuxPixel; override;
@@ -182,10 +210,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function DefaultGamma :Single; override;
        ///// P R O P E R T Y
        property Pixels[ const X_,Y_:Integer ] :THalfRGBA read GetPixels write SetPixels;
-       ///// M E T H O D
-       procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA ); override;
-       procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA ); override;
-       procedure MakeTileMip( const L_,TX_,TY_:Integer ); override;
      end;
 
      //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TLuxImageSFlo32
@@ -196,6 +220,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetPixels( const X_,Y_:Integer ) :TSingleRGBA;
        procedure SetPixels( const X_,Y_:Integer; const P_:TSingleRGBA );
      protected
+       ///// M E T H O D
+       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer ); override;
+       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer ); override;
+       procedure MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer ); override;
      public
        ///// C L A S S
        class function PixelKind :TLuxPixel; override;
@@ -204,26 +232,30 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        class function DefaultGamma :Single; override;
        ///// P R O P E R T Y
        property Pixels[ const X_,Y_:Integer ] :TSingleRGBA read GetPixels write SetPixels;
-       ///// M E T H O D
-       procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA ); override;
-       procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA ); override;
-       procedure MakeTileMip( const L_,TX_,TY_:Integer ); override;
      end;
 
 const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
 
       //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LUXIMAGE_TILE
 
-      LUXIMAGE_TILE = 256;  // タイルの一辺（２の冪であること）
+      LUXIMAGE_TILE_LOG = 8;                          // タイルの一辺の対数
+      LUXIMAGE_TILE     = 1 shl LUXIMAGE_TILE_LOG;    // タイルの一辺（ 256 ）
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 function LuxImageClass( const Kind_:TLuxPixel ) :TLuxImageClass;  // 画素形式に対応するクラス
 
+function LuxFreeMemory :Int64;  // 物理メモリの空き（バイト）。得られない環境では -1
+
 implementation //############################################################### ■
 
 uses System.Math,
+     {$IFDEF MSWINDOWS} Winapi.Windows, {$ENDIF}
      LUX.Data.Image.Files;
+
+const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
+
+      UPDATE_CHUNK = 1024;  // UpdateLevels が一度に並列処理するタイル数（進捗通知の粒度）
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C L A S S 】
 
@@ -247,47 +279,109 @@ end;
 
 procedure TLuxImage.SetColors( const X_,Y_:Integer; const C_:TSingleRGBA );
 begin
-     SetRow( 0, X_, Y_, 1, @C_ );  Changed;
+     SetRow( 0, X_, Y_, 1, @C_ );
+
+     TileChanged( X_ shr LUXIMAGE_TILE_LOG, Y_ shr LUXIMAGE_TILE_LOG );
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
+///// 全段の枠とタイルの実体を確保する。確保できなければ空に戻して EOutOfMemory を送出する。
+///// 必要量が物理メモリの空きを超える場合は、確保を試みずにその場で送出する
+///// （ページファイルへ溢れさせて動くことは設計上想定しない）。
+
 procedure TLuxImage.InitLevels;
 var
-   W, H, N :Integer;
+   W, H, N, L, LL :Integer;
+   Z, T, F        :Int64;
+   M              :String;
 begin
-     _Levels  := nil;
-     _LevelUp := nil;
+     _Levels := nil;
 
      if ( _Width < 1 ) or ( _Height < 1 ) then Exit;
 
-     W := _Width;  H := _Height;  N := 0;
+     ///// 段の枠
+
+     W := _Width;  H := _Height;  N := 0;  T := 0;
 
      repeat
-           SetLength( _Levels , N+1 );
-           SetLength( _LevelUp, N+1 );
+           SetLength( _Levels, N+1 );
 
            with _Levels[ N ] do
            begin
                 Width  := W;
                 Height := H;
-                TilesX := ( W + LUXIMAGE_TILE - 1 ) div LUXIMAGE_TILE;
-                TilesY := ( H + LUXIMAGE_TILE - 1 ) div LUXIMAGE_TILE;
+                TilesX := ( W + LUXIMAGE_TILE - 1 ) shr LUXIMAGE_TILE_LOG;
+                TilesY := ( H + LUXIMAGE_TILE - 1 ) shr LUXIMAGE_TILE_LOG;
 
                 SetLength( Tiles, TilesX * TilesY );
-           end;
 
-           _LevelUp[ N ] := ( N = 0 );
+                Inc( T, Int64( TilesX ) * TilesY * LUXIMAGE_TILE * LUXIMAGE_TILE * PixelSize );
+           end;
 
            if ( W = 1 ) and ( H = 1 ) then Break;
 
-           W := Max( 1, ( W + 1 ) div 2 );
-           H := Max( 1, ( H + 1 ) div 2 );
+           W := ( W + 1 ) div 2;
+           H := ( H + 1 ) div 2;
 
            Inc( N );
      until False;
+
+     ///// タイルの実体（並列に確保する。動的配列は 0 で初期化される）
+
+     M := '';
+
+     try
+          F := LuxFreeMemory;
+
+          if ( F >= 0 ) and ( T > F ) then
+          begin
+               M := Format( '（空き %.1f GB）', [ F / ( 1024 * 1024 * 1024 ) ] );  Abort;
+          end;
+
+          Z := Int64( LUXIMAGE_TILE ) * LUXIMAGE_TILE * PixelSize;
+
+          for L := 0 to LevelsN-1 do
+          begin
+               LL := L;  // 無名メソッドは for の制御変数を捕捉できない
+
+               TParallel.For( 0, High( _Levels[ L ].Tiles ), procedure( I:Integer )
+                                                             begin
+                                                                  SetLength( _Levels[ LL ].Tiles[ I ].Data, Z );
+                                                             end );
+          end;
+     except
+          W := _Width;  H := _Height;
+
+          _Levels := nil;  _Width := 0;  _Height := 0;
+
+          raise EOutOfMemory.CreateFmt( '画像 %d × %d（%s、%.1f GB）のメモリを確保できない%s',
+                                        [ W, H, ClassName, T / ( 1024 * 1024 * 1024 ), M ] );
+     end;
+end;
+
+///// 全段のタイルを 0 で埋め、Stamp を進める。
+
+procedure TLuxImage.FillLevels;
+var
+   L, LL :Integer;
+begin
+     for L := 0 to LevelsN-1 do
+     begin
+          LL := L;  // 無名メソッドは for の制御変数を捕捉できない
+
+          TParallel.For( 0, High( _Levels[ L ].Tiles ), procedure( I:Integer )
+                                                        begin
+                                                             with _Levels[ LL ].Tiles[ I ] do
+                                                             begin
+                                                                  FillChar( Data[ 0 ], Length( Data ), 0 );
+
+                                                                  Inc( Stamp );  Dirty := 0;
+                                                             end;
+                                                        end );
+     end;
 end;
 
 //------------------------------------------------------------------------------
@@ -323,7 +417,7 @@ begin
 
                                                        if M <> '' then raise EInOutError.Create( M );
 
-                                                       if not Saving_ then DoChange;  // 段は作業スレッドで作り終えているので無効化しない
+                                                       if not Saving_ then Notify;  // 段は作業スレッドで反映し終えている
 
                                                        if Saving_ then _OnSaved .Run( Self )
                                                                   else _OnLoaded.Run( Self );
@@ -339,17 +433,73 @@ begin
      _ProgB := B_;
 end;
 
-procedure TLuxImage.DoChange;
+//------------------------------------------------------------------------------
+
+///// 段 L_ の矩形 [X_,X_+W_)×[Y_,Y_+H_) を、段 L_-1 の対応する 2 倍の矩形の平均で作る。
+///// R0_ / R1_ は 2W_ 画素、D_ は W_ 画素ぶんの作業領域。
+
+procedure TLuxImage.MakeBlock( const L_,X_,Y_,W_,H_:Integer; const R0_,R1_,D_:Pointer );
+var
+   Z, SW, SH, N, J, SY :Integer;
+   TX, TY, TX0, TX1, TY0, TY1 :Integer;
 begin
-     Inc( _Version );
+     Z := PixelSize;
 
-     ///// 別スレッドからの通知はメインスレッドへ回す
+     SW := _Levels[ L_-1 ].Width;
+     SH := _Levels[ L_-1 ].Height;
 
-     if TThread.CurrentThread.ThreadID = MainThreadID then _OnChange.Run( Self )
-     else TThread.Queue( nil, procedure
-                              begin
-                                   if not _Closing then _OnChange.Run( Self );
-                              end );
+     N := Min( 2 * W_, SW - 2 * X_ );  // 元の段で読める画素数（奇数幅の端では 2W_-1 になる）
+
+     for J := 0 to H_-1 do
+     begin
+          SY := 2 * ( Y_ + J );
+
+          GetRaws( L_-1, 2 * X_, SY, N, R0_ );
+
+          if SY + 1 < SH then GetRaws( L_-1, 2 * X_, SY+1, N, R1_ )
+                         else Move( R0_^, R1_^, N * Z );
+
+          if N < 2 * W_ then  // 端の画素を複製して偶数個にそろえる
+          begin
+               Move( ( PByte( R0_ ) + ( N - 1 ) * Z )^, ( PByte( R0_ ) + N * Z )^, Z );
+               Move( ( PByte( R1_ ) + ( N - 1 ) * Z )^, ( PByte( R1_ ) + N * Z )^, Z );
+          end;
+
+          MipRow( R0_, R1_, D_, W_ );
+
+          SetRaws( L_, X_, Y_ + J, W_, D_ );
+     end;
+
+     ///// 触ったタイルの Stamp を進める（同じタイルへ複数スレッドから来るので不可分に）
+
+     TX0 :=   X_            shr LUXIMAGE_TILE_LOG;
+     TX1 := ( X_ + W_ - 1 ) shr LUXIMAGE_TILE_LOG;
+     TY0 :=   Y_            shr LUXIMAGE_TILE_LOG;
+     TY1 := ( Y_ + H_ - 1 ) shr LUXIMAGE_TILE_LOG;
+
+     for TY := TY0 to TY1 do
+     for TX := TX0 to TX1 do AtomicIncrement( _Levels[ L_ ].Tiles[ TY * _Levels[ L_ ].TilesX + TX ].Stamp );
+end;
+
+///// 段 0 のタイル (TX_,TY_) の足跡を、段 1〜LUXIMAGE_TILE_LOG へ順に反映する。
+///// 段 L での足跡は ( LUXIMAGE_TILE shr L ) 角の矩形で、段 L-1 の足跡だけから作れるので、
+///// タイルごとの連鎖は互いに独立（並列に実行できる）。
+
+procedure TLuxImage.MakeChain( const TX_,TY_:Integer; const R0_,R1_,D_:Pointer );
+var
+   L, S, X, Y, W, H :Integer;
+begin
+     for L := 1 to Min( LUXIMAGE_TILE_LOG, LevelsN-1 ) do
+     begin
+          S := LUXIMAGE_TILE shr L;
+
+          X := TX_ * S;
+          Y := TY_ * S;
+          W := Min( S, _Levels[ L ].Width  - X );
+          H := Min( S, _Levels[ L ].Height - Y );
+
+          MakeBlock( L, X, Y, W, H, R0_, R1_, D_ );
+     end;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -401,42 +551,148 @@ end;
 
 procedure TLuxImage.SetSize( const W_,H_:Integer );
 begin
+     if ( W_ < 0 ) or ( H_ < 0 ) then raise EArgumentException.Create( '画像サイズが負である' );
+
      if ( _Width = W_ ) and ( _Height = H_ ) then
      begin
           Clear;  Exit;
      end;
-
-     if ( W_ < 0 ) or ( H_ < 0 ) then raise EArgumentException.Create( '画像サイズが負である' );
 
      _Width  := W_;
      _Height := H_;
 
      InitLevels;
 
-     Changed;
+     Inc( _Version );  Notify;
 end;
 
 procedure TLuxImage.Clear;
-var
-   L, I :Integer;
 begin
-     for L := 0 to LevelsN-1 do
-     begin
-          for I := 0 to High( _Levels[ L ].Tiles ) do _Levels[ L ].Tiles[ I ] := nil;
+     FillLevels;
 
-          _LevelUp[ L ] := ( L = 0 );
-     end;
-
-     Changed;
+     Inc( _Version );  Notify;
 end;
+
+//------------------------------------------------------------------------------
 
 procedure TLuxImage.Changed;
 var
-   L :Integer;
+   I :Integer;
 begin
-     for L := 1 to LevelsN-1 do _LevelUp[ L ] := False;
+     if LevelsN > 0 then
+     begin
+          with _Levels[ 0 ] do for I := 0 to High( Tiles ) do Tiles[ I ].Dirty := 1;
+     end;
 
-     DoChange;
+     Inc( _Version );  Notify;
+end;
+
+procedure TLuxImage.TileChanged( const TX_,TY_:Integer );
+begin
+     with _Levels[ 0 ].Tiles[ TY_ * _Levels[ 0 ].TilesX + TX_ ] do
+     begin
+          AtomicIncrement( Stamp );
+          AtomicExchange( Dirty, 1 );  // 画素の書き込みが Dirty より先に見えるように（不可分操作は全域の障壁）
+     end;
+end;
+
+procedure TLuxImage.Notify;
+begin
+     if TThread.CurrentThread.ThreadID = MainThreadID then _OnChange.Run( Self )
+     else TThread.Queue( nil, procedure
+                              begin
+                                   if not _Closing then _OnChange.Run( Self );
+                              end );
+end;
+
+///// Dirty な段 0 タイルを集め、その足跡を段 1 以上へ反映する。
+///// ・段 1〜LUXIMAGE_TILE_LOG ：タイルごとの連鎖が独立なので、タイル単位で並列に。
+///// ・それより上の段 ：足跡が 1 画素未満で隣のタイルと混ざるので、段ごと作り直す（画素数はごく僅か）。
+
+procedure TLuxImage.UpdateLevels;
+var
+   Dirts                        :TArray<Integer>;
+   N, I, I0, I1, L, NX, Z       :Integer;
+   LL, LX, LW, LH               :Integer;   // 無名メソッドは for の制御変数を捕捉できないので写す
+begin
+     if LevelsN < 2 then Exit;
+
+     TMonitor.Enter( Self );
+     try
+          ///// Dirty を降ろしながら集める（降ろしてから読むので、以後の書き込みは取りこぼさない）
+
+          N := 0;
+
+          with _Levels[ 0 ] do
+          begin
+               SetLength( Dirts, Length( Tiles ) );
+
+               for I := 0 to High( Tiles ) do
+               begin
+                    if AtomicExchange( Tiles[ I ].Dirty, 0 ) <> 0 then
+                    begin
+                         Dirts[ N ] := I;  Inc( N );
+                    end;
+               end;
+          end;
+
+          if N = 0 then Exit;
+
+          Z  := PixelSize;
+          NX := _Levels[ 0 ].TilesX;
+
+          ///// 段 1〜LUXIMAGE_TILE_LOG ：タイルごとの連鎖を並列に
+
+          I0 := 0;
+
+          while I0 < N do
+          begin
+               I1 := Min( I0 + UPDATE_CHUNK, N ) - 1;
+
+               TParallel.For( I0, I1, procedure( I:Integer )
+                                      var
+                                         R0, R1, D :TArray<Byte>;
+                                      begin
+                                           SetLength( R0, LUXIMAGE_TILE * Z );
+                                           SetLength( R1, LUXIMAGE_TILE * Z );
+                                           SetLength( D , LUXIMAGE_TILE * Z );
+
+                                           MakeChain( Dirts[ I ] mod NX, Dirts[ I ] div NX, @R0[ 0 ], @R1[ 0 ], @D[ 0 ] );
+                                      end );
+
+               I0 := I1 + 1;
+
+               if _Busy then DoProgress( I0 / N );  // 非同期処理中のみ（描画中の再入を避ける）
+          end;
+
+          ///// それより上の段 ：段ごと作り直す
+
+          for L := LUXIMAGE_TILE_LOG+1 to LevelsN-1 do  // 段は下から順に（各段は直下の段だけに依存する）
+          begin
+               LL := L;
+               LX := _Levels[ L ].TilesX;
+               LW := _Levels[ L ].Width;
+               LH := _Levels[ L ].Height;
+
+               TParallel.For( 0, High( _Levels[ L ].Tiles ), procedure( I:Integer )
+                                                             var
+                                                                R0, R1, D :TArray<Byte>;
+                                                                X, Y      :Integer;
+                                                             begin
+                                                                  SetLength( R0, LUXIMAGE_TILE * 2 * Z );
+                                                                  SetLength( R1, LUXIMAGE_TILE * 2 * Z );
+                                                                  SetLength( D , LUXIMAGE_TILE     * Z );
+
+                                                                  X := ( I mod LX ) shl LUXIMAGE_TILE_LOG;
+                                                                  Y := ( I div LX ) shl LUXIMAGE_TILE_LOG;
+
+                                                                  MakeBlock( LL, X, Y, Min( LUXIMAGE_TILE, LW - X ),
+                                                                                       Min( LUXIMAGE_TILE, LH - Y ), @R0[ 0 ], @R1[ 0 ], @D[ 0 ] );
+                                                             end );
+          end;
+     finally
+          TMonitor.Exit( Self );
+     end;
 end;
 
 //------------------------------------------------------------------------------
@@ -474,61 +730,40 @@ end;
 //------------------------------------------------------------------------------
 
 function TLuxImage.TileData( const L_,TX_,TY_:Integer ) :Pointer;
-var
-   I :Integer;
 begin
-     with _Levels[ L_ ] do
-     begin
-          I := TY_ * TilesX + TX_;
-
-          if Tiles[ I ] = nil then SetLength( Tiles[ I ], LUXIMAGE_TILE * LUXIMAGE_TILE * PixelSize );  // 動的配列は 0 埋めされる
-
-          Result := @Tiles[ I, 0 ];
-     end;
+     with _Levels[ L_ ] do Result := @Tiles[ TY_ * TilesX + TX_ ].Data[ 0 ];
 end;
 
-function TLuxImage.TilePeek( const L_,TX_,TY_:Integer ) :Pointer;
-var
-   I :Integer;
+function TLuxImage.TileStamp( const L_,TX_,TY_:Integer ) :Cardinal;
 begin
-     with _Levels[ L_ ] do
-     begin
-          I := TY_ * TilesX + TX_;
-
-          if Tiles[ I ] = nil then Exit( nil );
-
-          Result := @Tiles[ I, 0 ];
-     end;
+     with _Levels[ L_ ] do Result := Tiles[ TY_ * TilesX + TX_ ].Stamp;
 end;
 
 //------------------------------------------------------------------------------
 
 procedure TLuxImage.GetRaws( const L_,X_,Y_,N_:Integer; const Dst_:Pointer );
 var
-   S, I, C, TX, PX, TY, PY :Integer;
-   D, T                    :PByte;
+   Z, I, C, TX, PX, TY, PY :Integer;
+   D                       :PByte;
 begin
-     S := PixelSize;
+     Z := PixelSize;
      D := Dst_;
 
-     TY := Y_ div LUXIMAGE_TILE;
-     PY := Y_ mod LUXIMAGE_TILE;
+     TY := Y_ shr LUXIMAGE_TILE_LOG;
+     PY := Y_ and ( LUXIMAGE_TILE - 1 );
 
      I := 0;
 
      while I < N_ do
      begin
-          TX := ( X_ + I ) div LUXIMAGE_TILE;
-          PX := ( X_ + I ) mod LUXIMAGE_TILE;
+          TX := ( X_ + I ) shr LUXIMAGE_TILE_LOG;
+          PX := ( X_ + I ) and ( LUXIMAGE_TILE - 1 );
 
           C := Min( LUXIMAGE_TILE - PX, N_ - I );
 
-          T := TilePeek( L_, TX, TY );
+          Move( ( PByte( TileData( L_, TX, TY ) ) + ( PY * LUXIMAGE_TILE + PX ) * Z )^, D^, C * Z );
 
-          if Assigned( T ) then Move( ( T + ( PY * LUXIMAGE_TILE + PX ) * S )^, D^, C * S )
-                           else FillChar( D^, C * S, 0 );
-
-          Inc( D, C * S );
+          Inc( D, C * Z );
           Inc( I, C );
      end;
 end;
@@ -536,26 +771,24 @@ end;
 procedure TLuxImage.SetRaws( const L_,X_,Y_,N_:Integer; const Src_:Pointer );
 var
    Z, I, C, TX, PX, TY, PY :Integer;
-   S, T                    :PByte;
+   S                       :PByte;
 begin
      Z := PixelSize;
      S := Src_;
 
-     TY := Y_ div LUXIMAGE_TILE;
-     PY := Y_ mod LUXIMAGE_TILE;
+     TY := Y_ shr LUXIMAGE_TILE_LOG;
+     PY := Y_ and ( LUXIMAGE_TILE - 1 );
 
      I := 0;
 
      while I < N_ do
      begin
-          TX := ( X_ + I ) div LUXIMAGE_TILE;
-          PX := ( X_ + I ) mod LUXIMAGE_TILE;
+          TX := ( X_ + I ) shr LUXIMAGE_TILE_LOG;
+          PX := ( X_ + I ) and ( LUXIMAGE_TILE - 1 );
 
           C := Min( LUXIMAGE_TILE - PX, N_ - I );
 
-          T := TileData( L_, TX, TY );
-
-          Move( S^, ( T + ( PY * LUXIMAGE_TILE + PX ) * Z )^, C * Z );
+          Move( S^, ( PByte( TileData( L_, TX, TY ) ) + ( PY * LUXIMAGE_TILE + PX ) * Z )^, C * Z );
 
           Inc( S, C * Z );
           Inc( I, C );
@@ -564,74 +797,57 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TLuxImage.GetMipRows( const L_,TX_,TY_,Y_:Integer; const Row0_,Row1_:Pointer; out N_:Integer );
+procedure TLuxImage.GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );
 var
-   W, H, X, Y :Integer;
+   Z, I, C, TX, PX, TY, PY :Integer;
+   D                       :PSingleRGBA;
 begin
-     W := _Levels[ L_-1 ].Width;
-     H := _Levels[ L_-1 ].Height;
+     Z := PixelSize;
+     D := Dst_;
 
-     X := ( TX_ * LUXIMAGE_TILE     ) * 2;
-     Y := ( TY_ * LUXIMAGE_TILE + Y_ ) * 2;
-
-     N_ := Min( LUXIMAGE_TILE * 2, W - X );
-
-     GetRaws( L_-1, X, Y, N_, Row0_ );
-
-     if Y + 1 < H then GetRaws( L_-1, X, Y+1, N_, Row1_ )
-                  else Move( Row0_^, Row1_^, N_ * PixelSize );
-end;
-
-//------------------------------------------------------------------------------
-
-procedure TLuxImage.NeedLevel( const L_:Integer );
-const
-      CHUNK = 8;  // 一度に並列処理するタイル行数
-var
-   L, LL, NX, TY, Y0, Y1, N, I :Integer;
-begin
-     ///// 作る必要のあるタイル行の総数（進捗の分母）
-
-     N := 0;
-
-     for L := 1 to Min( L_, LevelsN-1 ) do
-       if not _LevelUp[ L ] then Inc( N, _Levels[ L ].TilesY );
-
-     if N = 0 then Exit;
+     TY := Y_ shr LUXIMAGE_TILE_LOG;
+     PY := Y_ and ( LUXIMAGE_TILE - 1 );
 
      I := 0;
 
-     for L := 1 to Min( L_, LevelsN-1 ) do
+     while I < N_ do
      begin
-          if _LevelUp[ L ] then Continue;
+          TX := ( X_ + I ) shr LUXIMAGE_TILE_LOG;
+          PX := ( X_ + I ) and ( LUXIMAGE_TILE - 1 );
 
-          LL := L;                        // 無名メソッドは for の制御変数を捕捉できない
-          NX := _Levels[ L ].TilesX;
+          C := Min( LUXIMAGE_TILE - PX, N_ - I );
 
-          TY := 0;
+          RowIn( PByte( TileData( L_, TX, TY ) ) + ( PY * LUXIMAGE_TILE + PX ) * Z, D, C );
 
-          while TY < _Levels[ L ].TilesY do
-          begin
-               Y0 := TY;
-               Y1 := Min( Y0 + CHUNK, _Levels[ L ].TilesY ) - 1;
+          Inc( D, C );
+          Inc( I, C );
+     end;
+end;
 
-               ///// 段内のタイルは互いに独立（各自のタイルだけを書き、下の段は読むだけ）
+procedure TLuxImage.SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );
+var
+   Z, I, C, TX, PX, TY, PY :Integer;
+   S                       :PSingleRGBA;
+begin
+     Z := PixelSize;
+     S := Src_;
 
-               TParallel.For( Y0, Y1, procedure( Y:Integer )
-                                      var
-                                         TX :Integer;
-                                      begin
-                                           for TX := 0 to NX-1 do MakeTileMip( LL, TX, Y );
-                                      end );
+     TY := Y_ shr LUXIMAGE_TILE_LOG;
+     PY := Y_ and ( LUXIMAGE_TILE - 1 );
 
-               Inc( I, Y1 - Y0 + 1 );
+     I := 0;
 
-               TY := Y1 + 1;
+     while I < N_ do
+     begin
+          TX := ( X_ + I ) shr LUXIMAGE_TILE_LOG;
+          PX := ( X_ + I ) and ( LUXIMAGE_TILE - 1 );
 
-               if _Busy then DoProgress( I / N );  // 非同期処理中のみ（描画中の再入を避ける）
-          end;
+          C := Min( LUXIMAGE_TILE - PX, N_ - I );
 
-          _LevelUp[ L ] := True;
+          RowOut( S, PByte( TileData( L_, TX, TY ) ) + ( PY * LUXIMAGE_TILE + PX ) * Z, C );
+
+          Inc( S, C );
+          Inc( I, C );
      end;
 end;
 
@@ -642,6 +858,8 @@ begin
      _Progress := 0;  _Fired := -1;
 
      TLuxImageFiler.LoadFromFile( Self, FileName_ );
+
+     UpdateLevels;
 
      DoProgress( 1 );
 end;
@@ -670,7 +888,7 @@ begin
                       ///// 表示に要る縮小段も、ここで作り終えてしまう。
                       ///// 最初の描画時に作ると、その分だけ UI が止まってしまうため。
 
-                      ProgRange( 0.75, 1 );  NeedLevel( LevelsN - 1 );
+                      ProgRange( 0.75, 1 );  UpdateLevels;
 
                       ProgRange( 0, 1 );
                  end, False );
@@ -729,7 +947,63 @@ end;
 
 procedure TLuxImageUInt08.SetPixels( const X_,Y_:Integer; const P_:TByteRGBA );
 begin
-     SetRaws( 0, X_, Y_, 1, @P_ );  Changed;
+     SetRaws( 0, X_, Y_, 1, @P_ );
+
+     TileChanged( X_ shr LUXIMAGE_TILE_LOG, Y_ shr LUXIMAGE_TILE_LOG );
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+procedure TLuxImageUInt08.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer );
+var
+   S :PByteRGBA;
+   D :PSingleRGBA;
+   I :Integer;
+begin
+     S := Src_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          D^ := S^;  Inc( S );  Inc( D );
+     end;
+end;
+
+procedure TLuxImageUInt08.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer );
+var
+   S :PSingleRGBA;
+   D :PByteRGBA;
+   I :Integer;
+begin
+     S := Src_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          D^ := TByteRGBA( S^ );  Inc( S );  Inc( D );
+     end;
+end;
+
+procedure TLuxImageUInt08.MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer );
+var
+   S0, S1 :PByteRGBA;
+   D      :PByteRGBA;
+   I      :Integer;
+begin
+     S0 := Src0_;  S1 := Src1_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          with D^ do
+          begin
+               R := ( S0[0].R + S0[1].R + S1[0].R + S1[1].R + 2 ) div 4;
+               G := ( S0[0].G + S0[1].G + S1[0].G + S1[1].G + 2 ) div 4;
+               B := ( S0[0].B + S0[1].B + S1[0].B + S1[1].B + 2 ) div 4;
+               A := ( S0[0].A + S0[1].A + S1[0].A + S1[1].A + 2 ) div 4;
+          end;
+
+          Inc( S0, 2 );  Inc( S1, 2 );  Inc( D );
+     end;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -746,117 +1020,6 @@ begin
      Result := SizeOf( TByteRGBA );
 end;
 
-//////////////////////////////////////////////////////////////////// M E T H O D
-
-procedure TLuxImageUInt08.GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );
-var
-   I, C, J, TX, PX, TY, PY :Integer;
-   T                       :PByteRGBA;
-   D                       :PSingleRGBA;
-begin
-     D := Dst_;
-
-     TY := Y_ div LUXIMAGE_TILE;
-     PY := Y_ mod LUXIMAGE_TILE;
-
-     I := 0;
-
-     while I < N_ do
-     begin
-          TX := ( X_ + I ) div LUXIMAGE_TILE;
-          PX := ( X_ + I ) mod LUXIMAGE_TILE;
-
-          C := Min( LUXIMAGE_TILE - PX, N_ - I );
-
-          T := TilePeek( L_, TX, TY );
-
-          if Assigned( T ) then
-          begin
-               Inc( T, PY * LUXIMAGE_TILE + PX );
-
-               for J := 1 to C do
-               begin
-                    D^ := T^;  Inc( D );  Inc( T );
-               end;
-          end
-          else
-          begin
-               FillChar( D^, C * SizeOf( TSingleRGBA ), 0 );  Inc( D, C );
-          end;
-
-          Inc( I, C );
-     end;
-end;
-
-procedure TLuxImageUInt08.SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );
-var
-   I, C, J, TX, PX, TY, PY :Integer;
-   T                       :PByteRGBA;
-   S                       :PSingleRGBA;
-begin
-     S := Src_;
-
-     TY := Y_ div LUXIMAGE_TILE;
-     PY := Y_ mod LUXIMAGE_TILE;
-
-     I := 0;
-
-     while I < N_ do
-     begin
-          TX := ( X_ + I ) div LUXIMAGE_TILE;
-          PX := ( X_ + I ) mod LUXIMAGE_TILE;
-
-          C := Min( LUXIMAGE_TILE - PX, N_ - I );
-
-          T := TileData( L_, TX, TY );  Inc( T, PY * LUXIMAGE_TILE + PX );
-
-          for J := 1 to C do
-          begin
-               T^ := TByteRGBA( S^ );  Inc( S );  Inc( T );
-          end;
-
-          Inc( I, C );
-     end;
-end;
-
-procedure TLuxImageUInt08.MakeTileMip( const L_,TX_,TY_:Integer );
-var
-   R0, R1  :TArray<TByteRGBA>;
-   D       :PByteRGBA;
-   TW, TH  :Integer;
-   X, Y, N :Integer;
-   I0, I1  :Integer;
-begin
-     TW := TileWidth ( L_, TX_ );
-     TH := TileHeight( L_, TY_ );
-
-     if ( TW < 1 ) or ( TH < 1 ) then Exit;
-
-     SetLength( R0, LUXIMAGE_TILE * 2 );
-     SetLength( R1, LUXIMAGE_TILE * 2 );
-
-     D := TileData( L_, TX_, TY_ );
-
-     for Y := 0 to TH-1 do
-     begin
-          GetMipRows( L_, TX_, TY_, Y, @R0[ 0 ], @R1[ 0 ], N );
-
-          for X := 0 to TW-1 do
-          begin
-               I0 := X * 2;
-               I1 := I0 + 1;  if I1 >= N then I1 := I0;
-
-               with D[ Y * LUXIMAGE_TILE + X ] do
-               begin
-                    R := ( R0[I0].R + R0[I1].R + R1[I0].R + R1[I1].R + 2 ) div 4;
-                    G := ( R0[I0].G + R0[I1].G + R1[I0].G + R1[I1].G + 2 ) div 4;
-                    B := ( R0[I0].B + R0[I1].B + R1[I0].B + R1[I1].B + 2 ) div 4;
-                    A := ( R0[I0].A + R0[I1].A + R1[I0].A + R1[I1].A + 2 ) div 4;
-               end;
-          end;
-     end;
-end;
-
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TLuxImageUInt16
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
@@ -870,7 +1033,63 @@ end;
 
 procedure TLuxImageUInt16.SetPixels( const X_,Y_:Integer; const P_:TWordRGBA );
 begin
-     SetRaws( 0, X_, Y_, 1, @P_ );  Changed;
+     SetRaws( 0, X_, Y_, 1, @P_ );
+
+     TileChanged( X_ shr LUXIMAGE_TILE_LOG, Y_ shr LUXIMAGE_TILE_LOG );
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+procedure TLuxImageUInt16.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer );
+var
+   S :PWordRGBA;
+   D :PSingleRGBA;
+   I :Integer;
+begin
+     S := Src_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          D^ := S^;  Inc( S );  Inc( D );
+     end;
+end;
+
+procedure TLuxImageUInt16.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer );
+var
+   S :PSingleRGBA;
+   D :PWordRGBA;
+   I :Integer;
+begin
+     S := Src_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          D^ := S^;  Inc( S );  Inc( D );
+     end;
+end;
+
+procedure TLuxImageUInt16.MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer );
+var
+   S0, S1 :PWordRGBA;
+   D      :PWordRGBA;
+   I      :Integer;
+begin
+     S0 := Src0_;  S1 := Src1_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          with D^ do
+          begin
+               R := ( Cardinal( S0[0].R ) + S0[1].R + S1[0].R + S1[1].R + 2 ) div 4;
+               G := ( Cardinal( S0[0].G ) + S0[1].G + S1[0].G + S1[1].G + 2 ) div 4;
+               B := ( Cardinal( S0[0].B ) + S0[1].B + S1[0].B + S1[1].B + 2 ) div 4;
+               A := ( Cardinal( S0[0].A ) + S0[1].A + S1[0].A + S1[1].A + 2 ) div 4;
+          end;
+
+          Inc( S0, 2 );  Inc( S1, 2 );  Inc( D );
+     end;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -887,117 +1106,6 @@ begin
      Result := SizeOf( TWordRGBA );
 end;
 
-//////////////////////////////////////////////////////////////////// M E T H O D
-
-procedure TLuxImageUInt16.GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );
-var
-   I, C, J, TX, PX, TY, PY :Integer;
-   T                       :PWordRGBA;
-   D                       :PSingleRGBA;
-begin
-     D := Dst_;
-
-     TY := Y_ div LUXIMAGE_TILE;
-     PY := Y_ mod LUXIMAGE_TILE;
-
-     I := 0;
-
-     while I < N_ do
-     begin
-          TX := ( X_ + I ) div LUXIMAGE_TILE;
-          PX := ( X_ + I ) mod LUXIMAGE_TILE;
-
-          C := Min( LUXIMAGE_TILE - PX, N_ - I );
-
-          T := TilePeek( L_, TX, TY );
-
-          if Assigned( T ) then
-          begin
-               Inc( T, PY * LUXIMAGE_TILE + PX );
-
-               for J := 1 to C do
-               begin
-                    D^ := T^;  Inc( D );  Inc( T );
-               end;
-          end
-          else
-          begin
-               FillChar( D^, C * SizeOf( TSingleRGBA ), 0 );  Inc( D, C );
-          end;
-
-          Inc( I, C );
-     end;
-end;
-
-procedure TLuxImageUInt16.SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );
-var
-   I, C, J, TX, PX, TY, PY :Integer;
-   T                       :PWordRGBA;
-   S                       :PSingleRGBA;
-begin
-     S := Src_;
-
-     TY := Y_ div LUXIMAGE_TILE;
-     PY := Y_ mod LUXIMAGE_TILE;
-
-     I := 0;
-
-     while I < N_ do
-     begin
-          TX := ( X_ + I ) div LUXIMAGE_TILE;
-          PX := ( X_ + I ) mod LUXIMAGE_TILE;
-
-          C := Min( LUXIMAGE_TILE - PX, N_ - I );
-
-          T := TileData( L_, TX, TY );  Inc( T, PY * LUXIMAGE_TILE + PX );
-
-          for J := 1 to C do
-          begin
-               T^ := S^;  Inc( S );  Inc( T );
-          end;
-
-          Inc( I, C );
-     end;
-end;
-
-procedure TLuxImageUInt16.MakeTileMip( const L_,TX_,TY_:Integer );
-var
-   R0, R1  :TArray<TWordRGBA>;
-   D       :PWordRGBA;
-   TW, TH  :Integer;
-   X, Y, N :Integer;
-   I0, I1  :Integer;
-begin
-     TW := TileWidth ( L_, TX_ );
-     TH := TileHeight( L_, TY_ );
-
-     if ( TW < 1 ) or ( TH < 1 ) then Exit;
-
-     SetLength( R0, LUXIMAGE_TILE * 2 );
-     SetLength( R1, LUXIMAGE_TILE * 2 );
-
-     D := TileData( L_, TX_, TY_ );
-
-     for Y := 0 to TH-1 do
-     begin
-          GetMipRows( L_, TX_, TY_, Y, @R0[ 0 ], @R1[ 0 ], N );
-
-          for X := 0 to TW-1 do
-          begin
-               I0 := X * 2;
-               I1 := I0 + 1;  if I1 >= N then I1 := I0;
-
-               with D[ Y * LUXIMAGE_TILE + X ] do
-               begin
-                    R := ( Cardinal( R0[I0].R ) + R0[I1].R + R1[I0].R + R1[I1].R + 2 ) div 4;
-                    G := ( Cardinal( R0[I0].G ) + R0[I1].G + R1[I0].G + R1[I1].G + 2 ) div 4;
-                    B := ( Cardinal( R0[I0].B ) + R0[I1].B + R1[I0].B + R1[I1].B + 2 ) div 4;
-                    A := ( Cardinal( R0[I0].A ) + R0[I1].A + R1[I0].A + R1[I1].A + 2 ) div 4;
-               end;
-          end;
-     end;
-end;
-
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TLuxImageSFlo16
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
@@ -1011,7 +1119,63 @@ end;
 
 procedure TLuxImageSFlo16.SetPixels( const X_,Y_:Integer; const P_:THalfRGBA );
 begin
-     SetRaws( 0, X_, Y_, 1, @P_ );  Changed;
+     SetRaws( 0, X_, Y_, 1, @P_ );
+
+     TileChanged( X_ shr LUXIMAGE_TILE_LOG, Y_ shr LUXIMAGE_TILE_LOG );
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+procedure TLuxImageSFlo16.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer );
+var
+   S :PHalfRGBA;
+   D :PSingleRGBA;
+   I :Integer;
+begin
+     S := Src_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          D^ := S^;  Inc( S );  Inc( D );
+     end;
+end;
+
+procedure TLuxImageSFlo16.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer );
+var
+   S :PSingleRGBA;
+   D :PHalfRGBA;
+   I :Integer;
+begin
+     S := Src_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          D^ := S^;  Inc( S );  Inc( D );
+     end;
+end;
+
+procedure TLuxImageSFlo16.MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer );
+var
+   S0, S1 :PHalfRGBA;
+   D      :PHalfRGBA;
+   I      :Integer;
+begin
+     S0 := Src0_;  S1 := Src1_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          with D^ do
+          begin
+               R := ( Single( S0[0].R ) + Single( S0[1].R ) + Single( S1[0].R ) + Single( S1[1].R ) ) / 4;
+               G := ( Single( S0[0].G ) + Single( S0[1].G ) + Single( S1[0].G ) + Single( S1[1].G ) ) / 4;
+               B := ( Single( S0[0].B ) + Single( S0[1].B ) + Single( S1[0].B ) + Single( S1[1].B ) ) / 4;
+               A := ( Single( S0[0].A ) + Single( S0[1].A ) + Single( S1[0].A ) + Single( S1[1].A ) ) / 4;
+          end;
+
+          Inc( S0, 2 );  Inc( S1, 2 );  Inc( D );
+     end;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -1038,117 +1202,6 @@ begin
      Result := 2.2;  // 浮動小数形式はリニアとみなす
 end;
 
-//////////////////////////////////////////////////////////////////// M E T H O D
-
-procedure TLuxImageSFlo16.GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );
-var
-   I, C, J, TX, PX, TY, PY :Integer;
-   T                       :PHalfRGBA;
-   D                       :PSingleRGBA;
-begin
-     D := Dst_;
-
-     TY := Y_ div LUXIMAGE_TILE;
-     PY := Y_ mod LUXIMAGE_TILE;
-
-     I := 0;
-
-     while I < N_ do
-     begin
-          TX := ( X_ + I ) div LUXIMAGE_TILE;
-          PX := ( X_ + I ) mod LUXIMAGE_TILE;
-
-          C := Min( LUXIMAGE_TILE - PX, N_ - I );
-
-          T := TilePeek( L_, TX, TY );
-
-          if Assigned( T ) then
-          begin
-               Inc( T, PY * LUXIMAGE_TILE + PX );
-
-               for J := 1 to C do
-               begin
-                    D^ := T^;  Inc( D );  Inc( T );
-               end;
-          end
-          else
-          begin
-               FillChar( D^, C * SizeOf( TSingleRGBA ), 0 );  Inc( D, C );
-          end;
-
-          Inc( I, C );
-     end;
-end;
-
-procedure TLuxImageSFlo16.SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );
-var
-   I, C, J, TX, PX, TY, PY :Integer;
-   T                       :PHalfRGBA;
-   S                       :PSingleRGBA;
-begin
-     S := Src_;
-
-     TY := Y_ div LUXIMAGE_TILE;
-     PY := Y_ mod LUXIMAGE_TILE;
-
-     I := 0;
-
-     while I < N_ do
-     begin
-          TX := ( X_ + I ) div LUXIMAGE_TILE;
-          PX := ( X_ + I ) mod LUXIMAGE_TILE;
-
-          C := Min( LUXIMAGE_TILE - PX, N_ - I );
-
-          T := TileData( L_, TX, TY );  Inc( T, PY * LUXIMAGE_TILE + PX );
-
-          for J := 1 to C do
-          begin
-               T^ := S^;  Inc( S );  Inc( T );
-          end;
-
-          Inc( I, C );
-     end;
-end;
-
-procedure TLuxImageSFlo16.MakeTileMip( const L_,TX_,TY_:Integer );
-var
-   R0, R1  :TArray<THalfRGBA>;
-   D       :PHalfRGBA;
-   TW, TH  :Integer;
-   X, Y, N :Integer;
-   I0, I1  :Integer;
-begin
-     TW := TileWidth ( L_, TX_ );
-     TH := TileHeight( L_, TY_ );
-
-     if ( TW < 1 ) or ( TH < 1 ) then Exit;
-
-     SetLength( R0, LUXIMAGE_TILE * 2 );
-     SetLength( R1, LUXIMAGE_TILE * 2 );
-
-     D := TileData( L_, TX_, TY_ );
-
-     for Y := 0 to TH-1 do
-     begin
-          GetMipRows( L_, TX_, TY_, Y, @R0[ 0 ], @R1[ 0 ], N );
-
-          for X := 0 to TW-1 do
-          begin
-               I0 := X * 2;
-               I1 := I0 + 1;  if I1 >= N then I1 := I0;
-
-               with D[ Y * LUXIMAGE_TILE + X ] do
-               begin
-                    R := ( Single( R0[I0].R ) + Single( R0[I1].R ) + Single( R1[I0].R ) + Single( R1[I1].R ) ) / 4;
-                    G := ( Single( R0[I0].G ) + Single( R0[I1].G ) + Single( R1[I0].G ) + Single( R1[I1].G ) ) / 4;
-                    B := ( Single( R0[I0].B ) + Single( R0[I1].B ) + Single( R1[I0].B ) + Single( R1[I1].B ) ) / 4;
-                    A := ( Single( R0[I0].A ) + Single( R0[I1].A ) + Single( R1[I0].A ) + Single( R1[I1].A ) ) / 4;
-               end;
-          end;
-     end;
-end;
-
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TLuxImageSFlo32
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& private
@@ -1162,7 +1215,39 @@ end;
 
 procedure TLuxImageSFlo32.SetPixels( const X_,Y_:Integer; const P_:TSingleRGBA );
 begin
-     SetRaws( 0, X_, Y_, 1, @P_ );  Changed;
+     SetRaws( 0, X_, Y_, 1, @P_ );
+
+     TileChanged( X_ shr LUXIMAGE_TILE_LOG, Y_ shr LUXIMAGE_TILE_LOG );
+end;
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
+
+//////////////////////////////////////////////////////////////////// M E T H O D
+
+procedure TLuxImageSFlo32.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer );
+begin
+     Move( Src_^, Dst_^, N_ * SizeOf( TSingleRGBA ) );  // 記憶形式そのもの
+end;
+
+procedure TLuxImageSFlo32.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer );
+begin
+     Move( Src_^, Dst_^, N_ * SizeOf( TSingleRGBA ) );  // 記憶形式そのもの
+end;
+
+procedure TLuxImageSFlo32.MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer );
+var
+   S0, S1 :PSingleRGBA;
+   D      :PSingleRGBA;
+   I      :Integer;
+begin
+     S0 := Src0_;  S1 := Src1_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          D^ := ( S0[0] + S0[1] + S1[0] + S1[1] ) / 4;
+
+          Inc( S0, 2 );  Inc( S1, 2 );  Inc( D );
+     end;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -1189,50 +1274,6 @@ begin
      Result := 2.2;  // 浮動小数形式はリニアとみなす
 end;
 
-//////////////////////////////////////////////////////////////////// M E T H O D
-
-procedure TLuxImageSFlo32.GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );
-begin
-     GetRaws( L_, X_, Y_, N_, Dst_ );  // 記憶形式そのもの
-end;
-
-procedure TLuxImageSFlo32.SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );
-begin
-     SetRaws( L_, X_, Y_, N_, Src_ );  // 記憶形式そのもの
-end;
-
-procedure TLuxImageSFlo32.MakeTileMip( const L_,TX_,TY_:Integer );
-var
-   R0, R1  :TArray<TSingleRGBA>;
-   D       :PSingleRGBA;
-   TW, TH  :Integer;
-   X, Y, N :Integer;
-   I0, I1  :Integer;
-begin
-     TW := TileWidth ( L_, TX_ );
-     TH := TileHeight( L_, TY_ );
-
-     if ( TW < 1 ) or ( TH < 1 ) then Exit;
-
-     SetLength( R0, LUXIMAGE_TILE * 2 );
-     SetLength( R1, LUXIMAGE_TILE * 2 );
-
-     D := TileData( L_, TX_, TY_ );
-
-     for Y := 0 to TH-1 do
-     begin
-          GetMipRows( L_, TX_, TY_, Y, @R0[ 0 ], @R1[ 0 ], N );
-
-          for X := 0 to TW-1 do
-          begin
-               I0 := X * 2;
-               I1 := I0 + 1;  if I1 >= N then I1 := I0;
-
-               D[ Y * LUXIMAGE_TILE + X ] := ( R0[I0] + R0[I1] + R1[I0] + R1[I1] ) / 4;
-          end;
-     end;
-end;
-
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LuxImageClass
@@ -1247,5 +1288,23 @@ begin
      else        Result := nil;
      end;
 end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LuxFreeMemory
+
+function LuxFreeMemory :Int64;
+{$IFDEF MSWINDOWS}
+var
+   S :TMemoryStatusEx;
+begin
+     S.dwLength := SizeOf( S );
+
+     if GlobalMemoryStatusEx( S ) then Result := S.ullAvailPhys
+                                  else Result := -1;
+end;
+{$ELSE}
+begin
+     Result := -1;
+end;
+{$ENDIF}
 
 end. //######################################################################### ■
