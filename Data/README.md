@@ -6,7 +6,7 @@
 ## 1. Overview
 
 * [**Grid**](Grid/README.md) ：regular 1-D point grids and a triangular 2-D grid
-* [**Image**](Image/README.md) ：ultra-high-resolution tiled mip-pyramid images with a real-time viewer
+* [**Image**](Image/README.md) ：ultra-high-resolution tiled mip-pyramid images with a real-time viewer and a parallel block scheduler
 * [**List**](List/README.md) ：intrusive doubly linked list with an incremental index, core + typed layers
 * [**Model**](Model/README.md) ：corner-table meshes — TriFlip ( 2-D ) and TetraFlip ( 3-D )
 * [**Tree**](Tree/README.md) ：generic tree over the list — TTreeRoot / TTreeKnot / TTreeLeaf
@@ -31,7 +31,7 @@ blank line  ･･･ terminator — everything after it is binary
 ・Data/
   ┣・LUX.Data.pas ･･･ WriteLine / ReadLine / WriteHead / ReadHead
   ┣・Grid/        ･･･ LUX.Data.Grid.D1  LUX.Data.Grid.Tria.D2
-  ┣・Image/       ･･･ LUX.Data.Image ( + .Files  .Viewer )
+  ┣・Image/       ･･･ LUX.Data.Image ( + .Files  .Worker  .Viewer )
   ┣・List/        ･･･ LUX.Data.List.core  LUX.Data.List
   ┣・Model/       ･･･ LUX.Data.Model.*  ( TriFlip/  TetraFlip/ )
   ┗・Tree/        ･･･ LUX.Data.Tree
