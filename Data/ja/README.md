@@ -6,7 +6,7 @@
 ## 1. 概要
 
 * [**Grid**](../Grid/ja/README.md) ：1次元の点グリッドと三角形の2次元グリッド
-* [**Image**](../Image/ja/README.md) ：タイル＋縮小ピラミッドの超高解像度画像とリアルタイムビューア
+* [**Image**](../Image/ja/README.md) ：タイル＋縮小ピラミッドの超高解像度画像、リアルタイムビューア、並列ブロックスケジューラ
 * [**List**](../List/ja/README.md) ：逐次インデックス付きの侵入型双方向リスト（核＋型付け層）
 * [**Model**](../Model/ja/README.md) ：コーナーテーブル式メッシュ — TriFlip（2次元）と TetraFlip（3次元）
 * [**Tree**](../Tree/ja/README.md) ：リスト上の汎用木構造 — TTreeRoot / TTreeKnot / TTreeLeaf
@@ -31,7 +31,7 @@ magic 行     ･･･ 形式を識別する。UTF-8・LF 終端
 ・Data/
   ┣・LUX.Data.pas ･･･ WriteLine / ReadLine / WriteHead / ReadHead
   ┣・Grid/        ･･･ LUX.Data.Grid.D1  LUX.Data.Grid.Tria.D2
-  ┣・Image/       ･･･ LUX.Data.Image ( + .Files  .Viewer )
+  ┣・Image/       ･･･ LUX.Data.Image ( + .Files  .Worker  .Viewer )
   ┣・List/        ･･･ LUX.Data.List.core  LUX.Data.List
   ┣・Model/       ･･･ LUX.Data.Model.*  ( TriFlip/  TetraFlip/ )
   ┗・Tree/        ･･･ LUX.Data.Tree
