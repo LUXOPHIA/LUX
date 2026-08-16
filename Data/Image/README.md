@@ -87,22 +87,22 @@ The viewer validates its per-tile GPU cache against the stamps — a tile's own 
 For a display scale $s$ in screen pixels per image pixel, the viewer draws from level
 
 ```math
-\ell = \min\!\left( \max\!\left( 0, \left\lceil -\log_2 s \right\rceil \right), \; \mathrm{LevelsN} - 1 \right) \qquad \text{(2.6)}
+\ell = \min\!\left( \max\!\left( 0, \left\lfloor -\log_2 s \right\rfloor \right), \; \mathrm{LevelsN} - 1 \right) \qquad \text{(2.6)}
 ```
 
 whose effective per-pixel scale is
 
 ```math
-S = s \cdot 2^{\ell} \in [\,1, 2\,) \qquad \text{(2.7)}
+S = s \cdot 2^{\ell} \in (\,\tfrac{1}{2}, 1\,] \qquad (s < 1) \qquad \text{(2.7)}
 ```
 
-Because $S \ge 1$ always, minification never occurs inside a level, and minification aliasing cannot arise. The number of visible tiles is then bounded by the window, not by the image:
+so a level is never magnified: what remains is a minification by at most 2, and that is exactly what the GPU's mip-mapped sampling covers. Every cached tile is uploaded as a mip-mapped texture, and the tiles are drawn with trilinear sampling, so the sampler interpolates between the tile's LOD 0 (level $\ell$) and LOD 1 (a 2 × 2 average, identical to level $\ell + 1$) at LOD $= -\log_2 S \in [0, 1)$. The result is a continuous blend of the two neighbouring pyramid levels — the same trilinear minification a GPU uses for textures, and the display quality of an image editor's zoom — with neither the softness of magnifying a coarser level nor the aliasing of minifying a finer one, at every zoom factor. Above 1:1 ($s \ge 1$) level 0 is drawn with nearest-neighbour sampling so that pixels appear as squares. The number of visible tiles is bounded by the window, not by the image:
 
 ```math
 N_{\text{tiles}} \le \left( \left\lceil \frac{W_{\text{view}}}{S \cdot T} \right\rceil + 1 \right) \left( \left\lceil \frac{H_{\text{view}}}{S \cdot T} \right\rceil + 1 \right) \qquad \text{(2.8)}
 ```
 
-For a 1920 × 1080 window this is at most about 9 × 6 = 54 tiles, whatever the size of the image.
+For a 1920 × 1080 window this is at most about 17 × 10 = 170 tiles at $S \to \tfrac{1}{2}$, whatever the size of the image.
 
 ### 2.5 Display transfer functions
 
@@ -161,7 +161,7 @@ Both are evaluated by an SkSL runtime colour filter on the GPU, so changing `Gam
 ・TLuxImage
   ┗・level 0                         ･･･ original pixels, 256 × 256 tiles, Dirty + Stamp
      ┗・mip pyramid                  ･･･ level ℓ+1 = half of ℓ ( UpdateLevels, footprints of dirty tiles )
-        ┗・level chosen by (2.6)     ･･･ effective scale S ∈ [ 1, 2 )
+        ┗・level chosen by (2.6)     ･･･ effective scale S ∈ ( ½, 1 ], trilinear on the GPU
            ┗・visible tiles of it    ･･･ bounded by (2.8), not by the image
               ┗・ISkImage + apron    ･･･ cached as TTileImg under TTileKey, rebuilt when a stamp moves
                  ┗・DrawImageRect    ･･･ SkSL colour filter: tone map + gamma
@@ -488,10 +488,10 @@ Rolling the wheel towards you zooms in — the factor applied is $2^{-\Delta / 4
 ### 6.6 How a frame is drawn
 
 1. If `Version` has changed, the whole tile cache is dropped. Then `UpdateLevels` propagates any tiles that were changed since the last frame.
-2. The level is chosen by (2.6) so that within it the image is always magnified by a factor in [1, 2). Minification never occurs inside a level, so minification aliasing cannot arise.
+2. The level is chosen by (2.6) so that it is minified by a factor in (½, 1] and never magnified; the remaining minification is left to trilinear sampling of the tiles' mip-maps on the GPU, which blends the level with the next coarser one.
 3. The visible tiles of that level are enumerated, at most the number bounded by (2.8).
-4. Each tile becomes an `ISkImage` and is cached, keyed by `TTileKey` (level and tile indices) and validated by the sum of the stamps of the tile and its eight neighbours. The cached image carries a one-pixel apron gathered from the neighbouring tiles, so filtering at a tile boundary reads real neighbouring pixels instead of clamping, and no seams appear; including the neighbours in the validation is what keeps the apron current when a neighbour changes.
-5. The tiles are drawn with `DrawImageRect`. At `Scale` ≥ 1 sampling is nearest neighbour, so magnifying past 1:1 shows pixels as squares; below 1:1 it is linear. Colour management, tone mapping and gamma are applied by one SkSL runtime colour filter on the GPU, so changing `Gamma`, `ToneMap`, `White` or either colour space costs nothing and does not invalidate the cache.
+4. Each tile becomes an `ISkImage` — on a GPU canvas a mip-mapped texture created in the canvas's `GrDirectContext` — and is cached, keyed by `TTileKey` (level and tile indices) and validated by the sum of the stamps of the tile and its eight neighbours; the cache is dropped if the GPU context changes. The cached image carries a one-pixel apron gathered from the neighbouring tiles, so filtering at a tile boundary reads real neighbouring pixels instead of clamping, and no seams appear; including the neighbours in the validation is what keeps the apron current when a neighbour changes.
+5. The tiles are drawn with `DrawImageRect`. At `Scale` ≥ 1 sampling is nearest neighbour, so magnifying past 1:1 shows pixels as squares; below 1:1 it is linear with linear mip-map interpolation (trilinear), or plain linear on a raster canvas where tiles have no mip-maps. Colour management, tone mapping and gamma are applied by one SkSL runtime colour filter on the GPU, so changing `Gamma`, `ToneMap`, `White` or either colour space costs nothing and does not invalidate the cache.
 
 The colour filter, per pixel and after un-premultiplying, is: decode with the image's transfer function → tone map (optional, in linear light) → 3 × 3 matrix from the image's primaries to the display's, with Bradford adaptation if the white points differ → encode with the display's transfer function → `pow( 1/Gamma )` → re-premultiply. Without an image colour space only the tone map and the gamma remain, exactly as before. Both transfer functions are passed as the seven ICC coefficients (`LUX.Color.Space`, §2.5), so any curve the library can describe runs on the GPU unchanged.
 

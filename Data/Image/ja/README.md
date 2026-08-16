@@ -87,22 +87,22 @@ $T$ を `LUXIMAGE_TILE` とすると、段 $\ell$ が保持するタイル数は
 画像 1 画素あたりの画面画素数を表示倍率 $s$ とすると、ビューアが描画に用いる段は
 
 ```math
-\ell = \min\!\left( \max\!\left( 0, \left\lceil -\log_2 s \right\rceil \right), \; \mathrm{LevelsN} - 1 \right) \qquad \text{(2.6)}
+\ell = \min\!\left( \max\!\left( 0, \left\lfloor -\log_2 s \right\rfloor \right), \; \mathrm{LevelsN} - 1 \right) \qquad \text{(2.6)}
 ```
 
 であり、その段における実効倍率は
 
 ```math
-S = s \cdot 2^{\ell} \in [\,1, 2\,) \qquad \text{(2.7)}
+S = s \cdot 2^{\ell} \in (\,\tfrac{1}{2}, 1\,] \qquad (s < 1) \qquad \text{(2.7)}
 ```
 
-となる。常に $S \ge 1$ であるから、段の中で縮小が起きることはなく、縮小によるエイリアシングは原理的に発生しない。可視タイル数は画像ではなく窓によって上から抑えられる。
+となる。つまり段を拡大することは決してなく、残るのは高々 2 倍の縮小で、それはちょうど GPU のミップマップ標本化が受け持つ範囲である。キャッシュするタイルはすべてミップマップ付きテクスチャとして GPU に置き、トリリニアで描くので、サンプラはタイルの LOD 0（段 $\ell$）と LOD 1（2 × 2 平均。段 $\ell + 1$ と同じもの）の間を LOD $= -\log_2 S \in [0, 1)$ で補間する。結果として隣接 2 段が連続にブレンドされ ── GPU がテクスチャの縮小に使うのと同じトリリニア、画像編集ソフトのズーム表示と同じ品質 ── 粗い段を拡大するボケも、細かい段を縮小するエイリアシングも、どの倍率でも出ない。等倍以上（$s \ge 1$）は段 0 を最近傍で描き、画素が四角として見える。可視タイル数は画像ではなく窓によって上から抑えられる。
 
 ```math
 N_{\text{tiles}} \le \left( \left\lceil \frac{W_{\text{view}}}{S \cdot T} \right\rceil + 1 \right) \left( \left\lceil \frac{H_{\text{view}}}{S \cdot T} \right\rceil + 1 \right) \qquad \text{(2.8)}
 ```
 
-1920 × 1080 の窓なら、画像がどれだけ大きくても最大でおよそ 9 × 6 = 54 枚である。
+1920 × 1080 の窓なら、$S \to \tfrac{1}{2}$ で最大およそ 17 × 10 = 170 枚で、画像の大きさによらない。
 
 ### 2.5 表示の伝達関数
 
@@ -161,7 +161,7 @@ C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + 
 ・TLuxImage
   ┗・level 0                         ･･･ original pixels, 256 × 256 tiles, Dirty + Stamp
      ┗・mip pyramid                  ･･･ level ℓ+1 = half of ℓ ( UpdateLevels, footprints of dirty tiles )
-        ┗・level chosen by (2.6)     ･･･ effective scale S ∈ [ 1, 2 )
+        ┗・level chosen by (2.6)     ･･･ effective scale S ∈ ( ½, 1 ], trilinear on the GPU
            ┗・visible tiles of it    ･･･ bounded by (2.8), not by the image
               ┗・ISkImage + apron    ･･･ cached as TTileImg under TTileKey, rebuilt when a stamp moves
                  ┗・DrawImageRect    ･･･ SkSL colour filter: tone map + gamma
@@ -488,10 +488,10 @@ procedure Redraw;
 ### 6.6 1 フレームの描き方
 
 1. `Version` が変わっていればタイルキャッシュを全て捨てる。続いて `UpdateLevels` で、前のフレーム以降に変わったタイルを上の段へ反映する。
-2. 段は (2.6) によって選ばれ、段内では常に 1〜2 倍の拡大になる。段の中で縮小が起きないので、縮小によるエイリアシングは原理的に発生しない。
+2. 段は (2.6) によって選ばれ、½〜1 倍の縮小になり、拡大はしない。残りの縮小は GPU 上のタイルのミップマップのトリリニア標本化に任せ、その段と 1 つ粗い段をブレンドする。
 3. その段の可視タイルを列挙する。枚数の上限は (2.8) で与えられる。
-4. 各タイルを `ISkImage` 化し、`TTileKey`（段とタイル番号）を鍵としてキャッシュし、そのタイルと周囲 8 枚の Stamp の和で検証する。キャッシュする画像は隣のタイルから集めた 1 画素ののりしろを持つので、タイル境界でも補間が本物の隣接画素を読み、継ぎ目が出ない。隣を検証に含めるのは、隣が変わった時にのりしろを最新に保つためである。
-5. `DrawImageRect` で並べる。`Scale` ≧ 1 では最近傍で採取するので、等倍を超えて拡大すると画素が四角として見える（それ未満では線形）。色管理・トーンマッピング・ガンマ補正は 1 つの SkSL ランタイムカラーフィルタ、つまり GPU で行うので、`Gamma` ・ `ToneMap` ・ `White` やどちらの色空間の変更もただ同然で、キャッシュも無効化しない。
+4. 各タイルを `ISkImage` 化し ── GPU キャンバスならそのキャンバスの `GrDirectContext` でミップマップ付きテクスチャにして ── `TTileKey`（段とタイル番号）を鍵としてキャッシュし、そのタイルと周囲 8 枚の Stamp の和で検証する。GPU の文脈が変わればキャッシュを捨てる。キャッシュする画像は隣のタイルから集めた 1 画素ののりしろを持つので、タイル境界でも補間が本物の隣接画素を読み、継ぎ目が出ない。隣を検証に含めるのは、隣が変わった時にのりしろを最新に保つためである。
+5. `DrawImageRect` で並べる。`Scale` ≧ 1 では最近傍で採取するので、等倍を超えて拡大すると画素が四角として見える。それ未満では線形＋ミップマップ間の線形（トリリニア）、タイルにミップマップを持てないラスタキャンバスでは線形のみ。色管理・トーンマッピング・ガンマ補正は 1 つの SkSL ランタイムカラーフィルタ、つまり GPU で行うので、`Gamma` ・ `ToneMap` ・ `White` やどちらの色空間の変更もただ同然で、キャッシュも無効化しない。
 
 カラーフィルタは画素ごとに、プリマルチプライを解いてから、画像の伝達関数で復号 → トーンマップ（任意。線形光で）→ 画像の原色から表示の原色への 3 × 3 行列（白色点が違えば Bradford 順応込み）→ 表示の伝達関数で符号化 → `pow( 1/Gamma )` → 再びプリマルチプライ、の順に処理する。画像に色空間が無ければトーンマップとガンマだけが残り、従来どおりになる。伝達関数はどちらも ICC の 7 係数（`LUX.Color.Space` §2.5）として渡すので、ライブラリで表せる曲線はそのまま GPU で走る。
 

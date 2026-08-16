@@ -23,8 +23,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      /////   直接描くので転写が発生しない。
      ///// ・可視タイルだけを ISkImage 化して Skia に描かせるので、画像の大きさに関わらず
      /////   １フレームあたりの描画コストは画面の大きさだけで決まる。
-     ///// ・段（ミップマップ）は「段内では常に等倍～２倍の拡大」になるように選ぶので、
-     /////   縮小によるエイリアシングが原理的に発生しない。
+     ///// ・段（ミップマップ）は「段内では 0.5〜1 倍の縮小」になるように選び、残りの縮小は
+     /////   GPU 上のタイルのミップマップ（ LOD 0〜1 ）をトリリニアで標本化して埋める。
+     /////   つまり隣接 2 段の間を GPU が連続に補間するので、縮小率によらず一様に鮮明で、
+     /////   縮小によるエイリアシングも出ない。
      ///// ・タイル境界の継ぎ目を防ぐため、キャッシュするタイル画像は周囲１画素の
      /////   のりしろ（エプロン）を隣のタイルから集めて持つ。
      ///// ・トーンマッピングとガンマ補正は SkSL のランタイム効果（GPU）で行う。
@@ -68,6 +70,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _Apron  :TArray<Byte>;
        _Stamp  :Integer;
        _Effect :ISkRuntimeEffect;
+       _GrContext :IGrDirectContext;   // 描画中の GPU 文脈（ラスタ経路では nil ）。タイルをミップマップ付きテクスチャにするのに使う
        ///// TSkCustomControl 相当の描画機構
        _Buffer        :TBitmap;           // Skia キャンバスでない環境用の中間ラスタ
        _DrawCached    :Boolean;
@@ -104,6 +107,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure DoFit( const W_,H_:Single );
        procedure SweepCache;
        procedure DropCache;
+       procedure UseGrContext( const Context_:IGrDirectContext );   // 描画に使う GPU 文脈を設定（変わればキャッシュを捨てる）
      protected
        ///// M E T H O D
        procedure Draw( const ACanvas:ISkCanvas; const ADest:TRectF; const AOpacity:Single ); virtual;
@@ -139,6 +143,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function ViewToImage( const P_:TPointF ) :TPointF;
        function ImageToView( const P_:TPointF ) :TPointF;
        procedure Redraw;
+       procedure DrawTo( const ACanvas:ISkCanvas; const ADest:TRectF; const AContext:IGrDirectContext = nil );  // 現在の表示を任意の Skia キャンバスへ描く（オフスクリーン描画・サムネイル・検証用。GPU サーフェスならその文脈を渡す）
      end;
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
@@ -514,12 +519,14 @@ begin
 
           _Image.UpdateLevels;
 
-          ///// 段は「段内では常に等倍～２倍の拡大」になるように選ぶ
+          ///// 段は「段内では 0.5〜1 倍の縮小（拡大しない）」になるように選ぶ。
+          ///// 縮小ぶんはタイルのミップマップ（ LOD 0〜1 ）のトリリニアで GPU が埋めるので、
+          ///// 実質的に段 L と段 L+1 の間を連続に補間することになる（等倍以上は段 0 を最近傍で）
 
-          L := Max( 0, Ceil( -Log2( _Scale ) ) );
+          L := Max( 0, Floor( -Log2( _Scale ) ) );
           L := Min( L, _Image.LevelsN - 1 );
 
-          S := _Scale * ( 1 shl L );  // 段 L の１画素あたりの画面画素数（１≦ S ＜２）
+          S := _Scale * ( 1 shl L );  // 段 L の１画素あたりの画面画素数（ 0.5 ＜ S ≦ 1 。等倍以上なら S = Scale ）
 
           OX := ADest.Left - _Origin.X * _Scale;  // 画面X ＝ OX ＋ 段L座標X × S
           OY := ADest.Top  - _Origin.Y * _Scale;
@@ -570,10 +577,13 @@ begin
                Paint.ColorFilter := _Effect.MakeColorFilter( Unif, [] );
           end;
 
-          ///// 等倍以上は画素の四角が見えるように最近傍、縮小側は線形
+          ///// 等倍以上は画素の四角が見えるように最近傍。縮小側は線形＋ミップマップ間の線形（トリリニア）。
+          ///// GPU の文脈が無い（ラスタ経路）ときはタイルにミップマップが無いので線形だけになる
 
           if _Scale >= 1 then Samp := TSkSamplingOptions.Create( TSkFilterMode.Nearest, TSkMipmapMode.None )
-                         else Samp := TSkSamplingOptions.Create( TSkFilterMode.Linear , TSkMipmapMode.None );
+          else
+          if Assigned( _GrContext ) then Samp := TSkSamplingOptions.Create( TSkFilterMode.Linear, TSkMipmapMode.Linear )
+                                    else Samp := TSkSamplingOptions.Create( TSkFilterMode.Linear, TSkMipmapMode.None );
 
           ///// 可視タイルを並べる
 
@@ -625,9 +635,18 @@ var
    ExceededRatio     :Single;
    MaxBitmapSize     :Integer;
    SceneScale        :Single;
+   Direct            :Boolean;
 begin
-     if ( ( _DrawCacheKind = TSkDrawCacheKind.Never  ) and ( Canvas is TSkCanvasCustom ) ) or
-        ( ( _DrawCacheKind = TSkDrawCacheKind.Raster ) and ( Canvas is TGrCanvas       ) ) then
+     Direct := ( ( _DrawCacheKind = TSkDrawCacheKind.Never  ) and ( Canvas is TSkCanvasCustom ) ) or
+               ( ( _DrawCacheKind = TSkDrawCacheKind.Raster ) and ( Canvas is TGrCanvas       ) );
+
+     ///// GPU キャンバスへ直接描くときはその文脈でタイルをテクスチャ化する（中間ラスタへ描くときは nil ）。
+     ///// 文脈が変わっていたら（窓の再生成など）キャッシュを捨てる
+
+     if Direct and ( Canvas is TGrCanvas ) then UseGrContext( TGrCanvas( Canvas ).GrDirectContext )
+                                           else UseGrContext( nil );
+
+     if Direct then
      begin
           Draw( TSkCanvasCustom( Canvas ).Canvas, LocalRect, AbsoluteOpacity );
 
@@ -756,6 +775,7 @@ var
    X0, Y, SY, SX :Integer;
    D             :PByte;
    Pixmap        :ISkPixmap;
+   Img           :ISkImage;
 begin
      Key.L := L_;  Key.X := TX_;  Key.Y := TY_;
 
@@ -801,7 +821,17 @@ begin
                                                      TSkAlphaType.Unpremul ),
                                  @_Apron[ 0 ], NativeUInt( TW + 2 ) * NativeUInt( Z ) );
 
-     Ent.Img   := TSkImage.MakeRasterCopy( Pixmap );  // Skia 側にコピーさせる
+     Ent.Img := TSkImage.MakeRasterCopy( Pixmap );  // Skia 側にコピーさせる
+
+     ///// GPU キャンバスなら、ミップマップ付きのテクスチャにして GPU に置く（ LOD 0〜1 をトリリニアで標本化する）
+
+     if Assigned( _GrContext ) then
+     begin
+          Img := Ent.Img.MakeTextureImage( _GrContext, True );
+
+          if Assigned( Img ) then Ent.Img := Img;
+     end;
+
      Ent.Stamp := St;
      Ent.Seen  := _Stamp;
 
@@ -880,6 +910,17 @@ end;
 procedure TLuxImageViewer.DropCache;
 begin
      _Cache.Clear;
+end;
+
+///// GPU のテクスチャはそれを作った文脈でしか描けないので、文脈が変わったらキャッシュごと作り直す
+
+procedure TLuxImageViewer.UseGrContext( const Context_:IGrDirectContext );
+begin
+     if Pointer( _GrContext ) = Pointer( Context_ ) then Exit;
+
+     _GrContext := Context_;
+
+     DropCache;
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& public
@@ -979,6 +1020,13 @@ function TLuxImageViewer.ImageToView( const P_:TPointF ) :TPointF;
 begin
      Result := PointF( ( P_.X - _Origin.X ) * _Scale,
                        ( P_.Y - _Origin.Y ) * _Scale );
+end;
+
+procedure TLuxImageViewer.DrawTo( const ACanvas:ISkCanvas; const ADest:TRectF; const AContext:IGrDirectContext = nil );
+begin
+     UseGrContext( AContext );
+
+     Draw( ACanvas, ADest, 1 );
 end;
 
 ///// TSkCustomControl.Redraw に相当する。キャッシュを捨てて描き直させる。
