@@ -17,6 +17,7 @@ FireMonkey の `TBitmap` は GPU とデータを共有するため GPU のテク
 - **`TLuxImageWorker`**。任意のブロック処理を画像全体にわたって全コアで実行するスケジューラ。ブロックを 1 個ずつ配るので、レイトレーシングやフラクタルのように画素ごとの計算量が桁で違っても均される。
 - **リアルタイムビューア**。滑らかなホイールズームとドラッグスクロール、GPU によるトーンマッピングとガンマ補正。描画途中の画像をブロック単位で映し出す。
 - **色管理。** 画像は `ColorSpace` ── sRGB ・ Display P3 ・ Adobe RGB ・ Rec.2020 ・ ProPhoto ・ ACEScg とそれらの線形版、あるいは自作の空間 ── を持てる。保存時に PNG（`sRGB` / `iCCP` ＋ `gAMA` ＋ `cHRM`）と JPEG（APP2 `ICC_PROFILE`）へ埋め込まれ、読み込み時に復元され、ビューアはモニター自身のプロファイルへ GPU で変換して表示する。`nil` なら色管理なし。画素値はどの段階でも変えない。
+- **形式ごとのクラス。** 各ファイル形式は `TLuxImageFiler` から派生したクラスで、その形式固有の設定をプロパティとして持つ（PNG は α の有無と圧縮率、JPEG は品質）。したがって共通のメソッド署名に、別の形式にしか意味のない引数が混ざることがない。形式を増やすのは、自己登録する 1 ユニットを足すだけである。
 - **非同期のファイル入出力**。進捗の通知と完了イベントを備える。
 - 依存は RTL ・ FireMonkey ・ Skia のみ。いずれも RAD Studio に標準搭載。
 
@@ -132,21 +133,26 @@ C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + 
   ┣・TLuxTile                        ･･･ ( Data, Stamp, Dirty )
   ┣・TLuxLevel                       ･･･ ( Width, Height, Tiles* )
   ┣・TLuxImage                       ･･･ ( see the class hierarchy below )
-  ┣・LUX.Data.Image.Files            ･･･ [ Skia ]
-  ┃  ┣・TLuxImageFiler
-  ┃  ┃  ┣・LoadFromPng / SaveToPng ･･･ System.ZLib, streaming
-  ┃  ┃  ┗・LoadFromJpg / SaveToJpg ･･･ Skia codec
-  ┃  ┣・LuxSkColorType
-  ┃  ┗・LuxImageSize
+  ┣・LUX.Data.Image.Files            ･･･ RTL only
+  ┃  ┣・TLuxImageFiler               ･･･ abstract: Extensions / Caption / DoLoad / DoSave
+  ┃  ┃  ┣・LoadFromFile / SaveToFile          ( + …Async )
+  ┃  ┃  ┣・Regist / ClassFor / CreateFor      ･･･ the registry of formats
+  ┃  ┃  ┗・DialogFilter / ImageSize / Clone
+  ┃  ┣・LUX.Data.Image.Files.Png     ･･･ System.ZLib only
+  ┃  ┃  ┣・TLuxPngLevel              ･･･ ( plNone, plFastest, plDefault, plMax )
+  ┃  ┃  ┗・TLuxImageFilerPng         ･･･ Alpha, Level
+  ┃  ┗・LUX.Data.Image.Files.Jpg     ･･･ [ Skia ]
+  ┃     ┗・TLuxImageFilerJpg         ･･･ Quality
   ┣・LUX.Data.Image.Worker           ･･･ RTL only
   ┃  ┣・TLuxBlockProc                ･･･ procedure( ThreadI_, X_,Y_,W_,H_ )
   ┃  ┗・TLuxImageWorker              ･･･ block scheduler on N threads
   ┗・LUX.Data.Image.Viewer           ･･･ [ FireMonkey + Skia ]
-     ┗・TLuxImageViewer              ･･･ ( TFrame )
-        ┣・TTileKey  TTileImg
-        ┣・ISkImage cache + apron    ･･･ validated by tile stamps
-        ┣・SkSL colour filter
-        ┗・wheel zoom / drag scroll
+     ┣・TLuxImageViewer              ･･･ ( TFrame )
+     ┃  ┣・TTileKey  TTileImg
+     ┃  ┣・ISkImage cache + apron    ･･･ validated by tile stamps
+     ┃  ┣・SkSL colour filter
+     ┃  ┗・wheel zoom / drag scroll
+     ┗・LuxSkColorType  LuxMonitorColorSpace
 
 [ class hierarchy ]
 
@@ -185,17 +191,21 @@ C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + 
      ┗・LUX.D1.Half.DIff             ･･･ TdHalf, automatic differentiation
 ```
 
-`LUX.Data.Image.pas` と `LUX.Data.Image.Worker.pas` は FireMonkey も Skia も uses していない。それらへの依存はファイル入出力とビューアのユニットに閉じている。
+Skia に触れるのは JPEG のファイラとビューアだけ、FireMonkey に触れるのはビューアだけである。PNG しか読み書きしないプログラムはどちらもリンクしない。`TLuxImage` 自身はファイル入出力を一切持たず、ファイル形式というものを知らない。
 
 ### 3.2 ファイル構成
 
 ```
 ・Data/Image/
-  ┣・LUX.Data.Image.pas        ･･･ TLuxImage と 4 つの具象クラス
-  ┣・LUX.Data.Image.Files.pas  ･･･ ファイルの読み書き
-  ┣・LUX.Data.Image.Worker.pas ･･･ TLuxImageWorker、並列ブロックスケジューラ
-  ┗・LUX.Data.Image.Viewer.pas ･･･ TLuxImageViewer（TFrame 継承）
+  ┣・LUX.Data.Image.pas            ･･･ TLuxImage と 4 つの具象クラス
+  ┣・LUX.Data.Image.Files.pas      ･･･ TLuxImageFiler、形式の基底クラスと登録
+  ┣・LUX.Data.Image.Files.Png.pas  ･･･ TLuxImageFilerPng（ System.ZLib ）
+  ┣・LUX.Data.Image.Files.Jpg.pas  ･･･ TLuxImageFilerJpg（ Skia ）
+  ┣・LUX.Data.Image.Worker.pas     ･･･ TLuxImageWorker、並列ブロックスケジューラ
+  ┗・LUX.Data.Image.Viewer.pas     ･･･ TLuxImageViewer（TFrame 継承）
 ```
+
+形式を増やすのは 1 ユニットを足すだけである。`TLuxImageFiler` から派生して `Extensions` ・ `Caption` ・ `DoLoad` ・ `DoSave` を実装し、その形式が持つ設定をプロパティとして公開し、ユニットの `initialization` で `Regist` する。基底クラスにも `TLuxImage` にも変更は要らず、その形式は直ちに拡張子による選択と `DialogFilter` に加わる。
 
 ## 4. 使い方
 
@@ -224,6 +234,8 @@ begin
 ### 4.2 読み込みと表示
 
 ```pascal
+uses LUX.Data.Image, LUX.Data.Image.Files, LUX.Data.Image.Files.Png, LUX.Data.Image.Files.Jpg;
+
 Image  := TLuxImageUInt08.Create;
 
 Viewer        := TLuxImageViewer.Create( Self );
@@ -233,7 +245,12 @@ Viewer.Image  := Image;
 
 Image.OnLoaded.Add( ImageLoaded );
 
-Image.LoadFromFileAsync( 'huge.jpg' );
+Filer := TLuxImageFiler.CreateFor( 'huge.jpg' );   // 拡張子が TLuxImageFilerJpg を選ぶ
+try
+   Filer.LoadFromFileAsync( Image, 'huge.jpg' );    // 設定は複製されるので、すぐ解放してよい
+finally
+   Filer.Free;
+end;
 ```
 
 ```pascal
@@ -282,12 +299,21 @@ Worker.Start( procedure( const ThreadI_,X_,Y_,W_,H_:Integer )
 
 ```pascal
 Image.ColorSpace := TLuxColorSpaces.LinearRec2020;   // 「この画素は線形 Rec.2020 である」── 画素値そのものは触らない
-Image.SaveToFile( 'render.png' );                     // iCCP ＋ cHRM ＋ gAMA が書かれる
-Image.SaveToFile( 'render.jpg', 95 );                 // APP2 ICC_PROFILE が書かれる
 
-Image.LoadFromFile( 'photo.jpg' );                    // Adobe RGB のプロファイル入り → Image.ColorSpace = TLuxColorSpaces.AdobeRGB
-                                                      // 未知のプロファイル → 新しい TLuxColorSpace（ TLuxColorSpaces に登録される ）
-                                                      // プロファイル無し → nil
+Png := TLuxImageFilerPng.Create;
+try
+   Png.SaveToFile( Image, 'render.png' );             // iCCP ＋ cHRM ＋ gAMA が書かれる
+finally
+   Png.Free;
+end;
+
+Jpg := TLuxImageFilerJpg.Create;
+try
+   Jpg.Quality := 95;
+   Jpg.LoadFromFile( Image, 'photo.jpg' );            // Adobe RGB のプロファイル入り → Image.ColorSpace = TLuxColorSpaces.AdobeRGB
+finally                                               // 未知のプロファイル → 新しい TLuxColorSpace（ TLuxColorSpaces に登録される ）
+   Jpg.Free;                                          // プロファイル無し → nil
+end;
 
 Viewer.ColorSpace := nil;                             // 既定：モニター自身のプロファイルへ変換
 Viewer.ColorSpace := TLuxColorSpaces.sRGB;            // または sRGB に固定
@@ -359,13 +385,11 @@ procedure Notify;                                // OnChange をメインスレ�
 procedure Changed;                               // 全体が変わった：全タイル Dirty、Version++、Notify
 procedure UpdateLevels;                          // Dirty なタイルを段 1 以上へ反映する（呼び出しは直列化される）
 
-///// ファイル（同期）
-procedure LoadFromFile( const FileName_:String );
-procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // PNG：Alpha_=False なら α 無しの RGB。ColorSpace があれば埋め込む
-
-///// ファイル（別スレッド）
-procedure LoadFromFileAsync( const FileName_:String );
-procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
+///// 入出力（ TLuxImageFiler が駆動する。TLuxImage はファイル形式を一切知らない ）
+procedure RunAsync( const Work_:TProc; const Saving_:Boolean );  // 別スレッドで走らせ、Busy と OnLoaded / OnSaved を面倒みる
+procedure BeginProgress;
+procedure ProgRange( const A_,B_:Single );
+procedure DoProgress( const Ratio_:Single );
 procedure WaitFor;
 property  Busy     :Boolean;
 property  Progress :Single;      // 0 〜 1
@@ -414,9 +438,46 @@ property OnFinished :TDelegates;  // メインスレッド。完了でも中止�
 
 手続きが例外を送出すると実行は中止され、`OnFinished` の後にメインスレッドで再送出される。デストラクタは中止して待つので、実行中のワーカーを破棄してもよい。
 
-### 6.3 非同期のファイル入出力
+### 6.3 TLuxImageFiler
 
-`LoadFromFileAsync` と `SaveToFileAsync` は、同じ入出力処理を `TTask` で実行し、通知はすべて `TThread.Queue` でメインスレッドへ戻す。したがってハンドラから直接 UI を触ってよい。
+```pascal
+///// 形式ごとに実装する
+class function Extensions :TArray<String>;   // ( '.png' )。先頭が既定の拡張子
+class function Caption :String;              // 'PNG'
+procedure DoLoad( const Image_:TLuxImage; const Stream_:TStream );   // protected
+procedure DoSave( const Image_:TLuxImage; const Stream_:TStream );   // protected
+
+///// 登録（基底クラス）
+class procedure Regist( const Filer_:TLuxImageFilerClass );          // ユニットの initialization から
+class function Filers :TArray<TLuxImageFilerClass>;
+class function ClassFor( const FileName_:String ) :TLuxImageFilerClass;
+class function CreateFor( const FileName_:String ) :TLuxImageFiler;  // 未対応の拡張子なら nil
+class function DialogFilter( const All_:Boolean = True ) :String;
+class function Handles( const FileName_:String ) :Boolean;
+
+///// 読み書き
+procedure LoadFromStream / SaveToStream ( const Image_:TLuxImage; const Stream_:TStream );
+procedure LoadFromFile   / SaveToFile   ( const Image_:TLuxImage; const FileName_:String );
+procedure LoadFromFileAsync / SaveToFileAsync( const Image_:TLuxImage; const FileName_:String );
+function  ImageSize( const FileName_:String; out Width_,Height_:Integer ) :Boolean;
+
+///// 設定
+function  Clone :TLuxImageFiler;
+procedure Assign( const Filer_:TLuxImageFiler );   // 形式ごとに上書きする
+```
+
+```pascal
+TLuxImageFilerPng    property Alpha :Boolean;        // α を書くか        （既定 True ）
+                     property Level :TLuxPngLevel;   // plNone 〜 plMax    （既定 plDefault ）
+
+TLuxImageFilerJpg    property Quality :Integer;      // 1 〜 100           （既定 90 ）
+```
+
+形式固有の設定は共通メソッドの引数ではなくファイラのプロパティなので、その形式に意味のない選択肢を署名が持つことがない。ファイラは小さく安価なオブジェクトである。作って、必要な設定をして、使って、解放する。
+
+### 6.4 非同期のファイル入出力
+
+`LoadFromFileAsync` と `SaveToFileAsync` はファイラを複製し、同じ入出力処理を画像の `TTask` で実行し、通知はすべて `TThread.Queue` でメインスレッドへ戻す。したがってハンドラから直接 UI を触ってよく、呼び出し側は自分のファイラを直ちに解放してよい。
 
 `Busy` はタスクの開始前に立ち、`OnLoaded` / `OnSaved` の直前に降りる。ビューアは `Busy` の間まったく描画しない。読み込みは `SetSize` から始まり、タイルの構造そのものが入れ替わるためである。デストラクタはタスクの終了を待ち、保留中の通知も流し切るので、読み込み中に画像を破棄しても問題ない。
 
@@ -424,7 +485,7 @@ property OnFinished :TDelegates;  // メインスレッド。完了でも中止�
 
 `Progress` はピラミッドの構築も含めた全体を 0 から 1 で表す。行単位で報告するため PNG は滑らかに進むが、JPEG は Skia の復号がコールバックを持たない単一の呼び出しであるため、復号が終わるまで進まない。
 
-### 6.4 対応ファイル形式
+### 6.5 対応ファイル形式
 
 | 形式 | 読み | 書き | 備考 |
 |---|---|---|---|
@@ -446,14 +507,18 @@ JPEG は Skia [6] を経由する。Skia は画像 1 枚分の連続バッファ
 
 浮動小数の画像を PNG に保存すると 0〜1 にクランプして 16bit へ、JPEG に保存すると 0〜1 にクランプして 8bit へ量子化する。トーンマッピングは表示側の設定なので保存時には掛けない。
 
-`LUX.Data.Image.Files.pas` は以下も公開する。
+PNG の圧縮は DEFLATE なので、`Level` が変えるのは大きさと時間だけで、画素は決して変わらない（どの設定でも完全に復元される）。zlib のレベルは 0〜9 あるが、実際に違いが出るのは 4 点だけで、中間値はファイルが縮まらないのに時間だけ延びる。画像編集ソフトが 10 段階ではなく 3〜4 択しか出さないのはそのためである。7,680 × 4,800 の写真的な PNG での実測（128 スレッド・RAM ディスク）：
 
-```pascal
-function LuxSkColorType( const Kind_:TLuxPixel ) :TSkColorType;
-function LuxImageSize( const FileName_:String; out Width_,Height_:Integer ) :Boolean;
-```
+| `Level` | zlib | 保存 | サイズ | 読み込み |
+|---|---|---|---|---|
+| `plNone` | 0（stored） | 2.3 秒 | 140.6 MB | 2.8 秒 |
+| `plFastest` | 1 | 3.6 秒 | 69.5 MB | 2.7 秒 |
+| `plDefault` | 6 | 9.0 秒 | 62.0 MB | 2.7 秒 |
+| `plMax` | 9 | 48.5 秒 | 60.6 MB | 2.6 秒 |
 
-### 6.5 TLuxImageViewer
+`plNone` は DEFLATE の *stored* ブロックを書く。どのデコーダでも読めるごく普通の PNG であり、大きさより書き出し速度が大事なときの選択肢である。圧縮率は読み込みには一切影響しない。
+
+### 6.6 TLuxImageViewer
 
 ```pascal
 property Image      :TLuxImage;
@@ -485,7 +550,7 @@ procedure Redraw;
 
 ホイールを手前に回すと拡大する。掛かる倍率は $2^{-\Delta / 480}$ なので、4 ノッチで 2 倍になる。左ドラッグでスクロールする。
 
-### 6.6 1 フレームの描き方
+### 6.7 1 フレームの描き方
 
 1. `Version` が変わっていればタイルキャッシュを全て捨てる。続いて `UpdateLevels` で、前のフレーム以降に変わったタイルを上の段へ反映する。
 2. 段は (2.6) によって選ばれ、½〜1 倍の縮小になり、拡大はしない。残りの縮小は GPU 上のタイルのミップマップのトリリニア標本化に任せ、その段と 1 つ粗い段をブレンドする。

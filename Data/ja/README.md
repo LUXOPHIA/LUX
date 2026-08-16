@@ -31,7 +31,7 @@ magic 行     ･･･ 形式を識別する。UTF-8・LF 終端
 ・Data/
   ┣・LUX.Data.pas ･･･ WriteLine / ReadLine / WriteHead / ReadHead
   ┣・Grid/        ･･･ LUX.Data.Grid.D1  LUX.Data.Grid.Tria.D2
-  ┣・Image/       ･･･ LUX.Data.Image ( + .Files  .Worker  .Viewer )
+  ┣・Image/       ･･･ LUX.Data.Image ( + .Files[.Png .Jpg]  .Worker  .Viewer )
   ┣・List/        ･･･ LUX.Data.List.core  LUX.Data.List
   ┣・Model/       ･･･ LUX.Data.Model.*  ( TriFlip/  TetraFlip/ )
   ┗・Tree/        ･･･ LUX.Data.Tree
