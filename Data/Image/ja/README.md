@@ -16,6 +16,7 @@ FireMonkey の `TBitmap` は GPU とデータを共有するため GPU のテク
 - **ロック無しの並行書き込み。** 任意の数のスレッドが互いに素な領域へ同時に書き、終えたタイルを `TileChanged` で報せる。ビューアはそれをリアルタイムに拾う。
 - **`TLuxImageWorker`**。任意のブロック処理を画像全体にわたって全コアで実行するスケジューラ。ブロックを 1 個ずつ配るので、レイトレーシングやフラクタルのように画素ごとの計算量が桁で違っても均される。
 - **リアルタイムビューア**。滑らかなホイールズームとドラッグスクロール、GPU によるトーンマッピングとガンマ補正。描画途中の画像をブロック単位で映し出す。
+- **色管理。** 画像は `ColorSpace` ── sRGB ・ Display P3 ・ Adobe RGB ・ Rec.2020 ・ ProPhoto ・ ACEScg とそれらの線形版、あるいは自作の空間 ── を持てる。保存時に PNG（`sRGB` / `iCCP` ＋ `gAMA` ＋ `cHRM`）と JPEG（APP2 `ICC_PROFILE`）へ埋め込まれ、読み込み時に復元され、ビューアはモニター自身のプロファイルへ GPU で変換して表示する。`nil` なら色管理なし。画素値はどの段階でも変えない。
 - **非同期のファイル入出力**。進捗の通知と完了イベントを備える。
 - 依存は RTL ・ FireMonkey ・ Skia のみ。いずれも RAD Studio に標準搭載。
 
@@ -177,7 +178,9 @@ C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + 
 
 ・LUX                                 ･･･ base declarations, TDelegates
   ┣・LUX.Color                       ･･･ TByteRGBA  TWordRGBA  TSingleRGBA
-  ┃  ┗・LUX.Color.Half              ･･･ THalfRGB  THalfRGBA
+  ┃  ┣・LUX.Color.Half              ･･･ THalfRGB  THalfRGBA
+  ┃  ┗・LUX.Color.Space             ･･･ TLuxColorSpace, presets, TLuxColorSpaces, ICC read / write
+  ┣・LUX.D2  LUX.D3  LUX.D3x3        ･･･ chromaticities, XYZ, 3 × 3 matrices
   ┗・LUX.D1.Half                     ･･･ THalf, the half-precision scalar
      ┗・LUX.D1.Half.DIff             ･･･ TdHalf, automatic differentiation
 ```
@@ -275,6 +278,23 @@ Worker.Start( procedure( const ThreadI_,X_,Y_,W_,H_:Integer )
 
 自前のスレッドでも同じことができる。互いに素な領域を `SetRow` ・ `SetRaws` ・ `TileData` で書き、書き終えた段 0 のタイルごとに `TileChanged` を呼び、表示を追い付かせたい時に（頻度は自分で抑えて）`Notify` を呼べばよい。
 
+### 4.4 色空間
+
+```pascal
+Image.ColorSpace := TLuxColorSpaces.LinearRec2020;   // 「この画素は線形 Rec.2020 である」── 画素値そのものは触らない
+Image.SaveToFile( 'render.png' );                     // iCCP ＋ cHRM ＋ gAMA が書かれる
+Image.SaveToFile( 'render.jpg', 95 );                 // APP2 ICC_PROFILE が書かれる
+
+Image.LoadFromFile( 'photo.jpg' );                    // Adobe RGB のプロファイル入り → Image.ColorSpace = TLuxColorSpaces.AdobeRGB
+                                                      // 未知のプロファイル → 新しい TLuxColorSpace（ TLuxColorSpaces に登録される ）
+                                                      // プロファイル無し → nil
+
+Viewer.ColorSpace := nil;                             // 既定：モニター自身のプロファイルへ変換
+Viewer.ColorSpace := TLuxColorSpaces.sRGB;            // または sRGB に固定
+```
+
+`ColorSpace` は参照であり、画像が所有することはない。プリセットは `TLuxColorSpaces` がプログラムの終了まで持ち、ファイルから読んだ空間もそこへ内容で登録されるので、画像にはどれでも自由に割り当てられ、比較はポインタで済む。
+
 ## 5. 画素形式
 
 | クラス | 画素レコード | バイト/画素 | Skia のカラータイプ | 表示ガンマの既定値 |
@@ -341,14 +361,17 @@ procedure UpdateLevels;                          // Dirty なタイルを段 1 �
 
 ///// ファイル（同期）
 procedure LoadFromFile( const FileName_:String );
-procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );  // PNG：Alpha_=False なら α 無しの RGB、Linear_=True なら線形 sRGB の ICC プロファイル（iCCP）＋ gAMA ＋ cHRM を同梱
+procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // PNG：Alpha_=False なら α 無しの RGB。ColorSpace があれば埋め込む
 
 ///// ファイル（別スレッド）
 procedure LoadFromFileAsync( const FileName_:String );
-procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );
+procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
 procedure WaitFor;
 property  Busy     :Boolean;
 property  Progress :Single;      // 0 〜 1
+
+///// 色空間（ LUX.Color.Space 。所有しない。nil = 色管理なし ）
+property  ColorSpace :TLuxColorSpace;
 
 ///// 通知
 property  Version    :Cardinal;  // SetSize ・ Clear ・ Changed で増える（ビューアは全キャッシュを捨てる）
@@ -405,8 +428,8 @@ property OnFinished :TDelegates;  // メインスレッド。完了でも中止�
 
 | 形式 | 読み | 書き | 備考 |
 |---|---|---|---|
-| PNG | ✔ | ✔ | `System.ZLib` の上に直接実装。読みは規格の定める全ての形式に対応。書きは RGBA（`Alpha_ = False` なら α 無しの RGB）で、`TLuxImageUInt08` なら 8bit、それ以外は 16bit。`Linear_ = True` なら線形 sRGB の ICC プロファイル（`iCCP`。あわせて `gAMA` と `cHRM`）を同梱し、色管理に対応したアプリは画素値を線形光として扱う（ブレンドは線形、表示のときだけガンマを掛ける）。 |
-| JPEG | ✔ | ✔ | Skia のコーデックを使用。 |
+| PNG | ✔ | ✔ | `System.ZLib` の上に直接実装。読みは規格の定める全ての形式に対応。書きは RGBA（`Alpha_ = False` なら α 無しの RGB）で、`TLuxImageUInt08` なら 8bit、それ以外は 16bit。`ColorSpace` があれば、sRGB は `sRGB` チャンク（＋規格の勧める `gAMA` と `cHRM`）、それ以外は `iCCP` プロファイル＋ `cHRM`（曲線が純ガンマなら `gAMA` も）として書く。読み込みでは `iCCP`、次に `sRGB`、次に `gAMA` ＋ `cHRM` の順に採用する。 |
+| JPEG | ✔ | ✔ | Skia のコーデックを使用。`ColorSpace` があれば ICC プロファイルを APP2 `ICC_PROFILE` セグメントとして JFIF ヘッダの後ろに埋め込み、読み込みではそのセグメントを繋いで解析する。 |
 
 PNG の読み込みは [1] の規格全体を網羅する。その圧縮データ列は DEFLATE [2] である。
 
@@ -443,6 +466,9 @@ property Origin     :TPointF;      // 表示領域の左上に対応する画像
 property MinScale   :Single;       // 既定 1/4096
 property MaxScale   :Single;       // 既定 256
 
+property ColorSpace       :TLuxColorSpace;   // 表示側の色空間。nil = モニター自身のプロファイル
+property ActiveColorSpace :TLuxColorSpace;   // 実際に使われている表示側の色空間
+
 procedure FitToWindow;
 procedure ZoomAt( const P_:TPointF; const Factor_:Single );
 procedure ZoomWheel( const WheelDelta_:Integer );
@@ -451,7 +477,9 @@ function  ImageToView( const P_:TPointF ) :TPointF;
 procedure Redraw;
 ```
 
-`Image` を代入すると、`Gamma` と `ToneMap` はそのクラスの既定値に戻り、画像は窓に合わせられる。
+`Image` を代入すると、`Gamma` と `ToneMap` はそのクラスの既定値に戻り、画像は窓に合わせられる。画像が `ColorSpace` を持つときの `Gamma` の既定値は 1 で ── 表示の符号化は伝達関数が決めるので ── `Gamma` は追加の調整として働く。画像の色空間が変わると既定値が掛け直される。
+
+`ColorSpace` は変換の*表示側*である。`nil` のままなら、ビューアは窓が乗っているモニターに割り当てられた ICC プロファイル（Photoshop の「モニタ RGB」）を `GetICMProfile` で Windows から取得して解析し、窓がモニターを移れば追従する。解析できないプロファイルや割り当て無しは sRGB になる。空間を代入すれば上書きできる ── `TLuxColorSpaces.sRGB` を入れれば sRGB 固定で、これは Windows の HDR／自動カラー管理の下でも正しい選択である（表示への変換はコンポジタが行うため）。画像に色空間が無ければ、このプロパティに関わらず何も変換しない。
 
 `Scale` を設定すると画像は中央に置き直される（画像の中心が表示の中心へ来る）。`ZoomAt` は逆に表示上の指定した点を固定するもので、ホイールがカーソル下の画素を動かさないのはこちらを使っているため。
 
@@ -463,7 +491,9 @@ procedure Redraw;
 2. 段は (2.6) によって選ばれ、段内では常に 1〜2 倍の拡大になる。段の中で縮小が起きないので、縮小によるエイリアシングは原理的に発生しない。
 3. その段の可視タイルを列挙する。枚数の上限は (2.8) で与えられる。
 4. 各タイルを `ISkImage` 化し、`TTileKey`（段とタイル番号）を鍵としてキャッシュし、そのタイルと周囲 8 枚の Stamp の和で検証する。キャッシュする画像は隣のタイルから集めた 1 画素ののりしろを持つので、タイル境界でも補間が本物の隣接画素を読み、継ぎ目が出ない。隣を検証に含めるのは、隣が変わった時にのりしろを最新に保つためである。
-5. `DrawImageRect` で並べる。`Scale` ≧ 1 では最近傍で採取するので、等倍を超えて拡大すると画素が四角として見える（それ未満では線形）。トーンマッピングとガンマ補正は SkSL のランタイムカラーフィルタ、つまり GPU で行うので、`Gamma` ・ `ToneMap` ・ `White` の変更はただ同然で、キャッシュも無効化しない。
+5. `DrawImageRect` で並べる。`Scale` ≧ 1 では最近傍で採取するので、等倍を超えて拡大すると画素が四角として見える（それ未満では線形）。色管理・トーンマッピング・ガンマ補正は 1 つの SkSL ランタイムカラーフィルタ、つまり GPU で行うので、`Gamma` ・ `ToneMap` ・ `White` やどちらの色空間の変更もただ同然で、キャッシュも無効化しない。
+
+カラーフィルタは画素ごとに、プリマルチプライを解いてから、画像の伝達関数で復号 → トーンマップ（任意。線形光で）→ 画像の原色から表示の原色への 3 × 3 行列（白色点が違えば Bradford 順応込み）→ 表示の伝達関数で符号化 → `pow( 1/Gamma )` → 再びプリマルチプライ、の順に処理する。画像に色空間が無ければトーンマップとガンマだけが残り、従来どおりになる。伝達関数はどちらも ICC の 7 係数（`LUX.Color.Space` §2.5）として渡すので、ライブラリで表せる曲線はそのまま GPU で走る。
 
 CPU 側でのリサンプルは一切行わない。1 フレームあたりの CPU 仕事は、変わったタイルぶんのピラミッド更新と、作り直したり新しく現れたりしたタイルののりしろ集約だけである。
 

@@ -17,7 +17,7 @@ The library is organised as a flat namespace whose leading segment is always `LU
 |---|---|---|
 | Linear algebra | `LUX.D1` … `LUX.D4`, `LUX.D2x2`, `LUX.D3x3`, `LUX.D4x4`, `LUX.Quaternion` | `TSingle3D`, `TSingleM4`, `TSingleQ` |
 | Numerics | `LUX.D*.Diff`, `LUX.D1.Half`, `LUX.Complex`, `LUX.D1.Gamma.*`, `LUX.D1.Legendre` | `TdSingle`, `THalf`, `TSingleC` |
-| Colour and curves | `LUX.Color`, `LUX.Color.Half`, `LUX.Curve.*` | `TSingleRGBA`, `THalfRGBA`, `TSingleWector<T>` |
+| Colour and curves | `LUX.Color`, `LUX.Color.Half`, `LUX.Color.Space`, `LUX.Curve.*` | `TSingleRGBA`, `THalfRGBA`, `TLuxColorSpace`, `TSingleWector<T>` |
 | Data structures | `LUX.Data.List`, `LUX.Data.Tree`, `LUX.Data.Grid.*`, `LUX.Data.Model.*`, `LUX.Data.Image` | `TTreeNode`, `TTriaGrid<T>`, `TLuxImage` |
 
 Numeric types are Delphi `record`s with overloaded operators, constructors, properties and implicit casts, so they are stack-allocated, copied by value and need no lifetime management. Container types are classes, and the collection layers are generic so that a client's own derived classes appear in the cross-reference properties rather than the base types.
@@ -54,7 +54,7 @@ Record fields follow the same discipline: `X`, `Y`, `Z`, `W` for coordinates, `_
 Each domain folder carries its own pair of READMEs ( `README.md` / `ja/README.md` ); the tree below links to them.
 
 * [**LUX.Code**](Code/README.md) ：C99-to-Delphi type aliases ( T_int, P_char, … ) for transcribing C headers
-* [**LUX.Color**](Color/README.md) ：colour records — linear RGB(A) with Gamma / Reinhard ToneMap; Byte / Word / RGBE / Half formats
+* [**LUX.Color**](Color/README.md) ：colour records — linear RGB(A) with Gamma / Reinhard ToneMap; Byte / Word / RGBE / Half formats; RGB colour spaces (sRGB … ACEScg) with ICC read / write
 * [**LUX.Complex**](Complex/README.md) ：complex numbers TSingleC / TDoubleC with elementary functions and .Diff twins
   * [**LUX.Complex.FMX.D3**](Complex/FMX/README.md) ：TComplex3D — FireMonkey surface plot of a complex function
   * [**LUX.C2.Gamma**](Complex/Gamma/README.md) ：complex gamma function — Lanczos ( N = 7 / 9 / 11 / 15 ) and Ooura cdgamma
@@ -110,7 +110,7 @@ Implicit casts from `Integer`, `Int64` and `Single` seed `d` with zero, so a lit
   ┃  ┣・LUX.Complex.pas ･･･ LUX.Complex.Diff.pas
   ┃  ┣・Gamma/          ･･･ complex gamma: Lanczos and Ooura, each with .Diff
   ┃  ┗・FMX/            ･･･ TComplex3D, a FireMonkey 3-D shape
-  ┣・Color/              ･･･ LUX.Color.pas  LUX.Color.Half.pas
+  ┣・Color/              ･･･ LUX.Color.pas  LUX.Color.Half.pas  LUX.Color.Space.pas
   ┣・Curve/
   ┃  ┣・LUX.Curve.pas   ･･･ weighted-vector records
   ┃  ┣・LUX.Curve.*.pas ･･･ Bezier, BSpline, CatmullRom, Lanczos, Linear
