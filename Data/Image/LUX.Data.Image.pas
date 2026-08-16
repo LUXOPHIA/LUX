@@ -135,10 +135,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );  // 書式非依存の行書き
        /////
        procedure LoadFromFile( const FileName_:String );
-       procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90 );
+       procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // PNG は Alpha_=False で α 無しの RGB
        /////
        procedure LoadFromFileAsync( const FileName_:String );                            // 別スレッドで読む
-       procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90 );  // 別スレッドで書く
+       procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // 別スレッドで書く
        procedure WaitFor;                                                                 // 非同期処理の完了を待つ
        procedure DoProgress( const Ratio_:Single );                                       // 入出力側から進捗を報せる
        ///// E V E N T
@@ -864,11 +864,11 @@ begin
      DoProgress( 1 );
 end;
 
-procedure TLuxImage.SaveToFile( const FileName_:String; const Quality_:Integer = 90 );
+procedure TLuxImage.SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
 begin
      _Progress := 0;  _Fired := -1;
 
-     TLuxImageFiler.SaveToFile( Self, FileName_, Quality_ );
+     TLuxImageFiler.SaveToFile( Self, FileName_, Quality_, Alpha_ );
 
      DoProgress( 1 );
 end;
@@ -894,16 +894,17 @@ begin
                  end, False );
 end;
 
-procedure TLuxImage.SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90 );
+procedure TLuxImage.SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
 var
    F :String;
    Q :Integer;
+   A :Boolean;
 begin
-     F := FileName_;  Q := Quality_;
+     F := FileName_;  Q := Quality_;  A := Alpha_;
 
      StartAsync( procedure
                  begin
-                      TLuxImageFiler.SaveToFile( Self, F, Q );
+                      TLuxImageFiler.SaveToFile( Self, F, Q, A );
                  end, True );
 end;
 

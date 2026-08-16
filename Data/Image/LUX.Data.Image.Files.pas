@@ -16,6 +16,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
      ///// TLuxImage のファイル入出力
      ///// ・PNG は自前実装（行単位のストリーミング。8/16bit、サイズ制限は実質無し）
+     /////   Alpha_ = False なら α を省いた RGB（カラータイプ 2）で書く。
      ///// ・JPEG は Skia のコーデック（規格上 65,535 角まで。画像１枚分の連続バッファを一時的に要する）
 
      TLuxImageFiler = class
@@ -24,10 +25,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        ///// M E T H O D
        class procedure LoadFromFile( const Image_:TLuxImage; const FileName_:String );
-       class procedure SaveToFile  ( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90 );
+       class procedure SaveToFile  ( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
        ///// P N G
        class procedure LoadFromPng( const Image_:TLuxImage; const Stream_:TStream );
-       class procedure SaveToPng  ( const Image_:TLuxImage; const Stream_:TStream );
+       class procedure SaveToPng  ( const Image_:TLuxImage; const Stream_:TStream; const Alpha_:Boolean = True );
        ///// J P E G
        class procedure LoadFromJpg( const Image_:TLuxImage; const FileName_:String );
        class procedure SaveToJpg  ( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer );
@@ -564,7 +565,7 @@ begin
      else raise EInOutError.Create( '未対応の拡張子： ' + E );
 end;
 
-class procedure TLuxImageFiler.SaveToFile( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90 );
+class procedure TLuxImageFiler.SaveToFile( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
 var
    E :String;
    S :TFileStream;
@@ -575,7 +576,7 @@ begin
      begin
           S := TFileStream.Create( FileName_, fmCreate );
           try
-               SaveToPng( Image_, S );
+               SaveToPng( Image_, S, Alpha_ );
           finally
                S.Free;
           end;
@@ -803,11 +804,12 @@ begin
      Image_.Changed;
 end;
 
-class procedure TLuxImageFiler.SaveToPng( const Image_:TLuxImage; const Stream_:TStream );
+class procedure TLuxImageFiler.SaveToPng( const Image_:TLuxImage; const Stream_:TStream; const Alpha_:Boolean = True );
 var
    Head       :TBytes;
    W, H       :Integer;
    Depth, Bpp :Integer;
+   Chans      :Integer;
    RowN       :Integer;
    Idat       :TPngIdatWriter;
    Zlib       :TZCompressionStream;
@@ -826,7 +828,9 @@ begin
 
      if Image_.PixelKind = bpUInt08 then Depth := 8 else Depth := 16;
 
-     Bpp  := 4 * ( Depth div 8 );
+     if Alpha_ then Chans := 4 else Chans := 3;
+
+     Bpp  := Chans * ( Depth div 8 );
      RowN := W * Bpp;
 
      ///// 署名
@@ -841,7 +845,8 @@ begin
      U := SwapU32( H );  Move( U, Head[ 4 ], 4 );
 
      Head[  8 ] := Depth;
-     Head[  9 ] := 6;  // RGBA
+     if Alpha_ then Head[ 9 ] := 6   // RGBA
+               else Head[ 9 ] := 2;  // RGB
      Head[ 10 ] := 0;  // 圧縮法
      Head[ 11 ] := 0;  // フィルタ法
      Head[ 12 ] := 0;  // 非インターレース
@@ -874,9 +879,10 @@ begin
                               Q[ 0 ] := Round( Clamp( Row[X].C.R, 0, 1 ) * $FF );
                               Q[ 1 ] := Round( Clamp( Row[X].C.G, 0, 1 ) * $FF );
                               Q[ 2 ] := Round( Clamp( Row[X].C.B, 0, 1 ) * $FF );
-                              Q[ 3 ] := Round( Clamp( Row[X].A  , 0, 1 ) * $FF );
 
-                              Inc( Q, 4 );
+                              if Alpha_ then Q[ 3 ] := Round( Clamp( Row[X].A, 0, 1 ) * $FF );
+
+                              Inc( Q, Bpp );
                          end;
                     end
                     else
@@ -886,9 +892,13 @@ begin
                               I := Round( Clamp( Row[X].C.R, 0, 1 ) * $FFFF );  Q[ 0 ] := I shr 8;  Q[ 1 ] := I and $FF;
                               I := Round( Clamp( Row[X].C.G, 0, 1 ) * $FFFF );  Q[ 2 ] := I shr 8;  Q[ 3 ] := I and $FF;
                               I := Round( Clamp( Row[X].C.B, 0, 1 ) * $FFFF );  Q[ 4 ] := I shr 8;  Q[ 5 ] := I and $FF;
-                              I := Round( Clamp( Row[X].A  , 0, 1 ) * $FFFF );  Q[ 6 ] := I shr 8;  Q[ 7 ] := I and $FF;
 
-                              Inc( Q, 8 );
+                              if Alpha_ then
+                              begin
+                                   I := Round( Clamp( Row[X].A, 0, 1 ) * $FFFF );  Q[ 6 ] := I shr 8;  Q[ 7 ] := I and $FF;
+                              end;
+
+                              Inc( Q, Bpp );
                          end;
                     end;
 
