@@ -341,11 +341,11 @@ procedure UpdateLevels;                          // propagate dirty tiles to lev
 
 ///// files, synchronous
 procedure LoadFromFile( const FileName_:String );
-procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90 );
+procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // PNG: Alpha_=False writes RGB without alpha
 
 ///// files, on a worker thread
 procedure LoadFromFileAsync( const FileName_:String );
-procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90 );
+procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
 procedure WaitFor;
 property  Busy     :Boolean;
 property  Progress :Single;      // 0 … 1
@@ -405,7 +405,7 @@ Loading also builds the whole mip pyramid on the task's thread, through `UpdateL
 
 | Format | Read | Write | Notes |
 |---|---|---|---|
-| PNG | ✔ | ✔ | Implemented directly on `System.ZLib`. Reads every variant the format defines; writes RGBA, 8 bit for `TLuxImageUInt08` and 16 bit otherwise. |
+| PNG | ✔ | ✔ | Implemented directly on `System.ZLib`. Reads every variant the format defines; writes RGBA (or RGB without alpha when `Alpha_ = False`), 8 bit for `TLuxImageUInt08` and 16 bit otherwise. |
 | JPEG | ✔ | ✔ | Uses the Skia codec. |
 
 The PNG reader covers the whole of the format as specified in [1], whose compressed data stream is DEFLATE [2]:
