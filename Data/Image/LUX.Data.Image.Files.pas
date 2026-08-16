@@ -17,6 +17,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      ///// TLuxImage のファイル入出力
      ///// ・PNG は自前実装（行単位のストリーミング。8/16bit、サイズ制限は実質無し）
      /////   Alpha_ = False なら α を省いた RGB（カラータイプ 2）で書く。
+     /////   Linear_ = True なら「値は線形（ガンマ 1.0）」を表す線形 sRGB の ICC プロファイルを iCCP に同梱し、
+     /////   gAMA / cHRM も書く。画素値は変えない。色管理に対応した閲覧・編集ソフトは表示のときだけガンマを掛け、
+     /////   演算（ブレンド等）は線形のまま行う。
      ///// ・JPEG は Skia のコーデック（規格上 65,535 角まで。画像１枚分の連続バッファを一時的に要する）
 
      TLuxImageFiler = class
@@ -25,10 +28,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        ///// M E T H O D
        class procedure LoadFromFile( const Image_:TLuxImage; const FileName_:String );
-       class procedure SaveToFile  ( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
+       class procedure SaveToFile  ( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );
        ///// P N G
        class procedure LoadFromPng( const Image_:TLuxImage; const Stream_:TStream );
-       class procedure SaveToPng  ( const Image_:TLuxImage; const Stream_:TStream; const Alpha_:Boolean = True );
+       class procedure SaveToPng  ( const Image_:TLuxImage; const Stream_:TStream; const Alpha_:Boolean = True; const Linear_:Boolean = False );
        ///// J P E G
        class procedure LoadFromJpg( const Image_:TLuxImage; const FileName_:String );
        class procedure SaveToJpg  ( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer );
@@ -39,6 +42,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 function LuxSkColorType( const Kind_:TLuxPixel ) :TSkColorType;  // 画素形式に対応する Skia のカラータイプ
 
 function LuxImageSize( const FileName_:String; out Width_,Height_:Integer ) :Boolean;  // 画素を読まずに寸法だけ得る
+
+function LinearSrgbIccProfile :TArray<Byte>;  // 線形 sRGB（ガンマ 1.0・sRGB 原色・D65）の最小 ICC v4 プロファイル
 
 implementation //############################################################### ■
 
@@ -300,6 +305,143 @@ begin
      C := UpdateCrc( C, Data_, Size_ );
 
      WriteU32( Stream_, C xor $FFFFFFFF );
+end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 線形 sRGB の ICC プロファイル
+
+///// 「値は線形（ガンマ 1.0）、原色と白色点は sRGB」を表す最小の ICC v4 プロファイルを生成する。
+///// PNG の iCCP に同梱すると、Photoshop 等は値をそのまま線形として演算し、表示のときだけ
+///// モニタ用に変換する（＝線形ブレンド・ガンマ表示）。ファイルの画素値は変えない。
+/////   ・ヘッダ 128B ＋ タグ表 ＋ desc / cprt（mluc）, wtpt / rXYZ / gXYZ / bXYZ（XYZ, D50 適応済み）,
+/////     rTRC / gTRC / bTRC（curv 要素数 0 ＝ 恒等）
+///// 原色の XYZ は sRGB（D65）を Bradford で D50 へ適応した ICC 標準値。
+
+function LinearSrgbIccProfile :TArray<Byte>;
+var
+   S :TMemoryStream;
+   TagOfs :array [ 0..8 ] of Integer;
+   TagLen :array [ 0..8 ] of Integer;
+   I :Integer;
+   //--------------------------------------------
+   procedure W32( const V_:UInt32 );
+   var
+        U :UInt32;
+   begin
+        U := SwapU32( V_ );  S.WriteBuffer( U, 4 );
+   end;
+   procedure W16( const V_:UInt16 );
+   var
+        U :UInt16;
+   begin
+        U := ( V_ shr 8 ) or ( ( V_ and $FF ) shl 8 );  S.WriteBuffer( U, 2 );
+   end;
+   procedure WSig( const A_:AnsiString );
+   begin
+        S.WriteBuffer( A_[ 1 ], 4 );
+   end;
+   procedure WZero( const N_:Integer );
+   var
+        Z :array [ 0..127 ] of Byte;
+   begin
+        FillChar( Z, SizeOf( Z ), 0 );  S.WriteBuffer( Z, N_ );
+   end;
+   procedure WFix( const V_:Double );   // s15Fixed16
+   begin
+        W32( UInt32( Round( V_ * 65536 ) ) );
+   end;
+   procedure Pad4;
+   begin
+        while S.Size mod 4 <> 0 do WZero( 1 );
+   end;
+   procedure BeginTag( const I_:Integer );
+   begin
+        Pad4;  TagOfs[ I_ ] := S.Size;
+   end;
+   procedure EndTag( const I_:Integer );
+   begin
+        TagLen[ I_ ] := S.Size - TagOfs[ I_ ];
+   end;
+   procedure WriteXYZ( const I_:Integer; const X_,Y_,Z_:Double );
+   begin
+        BeginTag( I_ );  WSig( 'XYZ ' );  W32( 0 );  WFix( X_ );  WFix( Y_ );  WFix( Z_ );  EndTag( I_ );
+   end;
+   procedure WriteCurvLinear( const I_:Integer );
+   begin
+        BeginTag( I_ );  WSig( 'curv' );  W32( 0 );  W32( 0 );  EndTag( I_ );   // 要素数 0 ＝ 恒等（線形）
+   end;
+   procedure WriteMluc( const I_:Integer; const Text_:String );
+   var
+        J :Integer;
+   begin
+        BeginTag( I_ );
+        WSig( 'mluc' );  W32( 0 );
+        W32( 1 );        // レコード数
+        W32( 12 );       // レコード長
+        WSig( 'enUS' );
+        W32( Length( Text_ ) * 2 );   // 文字列のバイト数（UTF-16BE）
+        W32( 28 );                    // 文字列のオフセット（このタグの先頭から）
+        for J := 1 to Length( Text_ ) do W16( Ord( Text_[ J ] ) );
+        EndTag( I_ );
+   end;
+   //--------------------------------------------
+const
+   SIGS :array [ 0..8 ] of AnsiString = ( 'desc', 'cprt', 'wtpt', 'rXYZ', 'gXYZ', 'bXYZ', 'rTRC', 'gTRC', 'bTRC' );
+begin
+     S := TMemoryStream.Create;
+     try
+        ///// ヘッダ 128B（サイズは最後に埋める）
+
+        W32( 0 );                 // profile size
+        W32( 0 );                 // preferred CMM
+        W32( $04200000 );         // version 4.2
+        WSig( 'mntr' );           // device class: display
+        WSig( 'RGB ' );           // colour space
+        WSig( 'XYZ ' );           // PCS
+        WZero( 12 );              // date/time
+        WSig( 'acsp' );           // signature
+        W32( 0 );                 // platform
+        W32( 0 );                 // flags
+        W32( 0 );  W32( 0 );      // manufacturer / model
+        WZero( 8 );               // attributes
+        W32( 0 );                 // rendering intent: perceptual
+        WFix( 0.9642 );  WFix( 1.0 );  WFix( 0.8249 );   // PCS illuminant D50
+        W32( 0 );                 // creator
+        WZero( 16 );              // profile ID
+        WZero( 28 );              // reserved
+
+        ///// タグ表（9 個。オフセット・長さは後で埋める）
+
+        W32( 9 );
+        WZero( 9 * 12 );
+
+        ///// タグ本体
+
+        WriteMluc( 0, 'Linear sRGB (gamma 1.0)' );
+        WriteMluc( 1, 'Public domain' );
+        WriteXYZ ( 2, 0.9642, 1.0000, 0.8249 );   // wtpt = D50
+        WriteXYZ ( 3, 0.4360, 0.2225, 0.0139 );   // rXYZ ( sRGB → D50 Bradford )
+        WriteXYZ ( 4, 0.3851, 0.7169, 0.0971 );   // gXYZ
+        WriteXYZ ( 5, 0.1431, 0.0606, 0.7141 );   // bXYZ
+        WriteCurvLinear( 6 );
+        WriteCurvLinear( 7 );
+        WriteCurvLinear( 8 );
+        Pad4;
+
+        ///// タグ表とサイズを埋める
+
+        for I := 0 to 8 do
+        begin
+             S.Position := 128 + 4 + I * 12;
+             WSig( SIGS[ I ] );  W32( TagOfs[ I ] );  W32( TagLen[ I ] );
+        end;
+
+        S.Position := 0;  W32( S.Size );
+
+        SetLength( Result, S.Size );
+        Move( S.Memory^, Result[ 0 ], S.Size );
+     finally
+        S.Free;
+     end;
 end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LuxSkColorType
@@ -565,7 +707,7 @@ begin
      else raise EInOutError.Create( '未対応の拡張子： ' + E );
 end;
 
-class procedure TLuxImageFiler.SaveToFile( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
+class procedure TLuxImageFiler.SaveToFile( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );
 var
    E :String;
    S :TFileStream;
@@ -576,7 +718,7 @@ begin
      begin
           S := TFileStream.Create( FileName_, fmCreate );
           try
-               SaveToPng( Image_, S, Alpha_ );
+               SaveToPng( Image_, S, Alpha_, Linear_ );
           finally
                S.Free;
           end;
@@ -804,7 +946,9 @@ begin
      Image_.Changed;
 end;
 
-class procedure TLuxImageFiler.SaveToPng( const Image_:TLuxImage; const Stream_:TStream; const Alpha_:Boolean = True );
+class procedure TLuxImageFiler.SaveToPng( const Image_:TLuxImage; const Stream_:TStream; const Alpha_:Boolean = True; const Linear_:Boolean = False );
+const
+  ICC_NAME :AnsiString = 'Linear sRGB';   // iCCP のプロファイル名（Latin-1、1〜79 文字）
 var
    Head       :TBytes;
    W, H       :Integer;
@@ -820,6 +964,10 @@ var
    A, B, C, P, PA, PB, PC :Integer;
    Q          :PByte;
    U          :UInt32;
+   Icc, Zicc  :TBytes;
+   Buf        :TBytes;
+   Zp         :Pointer;
+   Zn         :Integer;
 begin
      W := Image_.Width;
      H := Image_.Height;
@@ -852,6 +1000,42 @@ begin
      Head[ 12 ] := 0;  // 非インターレース
 
      WriteChunk( Stream_, [ Ord('I'), Ord('H'), Ord('D'), Ord('R') ], @Head[ 0 ], 13 );
+
+     ///// 色空間（線形）：gAMA = 1.0、cHRM = sRGB 原色と D65、iCCP = 線形 sRGB プロファイル
+     ///// （どれも IDAT より前。sRGB チャンクは iCCP と排他なので書かない）
+
+     if Linear_ then
+     begin
+          SetLength( Buf, 32 );
+
+          U := SwapU32( 100000 );  Move( U, Buf[ 0 ], 4 );
+          WriteChunk( Stream_, [ Ord('g'), Ord('A'), Ord('M'), Ord('A') ], @Buf[ 0 ], 4 );
+
+          U := SwapU32( 31270 );  Move( U, Buf[  0 ], 4 );   // 白色点 x
+          U := SwapU32( 32900 );  Move( U, Buf[  4 ], 4 );   //        y
+          U := SwapU32( 64000 );  Move( U, Buf[  8 ], 4 );   // R
+          U := SwapU32( 33000 );  Move( U, Buf[ 12 ], 4 );
+          U := SwapU32( 30000 );  Move( U, Buf[ 16 ], 4 );   // G
+          U := SwapU32( 60000 );  Move( U, Buf[ 20 ], 4 );
+          U := SwapU32( 15000 );  Move( U, Buf[ 24 ], 4 );   // B
+          U := SwapU32(  6000 );  Move( U, Buf[ 28 ], 4 );
+          WriteChunk( Stream_, [ Ord('c'), Ord('H'), Ord('R'), Ord('M') ], @Buf[ 0 ], 32 );
+
+          Icc := LinearSrgbIccProfile;
+
+          ZCompress( @Icc[ 0 ], Length( Icc ), Zp, Zn );
+          try
+             SetLength( Zicc, Length( ICC_NAME ) + 2 + Zn );
+             Move( ICC_NAME[ 1 ], Zicc[ 0 ], Length( ICC_NAME ) );
+             Zicc[ Length( ICC_NAME )     ] := 0;   // 名前の終端
+             Zicc[ Length( ICC_NAME ) + 1 ] := 0;   // 圧縮法 0 = deflate
+             Move( Zp^, Zicc[ Length( ICC_NAME ) + 2 ], Zn );
+          finally
+             FreeMem( Zp );
+          end;
+
+          WriteChunk( Stream_, [ Ord('i'), Ord('C'), Ord('C'), Ord('P') ], @Zicc[ 0 ], Length( Zicc ) );
+     end;
 
      ///// IDAT
 
