@@ -148,6 +148,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
 
+function LuxSkColorType( const Kind_:TLuxPixel ) :TSkColorType;         // 画素形式に対応する Skia のカラータイプ
+
 function LuxMonitorDevice( const Control_:TControl ) :String;            // コントロールの窓が乗っているモニターのデバイス名（ Windows 以外は空 ）
 function LuxMonitorColorSpace( const Device_:String ) :TLuxColorSpace;   // モニターに割り当てられた ICC プロファイルの色空間（無ければ nil ）
 
@@ -155,11 +157,26 @@ implementation //###############################################################
 
 {$R *.fmx}
 
-uses System.SysUtils, System.Math,
-     {$IFDEF MSWINDOWS} Winapi.Windows, Winapi.MultiMon, FMX.Platform.Win, {$ENDIF}
-     LUX.Data.Image.Files;
+uses System.SysUtils, System.Math
+     {$IFDEF MSWINDOWS}, Winapi.Windows, Winapi.MultiMon, FMX.Platform.Win{$ENDIF};
 
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LuxSkColorType
+
+///// ４つの画素形式はいずれも Skia のネイティブなカラータイプと 1 対 1 に対応するので、
+///// タイルは画素形式の変換なしに Skia へ渡せる。
+
+function LuxSkColorType( const Kind_:TLuxPixel ) :TSkColorType;
+begin
+     case Kind_ of
+       bpUInt08: Result := TSkColorType.BGRA8888;      // TByteRGBA   の記憶順は B,G,R,A
+       bpUInt16: Result := TSkColorType.RGBA16161616;  // TWordRGBA
+       bpSFlo16: Result := TSkColorType.RGBAF16;       // THalfRGBA
+       bpSFlo32: Result := TSkColorType.RGBAF32;       // TSingleRGBA
+     else        Result := TSkColorType.Unknown;
+     end;
+end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% モニターのプロファイル
 
