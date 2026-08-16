@@ -16,6 +16,7 @@ FireMonkey's `TBitmap` shares its storage with the GPU and therefore inherits th
 - **Lock-free concurrent writing.** Any number of threads may write disjoint regions at once and report each finished tile with `TileChanged`; the viewer picks the changes up in real time.
 - **`TLuxImageWorker`**, a block scheduler that runs an arbitrary per-block procedure over the whole image on all cores, handing out blocks one at a time so that wildly uneven per-pixel cost — ray tracing, fractals — still balances.
 - **Real-time viewer** with smooth wheel zoom and drag scrolling, GPU tone mapping and gamma correction, which shows a rendering in progress block by block.
+- **Colour management.** An image may carry a `ColorSpace` — sRGB, Display P3, Adobe RGB, Rec.2020, ProPhoto, ACEScg, their linear forms, or any space of your own — which is embedded in PNG (`sRGB` / `iCCP` + `gAMA` + `cHRM`) and JPEG (APP2 `ICC_PROFILE`) on save, recovered on load, and honoured by the viewer, which converts on the GPU to the monitor's own profile. `nil` means no colour management, and pixel values are never altered.
 - **Asynchronous file I/O** with progress reporting and completion events.
 - Depends only on the RTL, FireMonkey and Skia, all of which ship with RAD Studio.
 
@@ -177,7 +178,9 @@ Both are evaluated by an SkSL runtime colour filter on the GPU, so changing `Gam
 
 ・LUX                                 ･･･ base declarations, TDelegates
   ┣・LUX.Color                       ･･･ TByteRGBA  TWordRGBA  TSingleRGBA
-  ┃  ┗・LUX.Color.Half              ･･･ THalfRGB  THalfRGBA
+  ┃  ┣・LUX.Color.Half              ･･･ THalfRGB  THalfRGBA
+  ┃  ┗・LUX.Color.Space             ･･･ TLuxColorSpace, presets, TLuxColorSpaces, ICC read / write
+  ┣・LUX.D2  LUX.D3  LUX.D3x3        ･･･ chromaticities, XYZ, 3 × 3 matrices
   ┗・LUX.D1.Half                     ･･･ THalf, the half-precision scalar
      ┗・LUX.D1.Half.DIff             ･･･ TdHalf, automatic differentiation
 ```
@@ -275,6 +278,23 @@ Worker.Start( procedure( const ThreadI_,X_,Y_,W_,H_:Integer )
 
 Threads of your own can do the same thing without the worker: write disjoint regions through `SetRow`, `SetRaws` or `TileData`, call `TileChanged` for each level-0 tile you finish, and call `Notify` — at a rate you throttle — whenever the display should catch up.
 
+### 4.4 Colour spaces
+
+```pascal
+Image.ColorSpace := TLuxColorSpaces.LinearRec2020;   // "these pixels are linear Rec.2020" — the pixels themselves are untouched
+Image.SaveToFile( 'render.png' );                     // iCCP + cHRM + gAMA are written
+Image.SaveToFile( 'render.jpg', 95 );                 // APP2 ICC_PROFILE is written
+
+Image.LoadFromFile( 'photo.jpg' );                    // an embedded Adobe RGB profile → Image.ColorSpace = TLuxColorSpaces.AdobeRGB
+                                                      // an unknown profile → a new TLuxColorSpace, kept in TLuxColorSpaces
+                                                      // no profile → nil
+
+Viewer.ColorSpace := nil;                             // default: convert to the monitor's own profile
+Viewer.ColorSpace := TLuxColorSpaces.sRGB;            // or force sRGB
+```
+
+`ColorSpace` is a reference, never owned by the image: the presets live in `TLuxColorSpaces` for the life of the program, and spaces read from files are interned there by content, so an image may be assigned any of them freely and compared by pointer.
+
 ## 5. Pixel Formats
 
 | Class | Pixel record | Bytes / pixel | Skia colour type | Default display gamma |
@@ -341,14 +361,17 @@ procedure UpdateLevels;                          // propagate dirty tiles to lev
 
 ///// files, synchronous
 procedure LoadFromFile( const FileName_:String );
-procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );  // PNG: Alpha_=False writes RGB without alpha; Linear_=True embeds a linear-sRGB ICC profile (iCCP) + gAMA + cHRM
+procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // PNG: Alpha_=False writes RGB without alpha; ColorSpace, if any, is embedded
 
 ///// files, on a worker thread
 procedure LoadFromFileAsync( const FileName_:String );
-procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );
+procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
 procedure WaitFor;
 property  Busy     :Boolean;
 property  Progress :Single;      // 0 … 1
+
+///// colour space  ( LUX.Color.Space; not owned; nil = no colour management )
+property  ColorSpace :TLuxColorSpace;
 
 ///// notification
 property  Version    :Cardinal;  // incremented by SetSize, Clear and Changed  ( the viewer drops its whole cache )
@@ -405,8 +428,8 @@ Loading also builds the whole mip pyramid on the task's thread, through `UpdateL
 
 | Format | Read | Write | Notes |
 |---|---|---|---|
-| PNG | ✔ | ✔ | Implemented directly on `System.ZLib`. Reads every variant the format defines; writes RGBA (or RGB without alpha when `Alpha_ = False`), 8 bit for `TLuxImageUInt08` and 16 bit otherwise. With `Linear_ = True` a linear-sRGB ICC profile is embedded (`iCCP`, plus `gAMA` and `cHRM`) so that colour-managed applications treat the pixel values as linear light: they blend in linear space and apply the display gamma only on output. |
-| JPEG | ✔ | ✔ | Uses the Skia codec. |
+| PNG | ✔ | ✔ | Implemented directly on `System.ZLib`. Reads every variant the format defines; writes RGBA (or RGB without alpha when `Alpha_ = False`), 8 bit for `TLuxImageUInt08` and 16 bit otherwise. With a `ColorSpace`, sRGB is written as the `sRGB` chunk (plus `gAMA` and `cHRM`, as the specification recommends) and any other space as an `iCCP` profile plus `cHRM` (and `gAMA` when the curve is a pure gamma). On reading, `iCCP`, then `sRGB`, then `gAMA` + `cHRM` are honoured, in that order. |
+| JPEG | ✔ | ✔ | Uses the Skia codec. With a `ColorSpace`, the ICC profile is embedded as APP2 `ICC_PROFILE` segments after the JFIF header; on reading, those segments are reassembled and parsed. |
 
 The PNG reader covers the whole of the format as specified in [1], whose compressed data stream is DEFLATE [2]:
 
@@ -443,6 +466,9 @@ property Origin     :TPointF;      // image coordinate at the top left of the vi
 property MinScale   :Single;       // default 1/4096
 property MaxScale   :Single;       // default 256
 
+property ColorSpace       :TLuxColorSpace;   // display colour space; nil = the monitor's own profile
+property ActiveColorSpace :TLuxColorSpace;   // the display space actually in use
+
 procedure FitToWindow;
 procedure ZoomAt( const P_:TPointF; const Factor_:Single );
 procedure ZoomWheel( const WheelDelta_:Integer );
@@ -451,7 +477,9 @@ function  ImageToView( const P_:TPointF ) :TPointF;
 procedure Redraw;
 ```
 
-Assigning `Image` resets `Gamma` and `ToneMap` to that class's defaults and fits the image to the window.
+Assigning `Image` resets `Gamma` and `ToneMap` to that class's defaults and fits the image to the window. When the image has a `ColorSpace`, the default `Gamma` is 1 — the transfer functions decide the display encoding — and `Gamma` acts as an additional adjustment; when the image's colour space changes, the default is re-applied.
+
+`ColorSpace` is the *display* side of the conversion. Left `nil`, the viewer asks Windows for the ICC profile assigned to the monitor the window is on (the "Monitor RGB" of Photoshop) through `GetICMProfile`, parses it, and follows the window from monitor to monitor; a profile that cannot be parsed, or none, means sRGB. Assign a space to override — `TLuxColorSpaces.sRGB` forces sRGB, which is also the right choice under Windows HDR / Auto Color Management, where the compositor performs the display conversion itself. If the image has no colour space, nothing is converted regardless of this property.
 
 Setting `Scale` re-centres the image: the centre of the image is placed at the centre of the view. `ZoomAt` instead holds a given point of the view still, which is what the wheel uses to keep the pixel under the cursor in place.
 
@@ -463,7 +491,9 @@ Rolling the wheel towards you zooms in — the factor applied is $2^{-\Delta / 4
 2. The level is chosen by (2.6) so that within it the image is always magnified by a factor in [1, 2). Minification never occurs inside a level, so minification aliasing cannot arise.
 3. The visible tiles of that level are enumerated, at most the number bounded by (2.8).
 4. Each tile becomes an `ISkImage` and is cached, keyed by `TTileKey` (level and tile indices) and validated by the sum of the stamps of the tile and its eight neighbours. The cached image carries a one-pixel apron gathered from the neighbouring tiles, so filtering at a tile boundary reads real neighbouring pixels instead of clamping, and no seams appear; including the neighbours in the validation is what keeps the apron current when a neighbour changes.
-5. The tiles are drawn with `DrawImageRect`. At `Scale` ≥ 1 sampling is nearest neighbour, so magnifying past 1:1 shows pixels as squares; below 1:1 it is linear. Tone mapping and gamma are applied by an SkSL runtime colour filter on the GPU, so changing `Gamma`, `ToneMap` or `White` costs nothing and does not invalidate the cache.
+5. The tiles are drawn with `DrawImageRect`. At `Scale` ≥ 1 sampling is nearest neighbour, so magnifying past 1:1 shows pixels as squares; below 1:1 it is linear. Colour management, tone mapping and gamma are applied by one SkSL runtime colour filter on the GPU, so changing `Gamma`, `ToneMap`, `White` or either colour space costs nothing and does not invalidate the cache.
+
+The colour filter, per pixel and after un-premultiplying, is: decode with the image's transfer function → tone map (optional, in linear light) → 3 × 3 matrix from the image's primaries to the display's, with Bradford adaptation if the white points differ → encode with the display's transfer function → `pow( 1/Gamma )` → re-premultiply. Without an image colour space only the tone map and the gamma remain, exactly as before. Both transfer functions are passed as the seven ICC coefficients (`LUX.Color.Space`, §2.5), so any curve the library can describe runs on the GPU unchanged.
 
 Nothing is resampled on the CPU. The per-frame CPU work is the pyramid update for tiles that changed and the aprons of tiles that were rebuilt or newly exposed.
 
