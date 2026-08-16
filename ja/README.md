@@ -17,7 +17,7 @@ LUX は LUXOPHIA コレクションの基盤ライブラリである。スカラ
 |---|---|---|
 | 線形代数 | `LUX.D1` 〜 `LUX.D4` ・ `LUX.D2x2` ・ `LUX.D3x3` ・ `LUX.D4x4` ・ `LUX.Quaternion` | `TSingle3D` ・ `TSingleM4` ・ `TSingleQ` |
 | 数値計算 | `LUX.D*.Diff` ・ `LUX.D1.Half` ・ `LUX.Complex` ・ `LUX.D1.Gamma.*` ・ `LUX.D1.Legendre` | `TdSingle` ・ `THalf` ・ `TSingleC` |
-| 色と曲線 | `LUX.Color` ・ `LUX.Color.Half` ・ `LUX.Curve.*` | `TSingleRGBA` ・ `THalfRGBA` ・ `TSingleWector<T>` |
+| 色と曲線 | `LUX.Color` ・ `LUX.Color.Half` ・ `LUX.Color.Space` ・ `LUX.Curve.*` | `TSingleRGBA` ・ `THalfRGBA` ・ `TLuxColorSpace` ・ `TSingleWector<T>` |
 | データ構造 | `LUX.Data.List` ・ `LUX.Data.Tree` ・ `LUX.Data.Grid.*` ・ `LUX.Data.Model.*` ・ `LUX.Data.Image` | `TTreeNode` ・ `TTriaGrid<T>` ・ `TLuxImage` |
 
 数値型は演算子・コンストラクタ・プロパティ・暗黙変換を備えた Delphi の `record` である。したがってスタックに置かれ、値としてコピーされ、寿命管理を必要としない。コンテナ型はクラスであり、集合の層はジェネリックなので、相互参照プロパティには基底型ではなく利用側の派生クラスがそのまま現れる。
@@ -54,7 +54,7 @@ LUX は LUXOPHIA コレクションの基盤ライブラリである。スカラ
 各分野フォルダはそれぞれ README（`README.md`／`ja/README.md`）を持つ。以下のツリーからたどれる。
 
 * [**LUX.Code**](../Code/ja/README.md) ：C ヘッダ転記のための C99 → Delphi 型別名（T_int・P_char など）
-* [**LUX.Color**](../Color/ja/README.md) ：色の値レコード — Gamma / Reinhard ToneMap を備えた線形 RGB(A) と Byte / Word / RGBE / Half 形式
+* [**LUX.Color**](../Color/ja/README.md) ：色の値レコード — Gamma / Reinhard ToneMap を備えた線形 RGB(A) と Byte / Word / RGBE / Half 形式、ICC の読み書きを備えた RGB 色空間（sRGB 〜 ACEScg）
 * [**LUX.Complex**](../Complex/ja/README.md) ：複素数 TSingleC / TDoubleC — 初等関数と .Diff の対型
   * [**LUX.Complex.FMX.D3**](../Complex/FMX/ja/README.md) ：TComplex3D — 複素関数の FireMonkey 曲面プロット
   * [**LUX.C2.Gamma**](../Complex/Gamma/ja/README.md) ：複素ガンマ関数 — Lanczos（N = 7 / 9 / 11 / 15）と大浦 cdgamma
@@ -110,7 +110,7 @@ LUX は LUXOPHIA コレクションの基盤ライブラリである。スカラ
   ┃  ┣・LUX.Complex.pas ･･･ LUX.Complex.Diff.pas
   ┃  ┣・Gamma/          ･･･ 複素ガンマ：Lanczos と Ooura、各々に .Diff
   ┃  ┗・FMX/            ･･･ TComplex3D（FireMonkey の3D形状）
-  ┣・Color/              ･･･ LUX.Color.pas  LUX.Color.Half.pas
+  ┣・Color/              ･･･ LUX.Color.pas  LUX.Color.Half.pas  LUX.Color.Space.pas
   ┣・Curve/
   ┃  ┣・LUX.Curve.pas   ･･･ 重み付きベクトルのレコード
   ┃  ┣・LUX.Curve.*.pas ･･･ Bezier・BSpline・CatmullRom・Lanczos・Linear
