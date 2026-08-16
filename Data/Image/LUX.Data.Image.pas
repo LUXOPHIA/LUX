@@ -97,26 +97,26 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        constructor Create( const W_,H_:Integer ); overload;
        destructor Destroy; override;
        ///// C L A S S
-       class function PixelKind :TLuxPixel; virtual; abstract;                            // 画素形式
-       class function PixelSize :Integer; virtual; abstract;                              // １画素のバイト数
-       class function IsFloat :Boolean; virtual;                                          // 浮動小数形式か
-       class function DefaultGamma :Single; virtual;                                      // 表示ガンマの既定値
+       class function PixelKind :TLuxPixel; virtual; abstract;                                                         // 画素形式
+       class function PixelSize :Integer; virtual; abstract;                                                           // １画素のバイト数
+       class function IsFloat :Boolean; virtual;                                                                       // 浮動小数形式か
+       class function DefaultGamma :Single; virtual;                                                                   // 表示ガンマの既定値
        ///// P R O P E R T Y
        property Width                         :Integer     read _Width    ;
        property Height                        :Integer     read _Height   ;
        property LevelsN                       :Integer     read GetLevelsN;
-       property Version                       :Cardinal    read _Version  ;               // 構造か全体が変わった版（表示側は全キャッシュを破棄する）
-       property Busy                          :Boolean     read _Busy     ;               // 非同期の読み書きが進行中
-       property Progress                      :Single      read _Progress ;               // 0 〜 1
+       property Version                       :Cardinal    read _Version  ;                                            // 構造か全体が変わった版（表示側は全キャッシュを破棄する）
+       property Busy                          :Boolean     read _Busy     ;                                            // 非同期の読み書きが進行中
+       property Progress                      :Single      read _Progress ;                                            // 0 〜 1
        property Colors[ const X_,Y_:Integer ] :TSingleRGBA read GetColors write SetColors; default;
        ///// M E T H O D
-       procedure SetSize( const W_,H_:Integer );                                          // 全段を確保する。確保できなければ EOutOfMemory
-       procedure Clear;                                                                   // 全段を 0 で埋める
+       procedure SetSize( const W_,H_:Integer );                                                                       // 全段を確保する。確保できなければ EOutOfMemory
+       procedure Clear;                                                                                                // 全段を 0 で埋める
        /////
-       procedure Changed;                                                                 // 全体が変わった：全タイルを Dirty にし、Version を上げ、Notify する
-       procedure TileChanged( const TX_,TY_:Integer );                                    // 段 0 のタイルが変わった：Dirty と Stamp を更新する（通知はしない）
-       procedure Notify;                                                                  // OnChange をメインスレッドで発火する
-       procedure UpdateLevels;                                                            // Dirty なタイルの足跡を段 1 以上へ反映する（呼び出しは直列化される）
+       procedure Changed;                                                                                              // 全体が変わった：全タイルを Dirty にし、Version を上げ、Notify する
+       procedure TileChanged( const TX_,TY_:Integer );                                                                 // 段 0 のタイルが変わった：Dirty と Stamp を更新する（通知はしない）
+       procedure Notify;                                                                                               // OnChange をメインスレッドで発火する
+       procedure UpdateLevels;                                                                                         // Dirty なタイルの足跡を段 1 以上へ反映する（呼び出しは直列化される）
        /////
        function LevelWidth ( const L_:Integer ) :Integer;
        function LevelHeight( const L_:Integer ) :Integer;
@@ -125,25 +125,25 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function TileWidth  ( const L_,TX_:Integer ) :Integer;
        function TileHeight ( const L_,TY_:Integer ) :Integer;
        /////
-       function TileData ( const L_,TX_,TY_:Integer ) :Pointer;                           // タイルの先頭（常に有効。行ピッチは LUXIMAGE_TILE 画素）
-       function TileStamp( const L_,TX_,TY_:Integer ) :Cardinal;                          // タイルの内容の版
+       function TileData ( const L_,TX_,TY_:Integer ) :Pointer;                                                        // タイルの先頭（常に有効。行ピッチは LUXIMAGE_TILE 画素）
+       function TileStamp( const L_,TX_,TY_:Integer ) :Cardinal;                                                       // タイルの内容の版
        /////
-       procedure GetRaws( const L_,X_,Y_,N_:Integer; const Dst_:Pointer );                // 生画素を N_ 個読む（タイル跨ぎ対応）
-       procedure SetRaws( const L_,X_,Y_,N_:Integer; const Src_:Pointer );                // 生画素を N_ 個書く（タイル跨ぎ対応）
+       procedure GetRaws( const L_,X_,Y_,N_:Integer; const Dst_:Pointer );                                             // 生画素を N_ 個読む（タイル跨ぎ対応）
+       procedure SetRaws( const L_,X_,Y_,N_:Integer; const Src_:Pointer );                                             // 生画素を N_ 個書く（タイル跨ぎ対応）
        /////
-       procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );             // 書式非依存の行読み
-       procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );             // 書式非依存の行書き
+       procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );                                          // 書式非依存の行読み
+       procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );                                          // 書式非依存の行書き
        /////
        procedure LoadFromFile( const FileName_:String );
-       procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90 );
+       procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );       // PNG は Alpha_=False で α 無しの RGB
        /////
-       procedure LoadFromFileAsync( const FileName_:String );                             // 別スレッドで読む
-       procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90 );  // 別スレッドで書く
-       procedure WaitFor;                                                                 // 非同期処理の完了を待つ
-       procedure DoProgress( const Ratio_:Single );                                       // 入出力側から進捗を報せる
+       procedure LoadFromFileAsync( const FileName_:String );                                                          // 別スレッドで読む
+       procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // 別スレッドで書く
+       procedure WaitFor;                                                                                              // 非同期処理の完了を待つ
+       procedure DoProgress( const Ratio_:Single );                                                                    // 入出力側から進捗を報せる
        ///// E V E N T
        property OnChange   :TDelegates read _OnChange  ;
-       property OnProgress :TDelegates read _OnProgress;                                  // 進捗値は Progress を読む
+       property OnProgress :TDelegates read _OnProgress;                                                               // 進捗値は Progress を読む
        property OnLoaded   :TDelegates read _OnLoaded  ;
        property OnSaved    :TDelegates read _OnSaved   ;
      end;
@@ -864,11 +864,11 @@ begin
      DoProgress( 1 );
 end;
 
-procedure TLuxImage.SaveToFile( const FileName_:String; const Quality_:Integer = 90 );
+procedure TLuxImage.SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
 begin
      _Progress := 0;  _Fired := -1;
 
-     TLuxImageFiler.SaveToFile( Self, FileName_, Quality_ );
+     TLuxImageFiler.SaveToFile( Self, FileName_, Quality_, Alpha_ );
 
      DoProgress( 1 );
 end;
@@ -894,16 +894,17 @@ begin
                  end, False );
 end;
 
-procedure TLuxImage.SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90 );
+procedure TLuxImage.SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
 var
    F :String;
    Q :Integer;
+   A :Boolean;
 begin
-     F := FileName_;  Q := Quality_;
+     F := FileName_;  Q := Quality_;  A := Alpha_;
 
      StartAsync( procedure
                  begin
-                      TLuxImageFiler.SaveToFile( Self, F, Q );
+                      TLuxImageFiler.SaveToFile( Self, F, Q, A );
                  end, True );
 end;
 
