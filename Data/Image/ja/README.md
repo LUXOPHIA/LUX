@@ -341,11 +341,11 @@ procedure UpdateLevels;                          // Dirty なタイルを段 1 �
 
 ///// ファイル（同期）
 procedure LoadFromFile( const FileName_:String );
-procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // PNG：Alpha_=False なら α 無しの RGB で書く
+procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );  // PNG：Alpha_=False なら α 無しの RGB、Linear_=True なら線形 sRGB の ICC プロファイル（iCCP）＋ gAMA ＋ cHRM を同梱
 
 ///// ファイル（別スレッド）
 procedure LoadFromFileAsync( const FileName_:String );
-procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
+procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );
 procedure WaitFor;
 property  Busy     :Boolean;
 property  Progress :Single;      // 0 〜 1
@@ -405,7 +405,7 @@ property OnFinished :TDelegates;  // メインスレッド。完了でも中止�
 
 | 形式 | 読み | 書き | 備考 |
 |---|---|---|---|
-| PNG | ✔ | ✔ | `System.ZLib` の上に直接実装。読みは規格の定める全ての形式に対応。書きは RGBA（`Alpha_ = False` なら α 無しの RGB）で、`TLuxImageUInt08` なら 8bit、それ以外は 16bit。 |
+| PNG | ✔ | ✔ | `System.ZLib` の上に直接実装。読みは規格の定める全ての形式に対応。書きは RGBA（`Alpha_ = False` なら α 無しの RGB）で、`TLuxImageUInt08` なら 8bit、それ以外は 16bit。`Linear_ = True` なら線形 sRGB の ICC プロファイル（`iCCP`。あわせて `gAMA` と `cHRM`）を同梱し、色管理に対応したアプリは画素値を線形光として扱う（ブレンドは線形、表示のときだけガンマを掛ける）。 |
 | JPEG | ✔ | ✔ | Skia のコーデックを使用。 |
 
 PNG の読み込みは [1] の規格全体を網羅する。その圧縮データ列は DEFLATE [2] である。
