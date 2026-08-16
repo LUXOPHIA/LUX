@@ -90,8 +90,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        ///// M E T H O D
        procedure InitLevels;
        procedure FillLevels;
-       procedure StartAsync( const Work_:TProc; const Saving_:Boolean );
-       procedure ProgRange( const A_,B_:Single );  // 以降の DoProgress を全体の A_〜B_ に割り当てる
        /////
        procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer ); virtual; abstract;  // 記憶形式 → TSingleRGBA
        procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer ); virtual; abstract;  // TSingleRGBA → 記憶形式
@@ -142,13 +140,12 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );  // 書式非依存の行読み
        procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );  // 書式非依存の行書き
        /////
-       procedure LoadFromFile( const FileName_:String );
-       procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // PNG：Alpha_=False で α 無しの RGB。ColorSpace があれば埋め込む
-       /////
-       procedure LoadFromFileAsync( const FileName_:String );                            // 別スレッドで読む
-       procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // 別スレッドで書く
-       procedure WaitFor;                                                                 // 非同期処理の完了を待つ
-       procedure DoProgress( const Ratio_:Single );                                       // 入出力側から進捗を報せる
+       ///// 入出力（ TLuxImageFiler とその派生クラスが使う。ファイル形式は一切知らない ）
+       procedure RunAsync( const Work_:TProc; const Saving_:Boolean );  // 別スレッドで走らせ、Busy と OnLoaded / OnSaved を面倒みる
+       procedure BeginProgress;                                          // 進捗を 0 に戻す
+       procedure ProgRange( const A_,B_:Single );                        // 以降の DoProgress を全体の A_〜B_ に割り当てる
+       procedure DoProgress( const Ratio_:Single );                      // 進捗を報せる
+       procedure WaitFor;                                                // 非同期処理の完了を待つ
        ///// E V E N T
        property OnChange   :TDelegates read _OnChange  ;
        property OnProgress :TDelegates read _OnProgress;  // 進捗値は Progress を読む
@@ -257,9 +254,8 @@ function LuxFreeMemory :Int64;  // 物理メモリの空き（バイト）。得
 
 implementation //############################################################### ■
 
-uses System.Math,
-     {$IFDEF MSWINDOWS} Winapi.Windows, {$ENDIF}
-     LUX.Data.Image.Files;
+uses System.Math
+     {$IFDEF MSWINDOWS}, Winapi.Windows{$ENDIF};
 
 const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
 
@@ -405,7 +401,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TLuxImage.StartAsync( const Work_:TProc; const Saving_:Boolean );
+procedure TLuxImage.RunAsync( const Work_:TProc; const Saving_:Boolean );
 begin
      if _Busy then raise EInvalidOpException.Create( '前の非同期処理がまだ終わっていない' );
 
@@ -445,6 +441,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+procedure TLuxImage.BeginProgress;
+begin
+     _Progress := 0;  _Fired := -1;
+end;
 
 procedure TLuxImage.ProgRange( const A_,B_:Single );
 begin
@@ -872,61 +873,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
-procedure TLuxImage.LoadFromFile( const FileName_:String );
-begin
-     _Progress := 0;  _Fired := -1;
-
-     TLuxImageFiler.LoadFromFile( Self, FileName_ );
-
-     UpdateLevels;
-
-     DoProgress( 1 );
-end;
-
-procedure TLuxImage.SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
-begin
-     _Progress := 0;  _Fired := -1;
-
-     TLuxImageFiler.SaveToFile( Self, FileName_, Quality_, Alpha_ );
-
-     DoProgress( 1 );
-end;
-
-//------------------------------------------------------------------------------
-
-procedure TLuxImage.LoadFromFileAsync( const FileName_:String );
-var
-   F :String;
-begin
-     F := FileName_;
-
-     StartAsync( procedure
-                 begin
-                      ProgRange( 0, 0.75 );  TLuxImageFiler.LoadFromFile( Self, F );
-
-                      ///// 表示に要る縮小段も、ここで作り終えてしまう。
-                      ///// 最初の描画時に作ると、その分だけ UI が止まってしまうため。
-
-                      ProgRange( 0.75, 1 );  UpdateLevels;
-
-                      ProgRange( 0, 1 );
-                 end, False );
-end;
-
-procedure TLuxImage.SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
-var
-   F :String;
-   Q :Integer;
-   A :Boolean;
-begin
-     F := FileName_;  Q := Quality_;  A := Alpha_;
-
-     StartAsync( procedure
-                 begin
-                      TLuxImageFiler.SaveToFile( Self, F, Q, A );
-                 end, True );
-end;
 
 procedure TLuxImage.WaitFor;
 begin
