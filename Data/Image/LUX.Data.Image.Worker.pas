@@ -55,6 +55,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetProgress :Single;
        ///// M E T H O D
        procedure Run( const ThreadI_:Integer );
+       function Runner( const ThreadI_:Integer ) :TProc;   // ThreadI_ を無名メソッドに焼き込む
        procedure Fire;
        procedure Finish;
      public
@@ -243,9 +244,17 @@ end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
+function TLuxImageWorker.Runner( const ThreadI_:Integer ) :TProc;
+begin
+     Result := procedure
+               begin
+                    Run( ThreadI_ );
+               end;
+end;
+
 procedure TLuxImageWorker.Start( const Proc_:TLuxBlockProc );
 var
-   NBY, I, T :Integer;
+   NBY, I :Integer;
 begin
      if _Busy then raise EInvalidOpException.Create( '前の処理がまだ終わっていない' );
 
@@ -277,12 +286,11 @@ begin
 
      for I := 0 to _ThreadsN-1 do
      begin
-          T := I;  // 無名メソッドは for の制御変数を捕捉できない
+          ///// 無名メソッドは変数を「参照」で捕捉するので、ループ内のローカル変数を捕捉すると
+          ///// 全スレッドが同じ変数（最終値）を共有してしまう。関数の引数として渡した値は
+          ///// 呼び出しごとに別の変数なので、Runner( I ) で番号を焼き込む。
 
-          _Threads[ I ] := TThread.CreateAnonymousThread( procedure
-                                                          begin
-                                                               Run( T );
-                                                          end );
+          _Threads[ I ] := TThread.CreateAnonymousThread( Runner( I ) );
 
           _Threads[ I ].FreeOnTerminate := False;  // Wait で回収する
      end;
@@ -297,15 +305,19 @@ end;
 
 procedure TLuxImageWorker.Wait;
 var
+   T :TArray<TThread>;
    I :Integer;
 begin
-     for I := 0 to High( _Threads ) do
-     begin
-          _Threads[ I ].WaitFor;  // メインスレッドからなら、待つ間も Queue を流す
-          _Threads[ I ].Free;
-     end;
+     ///// メインスレッドの WaitFor は待つ間に Queue を流すので、その中から Wait が再入し得る。
+     ///// 先に配列を手元へ移して空にしておけば、再入した側は何もせずに戻る（二重の WaitFor/Free を防ぐ）。
 
-     _Threads := nil;
+     T := _Threads;  _Threads := nil;
+
+     for I := 0 to High( T ) do
+     begin
+          T[ I ].WaitFor;  // メインスレッドからなら、待つ間も Queue を流す
+          T[ I ].Free;
+     end;
 
      ///// 保留中の通知を、まだ自分が生きているうちに流し切る
 
