@@ -4,7 +4,7 @@ interface //####################################################################
 
 {$POINTERMATH ON}
 
-uses System.Classes,
+uses System.Classes, System.SysUtils,
      System.Skia,
      LUX.Data.Image;
 
@@ -17,10 +17,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      ///// TLuxImage のファイル入出力
      ///// ・PNG は自前実装（行単位のストリーミング。8/16bit、サイズ制限は実質無し）
      /////   Alpha_ = False なら α を省いた RGB（カラータイプ 2）で書く。
-     /////   Linear_ = True なら「値は線形（ガンマ 1.0）」を表す線形 sRGB の ICC プロファイルを iCCP に同梱し、
-     /////   gAMA / cHRM も書く。画素値は変えない。色管理に対応した閲覧・編集ソフトは表示のときだけガンマを掛け、
-     /////   演算（ブレンド等）は線形のまま行う。
      ///// ・JPEG は Skia のコーデック（規格上 65,535 角まで。画像１枚分の連続バッファを一時的に要する）
+     ///// ・色空間：Image_.ColorSpace が指定されていれば、PNG は sRGB / iCCP（＋gAMA / cHRM）、
+     /////   JPEG は APP2 の ICC_PROFILE として埋め込む。読み込みではそれらを解析して ColorSpace に設定する
+     /////   （プリセットと同じ内容ならその共有インスタンス、違えば TLuxColorSpaces に登録した新しいインスタンス。
+     /////   何も無ければ nil ）。画素値はどちらの向きでも変えない。
 
      TLuxImageFiler = class
      private
@@ -28,10 +29,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      public
        ///// M E T H O D
        class procedure LoadFromFile( const Image_:TLuxImage; const FileName_:String );
-       class procedure SaveToFile  ( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );
+       class procedure SaveToFile  ( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
        ///// P N G
        class procedure LoadFromPng( const Image_:TLuxImage; const Stream_:TStream );
-       class procedure SaveToPng  ( const Image_:TLuxImage; const Stream_:TStream; const Alpha_:Boolean = True; const Linear_:Boolean = False );
+       class procedure SaveToPng  ( const Image_:TLuxImage; const Stream_:TStream; const Alpha_:Boolean = True );
        ///// J P E G
        class procedure LoadFromJpg( const Image_:TLuxImage; const FileName_:String );
        class procedure SaveToJpg  ( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer );
@@ -43,12 +44,13 @@ function LuxSkColorType( const Kind_:TLuxPixel ) :TSkColorType;  // 画素形式
 
 function LuxImageSize( const FileName_:String; out Width_,Height_:Integer ) :Boolean;  // 画素を読まずに寸法だけ得る
 
-function LinearSrgbIccProfile :TArray<Byte>;  // 線形 sRGB（ガンマ 1.0・sRGB 原色・D65）の最小 ICC v4 プロファイル
+function LuxJpegIcc( const Jpeg_:TBytes ) :TBytes;                                    // JPEG の APP2 ICC_PROFILE を繋げて取り出す（無ければ空）
+function LuxJpegWithIcc( const Jpeg_,Icc_:TBytes ) :TBytes;                            // JPEG に APP2 ICC_PROFILE を挿入したものを返す
 
 implementation //############################################################### ■
 
-uses System.SysUtils, System.Math, System.ZLib,
-     LUX, LUX.Color;
+uses System.Math, System.ZLib,
+     LUX, LUX.D2, LUX.Color, LUX.Color.Space;
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
@@ -307,135 +309,169 @@ begin
      WriteU32( Stream_, C xor $FFFFFFFF );
 end;
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 線形 sRGB の ICC プロファイル
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PNG の色空間チャンク
 
-///// 「値は線形（ガンマ 1.0）、原色と白色点は sRGB」を表す最小の ICC v4 プロファイルを生成する。
-///// PNG の iCCP に同梱すると、Photoshop 等は値をそのまま線形として演算し、表示のときだけ
-///// モニタ用に変換する（＝線形ブレンド・ガンマ表示）。ファイルの画素値は変えない。
-/////   ・ヘッダ 128B ＋ タグ表 ＋ desc / cprt（mluc）, wtpt / rXYZ / gXYZ / bXYZ（XYZ, D50 適応済み）,
-/////     rTRC / gTRC / bTRC（curv 要素数 0 ＝ 恒等）
-///// 原色の XYZ は sRGB（D65）を Bradford で D50 へ適応した ICC 標準値。
+///// gAMA（ 1/γ × 100000 ）
 
-function LinearSrgbIccProfile :TArray<Byte>;
+procedure WritePngGama( const Stream_:TStream; const Gama_:UInt32 );
 var
-   S :TMemoryStream;
-   TagOfs :array [ 0..8 ] of Integer;
-   TagLen :array [ 0..8 ] of Integer;
-   I :Integer;
-   //--------------------------------------------
-   procedure W32( const V_:UInt32 );
-   var
-        U :UInt32;
-   begin
-        U := SwapU32( V_ );  S.WriteBuffer( U, 4 );
-   end;
-   procedure W16( const V_:UInt16 );
-   var
-        U :UInt16;
-   begin
-        U := ( V_ shr 8 ) or ( ( V_ and $FF ) shl 8 );  S.WriteBuffer( U, 2 );
-   end;
-   procedure WSig( const A_:AnsiString );
-   begin
-        S.WriteBuffer( A_[ 1 ], 4 );
-   end;
-   procedure WZero( const N_:Integer );
-   var
-        Z :array [ 0..127 ] of Byte;
-   begin
-        FillChar( Z, SizeOf( Z ), 0 );  S.WriteBuffer( Z, N_ );
-   end;
-   procedure WFix( const V_:Double );   // s15Fixed16
-   begin
-        W32( UInt32( Round( V_ * 65536 ) ) );
-   end;
-   procedure Pad4;
-   begin
-        while S.Size mod 4 <> 0 do WZero( 1 );
-   end;
-   procedure BeginTag( const I_:Integer );
-   begin
-        Pad4;  TagOfs[ I_ ] := S.Size;
-   end;
-   procedure EndTag( const I_:Integer );
-   begin
-        TagLen[ I_ ] := S.Size - TagOfs[ I_ ];
-   end;
-   procedure WriteXYZ( const I_:Integer; const X_,Y_,Z_:Double );
-   begin
-        BeginTag( I_ );  WSig( 'XYZ ' );  W32( 0 );  WFix( X_ );  WFix( Y_ );  WFix( Z_ );  EndTag( I_ );
-   end;
-   procedure WriteCurvLinear( const I_:Integer );
-   begin
-        BeginTag( I_ );  WSig( 'curv' );  W32( 0 );  W32( 0 );  EndTag( I_ );   // 要素数 0 ＝ 恒等（線形）
-   end;
-   procedure WriteMluc( const I_:Integer; const Text_:String );
-   var
-        J :Integer;
-   begin
-        BeginTag( I_ );
-        WSig( 'mluc' );  W32( 0 );
-        W32( 1 );        // レコード数
-        W32( 12 );       // レコード長
-        WSig( 'enUS' );
-        W32( Length( Text_ ) * 2 );   // 文字列のバイト数（UTF-16BE）
-        W32( 28 );                    // 文字列のオフセット（このタグの先頭から）
-        for J := 1 to Length( Text_ ) do W16( Ord( Text_[ J ] ) );
-        EndTag( I_ );
-   end;
-   //--------------------------------------------
-const
-   SIGS :array [ 0..8 ] of AnsiString = ( 'desc', 'cprt', 'wtpt', 'rXYZ', 'gXYZ', 'bXYZ', 'rTRC', 'gTRC', 'bTRC' );
+   U :UInt32;
 begin
+     U := SwapU32( Gama_ );
+
+     WriteChunk( Stream_, [ Ord('g'), Ord('A'), Ord('M'), Ord('A') ], @U, 4 );
+end;
+
+///// cHRM（ 白 xy・赤 xy・緑 xy・青 xy × 100000 ）
+
+procedure WritePngChrm( const Stream_:TStream; const Space_:TLuxColorSpace );
+var
+   Buf :array [ 0..7 ] of UInt32;
+begin
+     Buf[ 0 ] := SwapU32( Round( Space_.WhiteXY.X * 100000 ) );
+     Buf[ 1 ] := SwapU32( Round( Space_.WhiteXY.Y * 100000 ) );
+     Buf[ 2 ] := SwapU32( Round( Space_.RedXY  .X * 100000 ) );
+     Buf[ 3 ] := SwapU32( Round( Space_.RedXY  .Y * 100000 ) );
+     Buf[ 4 ] := SwapU32( Round( Space_.GreenXY.X * 100000 ) );
+     Buf[ 5 ] := SwapU32( Round( Space_.GreenXY.Y * 100000 ) );
+     Buf[ 6 ] := SwapU32( Round( Space_.BlueXY .X * 100000 ) );
+     Buf[ 7 ] := SwapU32( Round( Space_.BlueXY .Y * 100000 ) );
+
+     WriteChunk( Stream_, [ Ord('c'), Ord('H'), Ord('R'), Ord('M') ], @Buf[ 0 ], 32 );
+end;
+
+///// gAMA と cHRM だけから色空間を組み立てる（ iCCP も sRGB も無いとき ）。
+///// cHRM が無ければ sRGB の原色、gAMA が無ければ sRGB の曲線とみなす。
+///// gAMA = 45455 は規格上 sRGB の近似なので、原色が sRGB ならプリセットの sRGB を返す。
+
+function PngColorSpace( const HasChrm_:Boolean; const Chrm_:array of Double; const Gama_:UInt32 ) :TLuxColorSpace;
+var
+   R, G, B, W :TDouble2D;
+   T          :TLuxTransfer;
+   S          :TLuxColorSpace;
+begin
+     if HasChrm_ then
+     begin
+          W := TDouble2D.Create( Chrm_[ 0 ], Chrm_[ 1 ] );
+          R := TDouble2D.Create( Chrm_[ 2 ], Chrm_[ 3 ] );
+          G := TDouble2D.Create( Chrm_[ 4 ], Chrm_[ 5 ] );
+          B := TDouble2D.Create( Chrm_[ 6 ], Chrm_[ 7 ] );
+     end
+     else
+     begin
+          W := TLuxColorSpaces.sRGB.WhiteXY;
+          R := TLuxColorSpaces.sRGB.RedXY;
+          G := TLuxColorSpaces.sRGB.GreenXY;
+          B := TLuxColorSpaces.sRGB.BlueXY;
+     end;
+
+     if ( Gama_ = 0 ) or ( Abs( Integer( Gama_ ) - 45455 ) <= 5 ) then T := TLuxTransfer.sRGB
+                                                                   else T := TLuxTransfer.Gamma( 100000 / Gama_ );
+
+     S := TLuxColorSpace.Create( 'PNG', R, G, B, W, T );
+
+     Result := TLuxColorSpaces.Intern( S );   // sRGB 等と同じ内容ならプリセットになる
+end;
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% JPEG の APP2 ICC_PROFILE
+
+///// APP2 セグメント（ FFE2 長さ 'ICC_PROFILE'#0 通番 総数 データ ）を通番順に繋げる
+
+function LuxJpegIcc( const Jpeg_:TBytes ) :TBytes;
+var
+   P, L, N, I, K :Integer;
+   Parts :TArray<TBytes>;
+   Cnt   :Integer;
+begin
+     Result := nil;  Parts := nil;  Cnt := 0;
+
+     if ( Length( Jpeg_ ) < 4 ) or ( Jpeg_[ 0 ] <> $FF ) or ( Jpeg_[ 1 ] <> $D8 ) then Exit;
+
+     P := 2;
+
+     while P + 4 <= Length( Jpeg_ ) do
+     begin
+          if Jpeg_[ P ] <> $FF then Break;
+
+          K := Jpeg_[ P+1 ];
+
+          if K = $D8 then begin Inc( P, 2 );  Continue;  end;    // SOI（念のため）
+          if ( K = $DA ) or ( K = $D9 ) then Break;              // SOS / EOI：ここから先にヘッダは無い
+
+          L := ( Jpeg_[ P+2 ] shl 8 ) or Jpeg_[ P+3 ];           // 長さ（この 2 バイトを含む）
+
+          if ( K = $E2 ) and ( L >= 16 ) and ( P + 2 + L <= Length( Jpeg_ ) ) and
+             CompareMem( @Jpeg_[ P+4 ], PAnsiChar( 'ICC_PROFILE'#0 ), 12 ) then
+          begin
+               N := Jpeg_[ P+16 ];  // 通番（ 1 〜 ）
+               if Cnt = 0 then begin Cnt := Jpeg_[ P+17 ];  SetLength( Parts, Cnt );  end;
+
+               if ( N >= 1 ) and ( N <= Length( Parts ) ) then
+               begin
+                    SetLength( Parts[ N-1 ], L - 16 );
+                    if L - 16 > 0 then Move( Jpeg_[ P+18 ], Parts[ N-1 ][ 0 ], L - 16 );
+               end;
+          end;
+
+          Inc( P, 2 + L );
+     end;
+
+     for I := 0 to High( Parts ) do Result := Result + Parts[ I ];
+end;
+
+///// SOI（と続く APP0 / APP1 ）の直後に APP2 を挿入する。1 セグメントの上限 65,533 バイトを超える ICC は分割する。
+
+function LuxJpegWithIcc( const Jpeg_,Icc_:TBytes ) :TBytes;
+const
+      PART_MAX = 65533 - 16;   // セグメント長 65,535 − 長さ 2 − 署名 12 − 通番・総数 2
+var
+   P, L, K, I, N, Cnt, Ofs :Integer;
+   S :TMemoryStream;
+   //-------
+   procedure W8( const V_:Byte );  begin  S.WriteBuffer( V_, 1 );  end;
+   procedure W16( const V_:Integer );  var B :array [ 0..1 ] of Byte;  begin  B[0] := V_ shr 8;  B[1] := V_ and $FF;  S.WriteBuffer( B, 2 );  end;
+begin
+     if ( Length( Icc_ ) = 0 ) or ( Length( Jpeg_ ) < 2 ) then Exit( Jpeg_ );
+
+     ///// 挿入位置：SOI の後、APP0 / APP1 が続く間はその後ろ
+
+     P := 2;
+
+     while P + 4 <= Length( Jpeg_ ) do
+     begin
+          if Jpeg_[ P ] <> $FF then Break;
+
+          K := Jpeg_[ P+1 ];
+
+          if not ( K in [ $E0, $E1 ] ) then Break;
+
+          L := ( Jpeg_[ P+2 ] shl 8 ) or Jpeg_[ P+3 ];
+
+          Inc( P, 2 + L );
+     end;
+
+     Cnt := ( Length( Icc_ ) + PART_MAX - 1 ) div PART_MAX;
+
      S := TMemoryStream.Create;
      try
-        ///// ヘッダ 128B（サイズは最後に埋める）
+        S.WriteBuffer( Jpeg_[ 0 ], P );
 
-        W32( 0 );                 // profile size
-        W32( 0 );                 // preferred CMM
-        W32( $04200000 );         // version 4.2
-        WSig( 'mntr' );           // device class: display
-        WSig( 'RGB ' );           // colour space
-        WSig( 'XYZ ' );           // PCS
-        WZero( 12 );              // date/time
-        WSig( 'acsp' );           // signature
-        W32( 0 );                 // platform
-        W32( 0 );                 // flags
-        W32( 0 );  W32( 0 );      // manufacturer / model
-        WZero( 8 );               // attributes
-        W32( 0 );                 // rendering intent: perceptual
-        WFix( 0.9642 );  WFix( 1.0 );  WFix( 0.8249 );   // PCS illuminant D50
-        W32( 0 );                 // creator
-        WZero( 16 );              // profile ID
-        WZero( 28 );              // reserved
+        Ofs := 0;
 
-        ///// タグ表（9 個。オフセット・長さは後で埋める）
-
-        W32( 9 );
-        WZero( 9 * 12 );
-
-        ///// タグ本体
-
-        WriteMluc( 0, 'Linear sRGB (gamma 1.0)' );
-        WriteMluc( 1, 'Public domain' );
-        WriteXYZ ( 2, 0.9642, 1.0000, 0.8249 );   // wtpt = D50
-        WriteXYZ ( 3, 0.4360, 0.2225, 0.0139 );   // rXYZ ( sRGB → D50 Bradford )
-        WriteXYZ ( 4, 0.3851, 0.7169, 0.0971 );   // gXYZ
-        WriteXYZ ( 5, 0.1431, 0.0606, 0.7141 );   // bXYZ
-        WriteCurvLinear( 6 );
-        WriteCurvLinear( 7 );
-        WriteCurvLinear( 8 );
-        Pad4;
-
-        ///// タグ表とサイズを埋める
-
-        for I := 0 to 8 do
+        for I := 1 to Cnt do
         begin
-             S.Position := 128 + 4 + I * 12;
-             WSig( SIGS[ I ] );  W32( TagOfs[ I ] );  W32( TagLen[ I ] );
+             N := Min( PART_MAX, Length( Icc_ ) - Ofs );
+
+             W8( $FF );  W8( $E2 );
+             W16( 2 + 12 + 2 + N );
+             S.WriteBuffer( PAnsiChar( 'ICC_PROFILE'#0 )^, 12 );
+             W8( I );  W8( Cnt );
+             S.WriteBuffer( Icc_[ Ofs ], N );
+
+             Inc( Ofs, N );
         end;
 
-        S.Position := 0;  W32( S.Size );
+        S.WriteBuffer( Jpeg_[ P ], Length( Jpeg_ ) - P );
 
         SetLength( Result, S.Size );
         Move( S.Memory^, Result[ 0 ], S.Size );
@@ -707,7 +743,7 @@ begin
      else raise EInOutError.Create( '未対応の拡張子： ' + E );
 end;
 
-class procedure TLuxImageFiler.SaveToFile( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );
+class procedure TLuxImageFiler.SaveToFile( const Image_:TLuxImage; const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
 var
    E :String;
    S :TFileStream;
@@ -718,7 +754,7 @@ begin
      begin
           S := TFileStream.Create( FileName_, fmCreate );
           try
-               SaveToPng( Image_, S, Alpha_, Linear_ );
+               SaveToPng( Image_, S, Alpha_ );
           finally
                S.Free;
           end;
@@ -748,6 +784,13 @@ var
    RowN     :Integer;
    Done, All :Integer;
    Found    :Boolean;
+   ///// 色空間
+   HasSRGB, HasChrm :Boolean;
+   Gama     :UInt32;
+   Chrm     :array [ 0..7 ] of Double;   // 白 xy・赤 xy・緑 xy・青 xy
+   Icc      :TBytes;
+   Zp       :Pointer;
+   Zn       :Integer;
 
    ///// パスの 1 行を読んで解除し、色へ変換して Row へ入れる
 
@@ -775,7 +818,9 @@ begin
      Size  := 0;
      Found := False;
 
-     ///// IHDR ～ 最初の IDAT まで（ PLTE と tRNS を拾う）
+     HasSRGB := False;  HasChrm := False;  Gama := 0;  Icc := nil;
+
+     ///// IHDR ～ 最初の IDAT まで（ PLTE ・ tRNS ・ 色空間のチャンクを拾う）
 
      repeat
            if Stream_.Position + 8 > Stream_.Size then Break;
@@ -840,6 +885,54 @@ begin
                 Stream_.Seek( 4, soCurrent );  // CRC
            end
            else
+           ///// sRGB / iCCP / gAMA / cHRM（色空間。優先順位は iCCP ＞ sRGB ＞ gAMA＋cHRM ）
+
+           if ( Kind[0] = Ord('s') ) and ( Kind[1] = Ord('R') ) and ( Kind[2] = Ord('G') ) and ( Kind[3] = Ord('B') ) then
+           begin
+                HasSRGB := True;
+
+                Stream_.Seek( Size + 4, soCurrent );
+           end
+           else
+           if ( Kind[0] = Ord('i') ) and ( Kind[1] = Ord('C') ) and ( Kind[2] = Ord('C') ) and ( Kind[3] = Ord('P') ) then
+           begin
+                SetLength( Buf, Size );  if Size > 0 then Stream_.ReadBuffer( Buf[ 0 ], Size );
+
+                I := 0;  while ( I < Integer( Size ) ) and ( Buf[ I ] <> 0 ) do Inc( I );   // プロファイル名の終端
+
+                if I + 2 < Integer( Size ) then
+                begin
+                     ZDecompress( @Buf[ I+2 ], Integer( Size ) - I - 2, Zp, Zn );
+                     try
+                          SetLength( Icc, Zn );  Move( Zp^, Icc[ 0 ], Zn );
+                     finally
+                          FreeMem( Zp );
+                     end;
+                end;
+
+                Stream_.Seek( 4, soCurrent );  // CRC
+           end
+           else
+           if ( Kind[0] = Ord('g') ) and ( Kind[1] = Ord('A') ) and ( Kind[2] = Ord('M') ) and ( Kind[3] = Ord('A') ) then
+           begin
+                if Size >= 4 then Gama := ReadU32( Stream_ ) else Stream_.Seek( Size, soCurrent );
+
+                Stream_.Seek( 4, soCurrent );  // CRC
+           end
+           else
+           if ( Kind[0] = Ord('c') ) and ( Kind[1] = Ord('H') ) and ( Kind[2] = Ord('R') ) and ( Kind[3] = Ord('M') ) then
+           begin
+                if Size >= 32 then
+                begin
+                     for I := 0 to 7 do Chrm[ I ] := ReadU32( Stream_ ) / 100000;
+
+                     HasChrm := True;
+                end
+                else Stream_.Seek( Size, soCurrent );
+
+                Stream_.Seek( 4, soCurrent );  // CRC
+           end
+           else
            ///// IDAT
 
            if ( Kind[0] = Ord('I') ) and ( Kind[1] = Ord('D') ) and ( Kind[2] = Ord('A') ) and ( Kind[3] = Ord('T') ) then
@@ -850,6 +943,19 @@ begin
      until False;
 
      if not Found then raise EInOutError.Create( 'PNG に IDAT が無い' );
+
+     ///// 色空間を決める
+
+     Image_.ColorSpace := nil;
+
+     if Length( Icc ) > 0 then Image_.ColorSpace := TLuxColorSpaces.FromIcc( Icc );
+
+     if not Assigned( Image_.ColorSpace ) then
+     begin
+          if HasSRGB then Image_.ColorSpace := TLuxColorSpaces.sRGB
+          else
+          if HasChrm or ( Gama > 0 ) then Image_.ColorSpace := PngColorSpace( HasChrm, Chrm, Gama );
+     end;
 
      ///// ビット深度とカラータイプの組み合わせを検証する
 
@@ -946,9 +1052,7 @@ begin
      Image_.Changed;
 end;
 
-class procedure TLuxImageFiler.SaveToPng( const Image_:TLuxImage; const Stream_:TStream; const Alpha_:Boolean = True; const Linear_:Boolean = False );
-const
-  ICC_NAME :AnsiString = 'Linear sRGB';   // iCCP のプロファイル名（Latin-1、1〜79 文字）
+class procedure TLuxImageFiler.SaveToPng( const Image_:TLuxImage; const Stream_:TStream; const Alpha_:Boolean = True );
 var
    Head       :TBytes;
    W, H       :Integer;
@@ -966,6 +1070,7 @@ var
    U          :UInt32;
    Icc, Zicc  :TBytes;
    Buf        :TBytes;
+   Name       :AnsiString;
    Zp         :Pointer;
    Zn         :Integer;
 begin
@@ -1001,40 +1106,45 @@ begin
 
      WriteChunk( Stream_, [ Ord('I'), Ord('H'), Ord('D'), Ord('R') ], @Head[ 0 ], 13 );
 
-     ///// 色空間（線形）：gAMA = 1.0、cHRM = sRGB 原色と D65、iCCP = 線形 sRGB プロファイル
-     ///// （どれも IDAT より前。sRGB チャンクは iCCP と排他なので書かない）
+     ///// 色空間（ IDAT より前 ）
+     /////   sRGB なら sRGB チャンク（＋規格が勧める gAMA と cHRM ）。iCCP とは排他なので書かない。
+     /////   それ以外は iCCP に ICC プロファイルを同梱し、cHRM（原色は正確に表せる）と、
+     /////   伝達関数が純ガンマのときだけ gAMA を書く。画素値は変えない。
 
-     if Linear_ then
+     if Assigned( Image_.ColorSpace ) then
      begin
-          SetLength( Buf, 32 );
+          if Image_.ColorSpace = TLuxColorSpaces.sRGB then
+          begin
+               Buf := [ 0 ];   // 描画意図：知覚的
+               WriteChunk( Stream_, [ Ord('s'), Ord('R'), Ord('G'), Ord('B') ], @Buf[ 0 ], 1 );
 
-          U := SwapU32( 100000 );  Move( U, Buf[ 0 ], 4 );
-          WriteChunk( Stream_, [ Ord('g'), Ord('A'), Ord('M'), Ord('A') ], @Buf[ 0 ], 4 );
+               WritePngGama( Stream_, 45455 );
+               WritePngChrm( Stream_, Image_.ColorSpace );
+          end
+          else
+          begin
+               Icc := Image_.ColorSpace.IccProfile;
 
-          U := SwapU32( 31270 );  Move( U, Buf[  0 ], 4 );   // 白色点 x
-          U := SwapU32( 32900 );  Move( U, Buf[  4 ], 4 );   //        y
-          U := SwapU32( 64000 );  Move( U, Buf[  8 ], 4 );   // R
-          U := SwapU32( 33000 );  Move( U, Buf[ 12 ], 4 );
-          U := SwapU32( 30000 );  Move( U, Buf[ 16 ], 4 );   // G
-          U := SwapU32( 60000 );  Move( U, Buf[ 20 ], 4 );
-          U := SwapU32( 15000 );  Move( U, Buf[ 24 ], 4 );   // B
-          U := SwapU32(  6000 );  Move( U, Buf[ 28 ], 4 );
-          WriteChunk( Stream_, [ Ord('c'), Ord('H'), Ord('R'), Ord('M') ], @Buf[ 0 ], 32 );
+               ZCompress( @Icc[ 0 ], Length( Icc ), Zp, Zn );
+               try
+                  Name := AnsiString( Copy( Image_.ColorSpace.Name, 1, 79 ) );  // iCCP のプロファイル名（Latin-1、1〜79 文字）
+                  if Name = '' then Name := 'ICC';
 
-          Icc := LinearSrgbIccProfile;
+                  SetLength( Zicc, Length( Name ) + 2 + Zn );
+                  Move( Name[ 1 ], Zicc[ 0 ], Length( Name ) );
+                  Zicc[ Length( Name )     ] := 0;   // 名前の終端
+                  Zicc[ Length( Name ) + 1 ] := 0;   // 圧縮法 0 = deflate
+                  Move( Zp^, Zicc[ Length( Name ) + 2 ], Zn );
+               finally
+                  FreeMem( Zp );
+               end;
 
-          ZCompress( @Icc[ 0 ], Length( Icc ), Zp, Zn );
-          try
-             SetLength( Zicc, Length( ICC_NAME ) + 2 + Zn );
-             Move( ICC_NAME[ 1 ], Zicc[ 0 ], Length( ICC_NAME ) );
-             Zicc[ Length( ICC_NAME )     ] := 0;   // 名前の終端
-             Zicc[ Length( ICC_NAME ) + 1 ] := 0;   // 圧縮法 0 = deflate
-             Move( Zp^, Zicc[ Length( ICC_NAME ) + 2 ], Zn );
-          finally
-             FreeMem( Zp );
+               WriteChunk( Stream_, [ Ord('i'), Ord('C'), Ord('C'), Ord('P') ], @Zicc[ 0 ], Length( Zicc ) );
+
+               if Image_.ColorSpace.Transfer.IsGamma then WritePngGama( Stream_, Round( 100000 / Image_.ColorSpace.Transfer.G ) );
+
+               WritePngChrm( Stream_, Image_.ColorSpace );
           end;
-
-          WriteChunk( Stream_, [ Ord('i'), Ord('C'), Ord('C'), Ord('P') ], @Zicc[ 0 ], Length( Zicc ) );
      end;
 
      ///// IDAT
@@ -1134,6 +1244,9 @@ var
    Row   :TArray<TSingleRGBA>;
    S     :PByteRGBA;
    X, Y  :Integer;
+   F     :TFileStream;
+   Head  :TBytes;
+   Icc   :TBytes;
 begin
      Codec := TSkCodec.MakeFromFile( FileName_ );
 
@@ -1143,6 +1256,22 @@ begin
      H := Codec.Height;
 
      Image_.SetSize( W, H );
+
+     ///// 色空間：APP2 の ICC_PROFILE（ヘッダ部だけ読めばよいが、簡潔さを優先してファイル全体から探す）
+
+     Image_.ColorSpace := nil;
+
+     F := TFileStream.Create( FileName_, fmOpenRead or fmShareDenyWrite );
+     try
+        SetLength( Head, Min( F.Size, 4 * 1024 * 1024 ) );   // ICC はヘッダ部（先頭数 MB 以内）にある
+        F.ReadBuffer( Head[ 0 ], Length( Head ) );
+     finally
+        F.Free;
+     end;
+
+     Icc := LuxJpegIcc( Head );  Head := nil;
+
+     if Length( Icc ) > 0 then Image_.ColorSpace := TLuxColorSpaces.FromIcc( Icc );
 
      ///// Skia のコーデックは画像１枚分の連続バッファを要求する。
      ///// また変換先は 8bit（ BGRA8888 ）しか確実に対応していないので、
@@ -1201,6 +1330,8 @@ var
    Q       :PByteRGBA;
    Pixmap  :ISkPixmap;
    Image   :ISkImage;
+   Jpeg    :TBytes;
+   F       :TFileStream;
 begin
      W := Image_.Width;
      H := Image_.Height;
@@ -1233,8 +1364,28 @@ begin
 
      if not Assigned( Image ) then raise EInOutError.Create( 'JPEG 用の画像を作れない' );
 
-     if not Image.EncodeToFile( FileName_, TSkEncodedImageFormat.JPEG, Quality_ ) then
-       raise EInOutError.Create( 'JPEG を書き出せない： ' + FileName_ );
+     if not Assigned( Image_.ColorSpace ) then
+     begin
+          if not Image.EncodeToFile( FileName_, TSkEncodedImageFormat.JPEG, Quality_ ) then
+            raise EInOutError.Create( 'JPEG を書き出せない： ' + FileName_ );
+     end
+     else
+     begin
+          ///// 色空間：Skia に符号化させたバイト列へ APP2 ICC_PROFILE を挿入してから書く
+
+          Jpeg := Image.Encode( TSkEncodedImageFormat.JPEG, Quality_ );
+
+          if Length( Jpeg ) = 0 then raise EInOutError.Create( 'JPEG を符号化できない： ' + FileName_ );
+
+          Jpeg := LuxJpegWithIcc( Jpeg, Image_.ColorSpace.IccProfile );
+
+          F := TFileStream.Create( FileName_, fmCreate );
+          try
+             F.WriteBuffer( Jpeg[ 0 ], Length( Jpeg ) );
+          finally
+             F.Free;
+          end;
+     end;
 end;
 
 initialization //############################################################### ■
