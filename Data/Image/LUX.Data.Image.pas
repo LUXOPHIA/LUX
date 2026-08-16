@@ -5,7 +5,7 @@ interface //####################################################################
 {$POINTERMATH ON}
 
 uses System.Classes, System.SysUtils, System.Threading,
-     LUX, LUX.D1.Half, LUX.Color, LUX.Color.Half;
+     LUX, LUX.D1.Half, LUX.Color, LUX.Color.Half, LUX.Color.Space;
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
@@ -55,6 +55,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      /////   イベントは発火しない。表示を更新させたいときは Notify を（頻度を抑えて）呼ぶ。
      ///// ・UpdateLevels ：Dirty なタイルの足跡だけを段 1 以上に反映する。表示側が描画前に呼ぶ。
      ///// ・全タイルが確保済みなので、互いに素な領域への書き込みは複数スレッドから同時に行える。
+     /////
+     ///// 色空間
+     ///// ・ColorSpace は画素値の解釈（原色と伝達関数）を表す。nil（既定）なら色管理なし。
+     /////   所有はしない（プリセットは TLuxColorSpaces が持つ）。ファイルの読み書きで埋め込み・解析され、
+     /////   ビューアは表示側の色空間へ変換する。画素値そのものは変えない。
 
      TLuxImage = class
      private
@@ -62,11 +67,13 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetLevelsN :Integer;
        function GetColors( const X_,Y_:Integer ) :TSingleRGBA;
        procedure SetColors( const X_,Y_:Integer; const C_:TSingleRGBA );
+       procedure SetColorSpace( const ColorSpace_:TLuxColorSpace );
      protected
-       _Width   :Integer;
-       _Height  :Integer;
-       _Levels  :TArray<TLuxLevel>;
-       _Version :Cardinal;
+       _Width      :Integer;
+       _Height     :Integer;
+       _Levels     :TArray<TLuxLevel>;
+       _Version    :Cardinal;
+       _ColorSpace :TLuxColorSpace;
        ///// 非同期
        _Task     :ITask;
        _Busy     :Boolean;
@@ -108,6 +115,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Version                       :Cardinal    read _Version  ;  // 構造か全体が変わった版（表示側は全キャッシュを破棄する）
        property Busy                          :Boolean     read _Busy     ;  // 非同期の読み書きが進行中
        property Progress                      :Single      read _Progress ;  // 0 〜 1
+       property ColorSpace                    :TLuxColorSpace read _ColorSpace write SetColorSpace;  // 画素値の色空間。nil なら色管理なし
        property Colors[ const X_,Y_:Integer ] :TSingleRGBA read GetColors write SetColors; default;
        ///// M E T H O D
        procedure SetSize( const W_,H_:Integer );  // 全段を確保する。確保できなければ EOutOfMemory
@@ -135,10 +143,10 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );  // 書式非依存の行書き
        /////
        procedure LoadFromFile( const FileName_:String );
-       procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );  // PNG：Alpha_=False で α 無しの RGB、Linear_=True で線形 sRGB プロファイルを同梱
+       procedure SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // PNG：Alpha_=False で α 無しの RGB。ColorSpace があれば埋め込む
        /////
        procedure LoadFromFileAsync( const FileName_:String );                            // 別スレッドで読む
-       procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );  // 別スレッドで書く
+       procedure SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );  // 別スレッドで書く
        procedure WaitFor;                                                                 // 非同期処理の完了を待つ
        procedure DoProgress( const Ratio_:Single );                                       // 入出力側から進捗を報せる
        ///// E V E N T
@@ -282,6 +290,17 @@ begin
      SetRow( 0, X_, Y_, 1, @C_ );
 
      TileChanged( X_ shr LUXIMAGE_TILE_LOG, Y_ shr LUXIMAGE_TILE_LOG );
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TLuxImage.SetColorSpace( const ColorSpace_:TLuxColorSpace );
+begin
+     if _ColorSpace = ColorSpace_ then Exit;
+
+     _ColorSpace := ColorSpace_;
+
+     Notify;  // 画素は変わらないが見え方が変わる
 end;
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& protected
@@ -508,10 +527,11 @@ constructor TLuxImage.Create;
 begin
      inherited;
 
-     _Width    := 0;
-     _Height   := 0;
-     _Version  := 0;
-     _Busy     := False;
+     _Width      := 0;
+     _Height     := 0;
+     _Version    := 0;
+     _ColorSpace := nil;
+     _Busy       := False;
      _Closing  := False;
      _Progress := 0;
      _Fired    := -1;
@@ -864,11 +884,11 @@ begin
      DoProgress( 1 );
 end;
 
-procedure TLuxImage.SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );
+procedure TLuxImage.SaveToFile( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
 begin
      _Progress := 0;  _Fired := -1;
 
-     TLuxImageFiler.SaveToFile( Self, FileName_, Quality_, Alpha_, Linear_ );
+     TLuxImageFiler.SaveToFile( Self, FileName_, Quality_, Alpha_ );
 
      DoProgress( 1 );
 end;
@@ -894,17 +914,17 @@ begin
                  end, False );
 end;
 
-procedure TLuxImage.SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True; const Linear_:Boolean = False );
+procedure TLuxImage.SaveToFileAsync( const FileName_:String; const Quality_:Integer = 90; const Alpha_:Boolean = True );
 var
    F :String;
    Q :Integer;
-   A, L :Boolean;
+   A :Boolean;
 begin
-     F := FileName_;  Q := Quality_;  A := Alpha_;  L := Linear_;
+     F := FileName_;  Q := Quality_;  A := Alpha_;
 
      StartAsync( procedure
                  begin
-                      TLuxImageFiler.SaveToFile( Self, F, Q, A, L );
+                      TLuxImageFiler.SaveToFile( Self, F, Q, A );
                  end, True );
 end;
 

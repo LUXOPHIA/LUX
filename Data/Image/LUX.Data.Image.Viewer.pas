@@ -8,7 +8,7 @@ uses System.Classes, System.Types, System.UITypes, System.Math.Vectors,
      System.Generics.Collections,
      FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics,
      System.Skia, FMX.Skia, FMX.Skia.Canvas,
-     LUX, LUX.Color, LUX.Data.Image;
+     LUX, LUX.D3x3, LUX.Color, LUX.Color.Space, LUX.Data.Image;
 
 type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 T Y P E 】
 
@@ -28,6 +28,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
      ///// ・タイル境界の継ぎ目を防ぐため、キャッシュするタイル画像は周囲１画素の
      /////   のりしろ（エプロン）を隣のタイルから集めて持つ。
      ///// ・トーンマッピングとガンマ補正は SkSL のランタイム効果（GPU）で行う。
+     ///// ・色管理：Image.ColorSpace が指定されていれば、表示側の色空間（ ColorSpace 。nil なら窓が乗って
+     /////   いるモニターの ICC プロファイルを自動取得。取れなければ sRGB ）へ GPU で変換して描く。
+     /////   Image.ColorSpace が nil なら変換しない。
 
      TLuxImageViewer = class( TFrame )
      private type
@@ -41,6 +44,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
          Stamp :Cardinal;   // 作った時点のタイルの版（ TLuxImage.TileStamp ）。違えば作り直す
          Seen  :Integer;    // 最後に使った描画の番号（掃除用）
        end;
+       TToneUniforms = packed record   // SKSL_TONE の uniform と同じ並び
+         P, D0, D1, E0, E1, M0, M1, M2 :TSkRuntimeEffectFloat4;
+       end;
      private
        _Image      :TLuxImage;
        _Version    :Cardinal;
@@ -52,6 +58,11 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        _Background :TAlphaColor;
        _MinScale   :Single;
        _MaxScale   :Single;
+       ///// 色管理
+       _ColorSpace :TLuxColorSpace;   // 表示側の色空間。nil ならモニターのプロファイルを自動取得
+       _Monitor    :TLuxColorSpace;   // 自動取得した結果（取れなければ sRGB ）
+       _MonitorDev :String;           // 取得したときのモニターのデバイス名（変わったら取り直す）
+       _ImageSpace :TLuxColorSpace;   // 直前に見た画像の色空間（変わったら表示ガンマの既定値を切り替える）
        /////
        _Cache  :TDictionary<TTileKey,TTileImg>;
        _Apron  :TArray<Byte>;
@@ -79,6 +90,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetBackground( const Background_:TAlphaColor );
        procedure SetScale( const Scale_:Single );
        procedure SetOrigin( const Origin_:TPointF );
+       procedure SetColorSpace( const ColorSpace_:TLuxColorSpace );
+       function GetActiveColorSpace :TLuxColorSpace;
        procedure SetDrawCacheKind( const Value_:TSkDrawCacheKind );
        procedure SetOnDraw( const Value_:TSkDrawEvent );
        ///// E V E N T
@@ -116,6 +129,9 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property Origin     :TPointF     read _Origin     write SetOrigin    ;
        property MinScale   :Single      read _MinScale   write _MinScale    ;
        property MaxScale   :Single      read _MaxScale   write _MaxScale    ;
+       /////
+       property ColorSpace       :TLuxColorSpace read _ColorSpace write SetColorSpace;  // 表示側の色空間。nil ならモニターのプロファイルを自動取得
+       property ActiveColorSpace :TLuxColorSpace read GetActiveColorSpace;              // 実際に使われる表示側の色空間（ ColorSpace か、自動取得したもの ）
        ///// M E T H O D
        procedure FitToWindow;
        procedure ZoomAt( const P_:TPointF; const Factor_:Single );  // 表示座標 P_ を固定して拡大縮小
@@ -125,12 +141,104 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure Redraw;
      end;
 
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
+
+function LuxMonitorDevice( const Control_:TControl ) :String;            // コントロールの窓が乗っているモニターのデバイス名（ Windows 以外は空 ）
+function LuxMonitorColorSpace( const Device_:String ) :TLuxColorSpace;   // モニターに割り当てられた ICC プロファイルの色空間（無ければ nil ）
+
 implementation //############################################################### ■
 
 {$R *.fmx}
 
 uses System.SysUtils, System.Math,
+     {$IFDEF MSWINDOWS} Winapi.Windows, Winapi.MultiMon, FMX.Platform.Win, {$ENDIF}
      LUX.Data.Image.Files;
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 R O U T I N E 】
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% モニターのプロファイル
+
+{$IFDEF MSWINDOWS}
+
+///// コントロールの窓が乗っているモニターのデバイス名（ \\.\DISPLAY1 など）。判らなければ空
+
+function LuxMonitorDevice( const Control_:TControl ) :String;
+var
+   H    :HWND;
+   Info :TMonitorInfoEx;
+begin
+     Result := '';
+
+     if not Assigned( Control_.Root ) or not ( Control_.Root.GetObject is TCommonCustomForm ) then Exit;
+
+     H := FormToHWND( TCommonCustomForm( Control_.Root.GetObject ) );
+
+     if H = 0 then Exit;
+
+     FillChar( Info, SizeOf( Info ), 0 );  Info.cbSize := SizeOf( Info );
+
+     if GetMonitorInfo( MonitorFromWindow( H, MONITOR_DEFAULTTONEAREST ), @Info ) then Result := Info.szDevice;
+end;
+
+///// モニターに割り当てられた ICC プロファイル（ Windows の「色の管理」の既定 ）を色空間にする。
+///// 割り当てが無い・読めない・行列＋TRC 型でない（ LUT 型）ときは nil
+
+function LuxMonitorColorSpace( const Device_:String ) :TLuxColorSpace;
+var
+   DC   :HDC;
+   N    :DWORD;
+   Path :String;
+   F    :TFileStream;
+   B    :TBytes;
+begin
+     Result := nil;
+
+     if Device_ = '' then Exit;
+
+     DC := CreateDC( 'DISPLAY', PChar( Device_ ), nil, nil );
+
+     if DC = 0 then Exit;
+
+     try
+        N := 0;
+        GetICMProfile( DC, N, nil );   // 必要な長さを得る
+
+        if N = 0 then Exit;
+
+        SetLength( Path, N );
+
+        if not GetICMProfile( DC, N, PChar( Path ) ) then Exit;
+
+        Path := PChar( Path );  // 終端で切る
+     finally
+        DeleteDC( DC );
+     end;
+
+     if not FileExists( Path ) then Exit;
+
+     F := TFileStream.Create( Path, fmOpenRead or fmShareDenyWrite );
+     try
+        SetLength( B, F.Size );  if F.Size > 0 then F.ReadBuffer( B[ 0 ], F.Size );
+     finally
+        F.Free;
+     end;
+
+     Result := TLuxColorSpaces.FromIcc( B );
+end;
+
+{$ELSE}
+
+function LuxMonitorDevice( const Control_:TControl ) :String;
+begin
+     Result := '';
+end;
+
+function LuxMonitorColorSpace( const Device_:String ) :TLuxColorSpace;
+begin
+     Result := nil;
+end;
+
+{$ENDIF}
 
 const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【 C O N S T A N T 】
 
@@ -143,20 +251,57 @@ const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                                 'to avoid this exception. Consider using "GlobalUseSkia := True" ' +
                                 'to avoid this kind of problem.';
 
-      ///// トーンマッピング（Reinhard 2002）とガンマ補正
-      ///// uP = ( 1/Gamma, 1/White², トーンマップの有無, 予備 )
+      ///// 表示の色変換（GPU）。uP = ( 1/Gamma, 1/White², トーンマップの有無, 色管理の有無 )
+      /////
+      ///// 色管理なし（ uP.w = 0 ）：      トーンマップ → pow( 1/Gamma )
+      ///// 色管理あり（ uP.w = 1 ）：      画像の伝達関数で線形化 → トーンマップ → 原色の行列変換（画像→表示）
+      /////                                → 表示の伝達関数で符号化 → pow( 1/Gamma )
+      /////
+      ///// 伝達関数は 7 係数（ g a b c | d e f ）。復号 L = (a·V+b)^g + e ( V ≧ d ) / c·V + f、符号化はその逆。
+      ///// uD0/uD1 = 画像の伝達関数、uE0/uE1 = 表示の伝達関数、uM0..2 = 行列の各行。
 
       SKSL_TONE =
         'uniform float4 uP;'                                                      + sLineBreak +
+        'uniform float4 uD0, uD1;'                                                + sLineBreak +
+        'uniform float4 uE0, uE1;'                                                + sLineBreak +
+        'uniform float4 uM0, uM1, uM2;'                                           + sLineBreak +
+        ''                                                                        + sLineBreak +
+        'float tfd( float v, float4 p0, float4 p1 )'                              + sLineBreak +
+        '{'                                                                       + sLineBreak +
+        '    float s = ( v < 0.0 ) ? -1.0 : 1.0;  v = abs( v );'                  + sLineBreak +
+        '    float r = ( v >= p1.x ) ? pow( p0.y * v + p0.z, p0.x ) + p1.y : p0.w * v + p1.z;' + sLineBreak +
+        '    return s * r;'                                                       + sLineBreak +
+        '}'                                                                       + sLineBreak +
+        ''                                                                        + sLineBreak +
+        'float tfe( float l, float4 p0, float4 p1 )'                              + sLineBreak +
+        '{'                                                                       + sLineBreak +
+        '    float s = ( l < 0.0 ) ? -1.0 : 1.0;  l = abs( l );'                  + sLineBreak +
+        '    float t = p0.w * p1.x + p1.z;'                                       + sLineBreak +
+        '    float r;'                                                            + sLineBreak +
+        '    if ( l >= t || p0.w == 0.0 ) r = ( pow( max( l - p1.y, 0.0 ), 1.0 / p0.x ) - p0.z ) / p0.y;' + sLineBreak +
+        '    else                         r = ( l - p1.z ) / p0.w;'               + sLineBreak +
+        '    return s * r;'                                                       + sLineBreak +
+        '}'                                                                       + sLineBreak +
         ''                                                                        + sLineBreak +
         'half4 main( half4 c )'                                                   + sLineBreak +
         '{'                                                                       + sLineBreak +
         '    float  a = float( c.a );'                                            + sLineBreak +
         '    float3 v = ( a > 0.0 ) ? float3( c.rgb ) / a : float3( 0.0 );'       + sLineBreak +
         ''                                                                        + sLineBreak +
+        '    if ( uP.w > 0.5 )'                                                   + sLineBreak +
+        '    {'                                                                   + sLineBreak +
+        '        v = float3( tfd( v.r, uD0, uD1 ), tfd( v.g, uD0, uD1 ), tfd( v.b, uD0, uD1 ) );' + sLineBreak +
+        '    }'                                                                   + sLineBreak +
+        ''                                                                        + sLineBreak +
         '    if ( uP.z > 0.5 )'                                                   + sLineBreak +
         '    {'                                                                   + sLineBreak +
         '        v = clamp( v * ( 1.0 + v * uP.y ) / ( 1.0 + v ), float3( 0.0 ), float3( 1.0 ) );' + sLineBreak +
+        '    }'                                                                   + sLineBreak +
+        ''                                                                        + sLineBreak +
+        '    if ( uP.w > 0.5 )'                                                   + sLineBreak +
+        '    {'                                                                   + sLineBreak +
+        '        v = float3( dot( uM0.xyz, v ), dot( uM1.xyz, v ), dot( uM2.xyz, v ) );' + sLineBreak +
+        '        v = float3( tfe( v.r, uE0, uE1 ), tfe( v.g, uE0, uE1 ), tfe( v.b, uE0, uE1 ) );' + sLineBreak +
         '    }'                                                                   + sLineBreak +
         ''                                                                        + sLineBreak +
         '    v = pow( max( v, float3( 0.0 ) ), float3( uP.x ) );'                 + sLineBreak +
@@ -186,9 +331,12 @@ begin
      begin
           _Image.OnChange.Add( ImageChanged );
 
-          _Version := _Image.Version;
-          _Gamma   := _Image.DefaultGamma;
-          _ToneMap := _Image.IsFloat;
+          _Version    := _Image.Version;
+          _ToneMap    := _Image.IsFloat;
+          _ImageSpace := _Image.ColorSpace;
+
+          if Assigned( _Image.ColorSpace ) then _Gamma := 1                    // 色管理あり：伝達関数が表示を決めるので Gamma は追加の調整
+                                           else _Gamma := _Image.DefaultGamma;  // 色管理なし：形式ごとの慣例（整数 1.0・浮動小数 2.2 ）
 
           SetLength( _Apron, ( LUXIMAGE_TILE + 2 ) * ( LUXIMAGE_TILE + 2 ) * _Image.PixelSize );
 
@@ -251,11 +399,53 @@ begin
      _Origin := Origin_;  Redraw;
 end;
 
+//------------------------------------------------------------------------------
+
+procedure TLuxImageViewer.SetColorSpace( const ColorSpace_:TLuxColorSpace );
+begin
+     if _ColorSpace = ColorSpace_ then Exit;
+
+     _ColorSpace := ColorSpace_;  Redraw;
+end;
+
+///// 表示側の色空間。ColorSpace が nil なら、この窓が乗っているモニターのプロファイルを使う。
+///// モニターが変わったとき（窓を移した・設定を変えた）に取り直せるよう、描画のたびにデバイス名を照合する。
+
+function TLuxImageViewer.GetActiveColorSpace :TLuxColorSpace;
+var
+   Dev :String;
+begin
+     if Assigned( _ColorSpace ) then Exit( _ColorSpace );
+
+     Dev := LuxMonitorDevice( Self );
+
+     if ( Dev <> _MonitorDev ) or not Assigned( _Monitor ) then
+     begin
+          _MonitorDev := Dev;
+          _Monitor    := LuxMonitorColorSpace( Dev );
+
+          if not Assigned( _Monitor ) then _Monitor := TLuxColorSpaces.sRGB;
+     end;
+
+     Result := _Monitor;
+end;
+
 //////////////////////////////////////////////////////////////////// E V E N T
+
+///// 画像からの変更通知。キャッシュは Version（全体の変更）とタイルの Stamp（部分の変更）で描画時に検証するので、
+///// ここでは捨てない（描画中の 30 Hz の通知で毎回捨てると、可視タイルを毎フレーム作り直すことになる）。
 
 procedure TLuxImageViewer.ImageChanged( Sender_:TObject );
 begin
-     DropCache;  Redraw;
+     if _Image.ColorSpace <> _ImageSpace then   // 画像の色空間が変わった：表示ガンマの既定値を切り替える
+     begin
+          _ImageSpace := _Image.ColorSpace;
+
+          if Assigned( _ImageSpace ) then _Gamma := 1
+                                     else _Gamma := _Image.DefaultGamma;
+     end;
+
+     Redraw;
 end;
 
 procedure TLuxImageViewer.SetDrawCacheKind( const Value_:TSkDrawCacheKind );
@@ -287,7 +477,9 @@ var
    Paint                                 :ISkPaint;
    Samp                                  :TSkSamplingOptions;
    Img                                   :ISkImage;
-   Unif                                  :TSkRuntimeEffectFloat4;
+   Unif                                  :TToneUniforms;
+   Disp                                  :TLuxColorSpace;
+   M                                     :TDoubleM3;
 begin
      ACanvas.Save;
      try
@@ -337,17 +529,43 @@ begin
           TY0 := Max( Floor( ( ADest.Top    - OY ) / S / LUXIMAGE_TILE ), 0 );
           TY1 := Min( Floor( ( ADest.Bottom - OY ) / S / LUXIMAGE_TILE ), _Image.LevelTilesY( L ) - 1 );
 
-          ///// トーンマッピングとガンマ補正
+          ///// 色管理・トーンマッピング・ガンマ補正（ GPU ）
 
           Paint := TSkPaint.Create;
           Paint.AlphaF := AOpacity;
 
           if Assigned( _Effect ) then
           begin
-               Unif.V1 := 1 / _Gamma;
-               Unif.V2 := 1 / Pow2( _White );
-               Unif.V3 := Ord( _ToneMap );
-               Unif.V4 := 0;
+               FillChar( Unif, SizeOf( Unif ), 0 );
+
+               Unif.P.V1 := 1 / _Gamma;
+               Unif.P.V2 := 1 / Pow2( _White );
+               Unif.P.V3 := Ord( _ToneMap );
+
+               if Assigned( _Image.ColorSpace ) then
+               begin
+                    Disp := ActiveColorSpace;
+
+                    Unif.P.V4 := 1;
+
+                    with _Image.ColorSpace.Transfer do
+                    begin
+                         Unif.D0.V1 := G;  Unif.D0.V2 := A;  Unif.D0.V3 := B;  Unif.D0.V4 := C;
+                         Unif.D1.V1 := D;  Unif.D1.V2 := E;  Unif.D1.V3 := F;
+                    end;
+
+                    with Disp.Transfer do
+                    begin
+                         Unif.E0.V1 := G;  Unif.E0.V2 := A;  Unif.E0.V3 := B;  Unif.E0.V4 := C;
+                         Unif.E1.V1 := D;  Unif.E1.V2 := E;  Unif.E1.V3 := F;
+                    end;
+
+                    M := _Image.ColorSpace.ToSpace( Disp );
+
+                    Unif.M0.V1 := M._11;  Unif.M0.V2 := M._12;  Unif.M0.V3 := M._13;
+                    Unif.M1.V1 := M._21;  Unif.M1.V2 := M._22;  Unif.M1.V3 := M._23;
+                    Unif.M2.V1 := M._31;  Unif.M2.V2 := M._32;  Unif.M2.V3 := M._33;
+               end;
 
                Paint.ColorFilter := _Effect.MakeColorFilter( Unif, [] );
           end;
@@ -401,9 +619,9 @@ end;
 
 procedure TLuxImageViewer.Paint;
 var
-   AbsoluteBimapSize :TSize;
+   AbsoluteBimapSize :System.Types.TSize;
    AbsoluteScale     :TPointF;
-   AbsoluteSize      :TSize;
+   AbsoluteSize      :System.Types.TSize;
    ExceededRatio     :Single;
    MaxBitmapSize     :Integer;
    SceneScale        :Single;
@@ -423,7 +641,7 @@ begin
                                else SceneScale := 1;
 
           AbsoluteScale := Self.AbsoluteScale;
-          AbsoluteSize  := TSize.Create( Round( Width  * AbsoluteScale.X * SceneScale ),
+          AbsoluteSize  := System.Types.TSize.Create( Round( Width  * AbsoluteScale.X * SceneScale ),
                                          Round( Height * AbsoluteScale.Y * SceneScale ) );
 
           MaxBitmapSize := Canvas.GetAttribute( TCanvasAttribute.MaxBitmapSize );
@@ -441,11 +659,11 @@ begin
           end;
 
           if NeedsRedraw or ( _Buffer = nil )
-                         or ( TSize.Create( _Buffer.Width, _Buffer.Height ) <> AbsoluteBimapSize ) then
+                         or ( System.Types.TSize.Create( _Buffer.Width, _Buffer.Height ) <> AbsoluteBimapSize ) then
           begin
-               if _Buffer = nil then _Buffer := TBitmap.Create( AbsoluteBimapSize.Width, AbsoluteBimapSize.Height )
+               if _Buffer = nil then _Buffer := FMX.Graphics.TBitmap.Create( AbsoluteBimapSize.Width, AbsoluteBimapSize.Height )
                else
-               if TSize.Create( _Buffer.Width, _Buffer.Height ) <> AbsoluteBimapSize then
+               if System.Types.TSize.Create( _Buffer.Width, _Buffer.Height ) <> AbsoluteBimapSize then
                  _Buffer.SetSize( AbsoluteBimapSize.Width, AbsoluteBimapSize.Height );
 
                _Buffer.SkiaDraw( procedure ( const ACanvas:ISkCanvas )
@@ -682,6 +900,10 @@ begin
      _Background := $FF202020;
      _MinScale   := 1 / 4096;
      _MaxScale   := 256;
+     _ColorSpace := nil;
+     _Monitor    := nil;
+     _MonitorDev := '';
+     _ImageSpace := nil;
      _Stamp      := 0;
      _Draggin    := False;
      _MouseOn    := False;
