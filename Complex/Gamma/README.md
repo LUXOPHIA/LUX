@@ -92,7 +92,7 @@ For `Re(z) < 1/2`, the Lanczos functions use the reflection identity [3]:
 
 The Ooura units are Delphi ports of `cdgamma.c` from the author's `gamerf` package [4]. They evaluate a fixed rational-and-exponential approximation. Their reflection branch is selected at `Re(z) < 0`, rather than at the Lanczos threshold of `1/2`.
 
-The dual version propagates derivatives through the real and imaginary components, including conjugation and squared modulus. These intermediate operations are not themselves holomorphic; their derivatives are handled as real operations on the two components.
+Complex division and the reflection formula are written directly using `/` and `Sin`. The dual version evaluates the same expressions, propagating derivatives through operations on the real and imaginary components.
 
 ## 4. Domain, branches, and accuracy
 
