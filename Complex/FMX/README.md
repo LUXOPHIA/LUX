@@ -15,13 +15,13 @@ For $z = x + i y$ ranging over `Area`, a vertex is placed at the modulus of the 
 \mathbf{p}(x, y) = \left(\, x,\ |f(z)|,\ y \,\right) \qquad \text{(2.1)}
 ```
 
-The value itself is encoded in the texture coordinates. Its modulus is compressed by `Scale` $= s$, which maps the whole plane into the unit disc while preserving the argument, and the disc is placed in the unit texture square:
+The value itself is encoded in the texture coordinates. For `Scale` $= s > 0$, the formula below compresses the modulus and maps finite complex values into the interior of the unit disc, preserving the argument of nonzero values. The disc is placed in the unit texture square:
 
 ```math
 w' = \frac{w}{s + |w|}, \qquad t = \left( \frac{1 + \operatorname{Re} w'}{2},\ \frac{1 + \operatorname{Im} w'}{2} \right), \qquad w = f(z) \qquad \text{(2.2)}
 ```
 
-A texture assigned to `Material` therefore acts as a colour map of the function value — domain colouring, with the disc centre representing $0$ and the rim representing $\infty$.
+A texture assigned to `Material` therefore acts as a colour map of the function value — domain colouring, with zero mapped to the disc centre and points approaching the rim as the modulus increases.
 
 ## 3. Architecture
 
