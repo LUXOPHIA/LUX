@@ -1,102 +1,141 @@
 # LUX.C2.Gamma
+
 [English](README.md) | [日本語](ja/README.md)
 
-The gamma function for complex argument, implemented twice from independent derivations — the Lanczos approximation and Ooura's `cdgamma` — so that results can be cross-checked. Each implementation has a `.Diff` twin that evaluates $\Gamma(z)$ and $\Gamma'(z)$ together by dual-number automatic differentiation.
+Complex gamma functions for Delphi, implemented with the Lanczos approximation and Takuya Ooura's `cdgamma` algorithm. Each method has a `.Diff` unit that propagates derivatives using dual numbers.
 
-## 1. Overview
+## 1. Functions and types
 
-All functions are free routines overloaded for `TSingleC` / `TDoubleC` (and `TdSingleC` / `TdDoubleC` in the `.Diff` units).
+These units expose standalone functions; they define no classes and require no object construction. The ordinary units accept `TSingleC` and `TDoubleC`. The `.Diff` units accept `TdSingleC` and `TdDoubleC`, whose `o` and `d` properties hold the value and derivative components.
 
-| Unit | Exports |
+| Unit | Exported functions |
 |---|---|
-| `LUX.C2.Gamma.Lanczos` | `LnGamma7/9/11/15`, `Gamma7/9/11/15` |
-| `LUX.C2.Gamma.Lanczos.Diff` | the same, over dual complex numbers |
+| `LUX.C2.Gamma.Lanczos` | `Gamma7`, `Gamma9`, `Gamma11`, `Gamma15`; `LnGamma7`, `LnGamma9`, `LnGamma11`, `LnGamma15` |
+| `LUX.C2.Gamma.Lanczos.Diff` | The same names, overloaded for dual complex numbers |
 | `LUX.C2.Gamma.Ooura` | `Gamma` |
-| `LUX.C2.Gamma.Ooura.Diff` | `Gamma`, over dual complex numbers |
+| `LUX.C2.Gamma.Ooura.Diff` | `Gamma`, overloaded for dual complex numbers |
 
-The digit in a Lanczos name is the number of coefficients $N$; each set pairs with its own auxiliary parameter $g$:
+The suffix of each Lanczos function is the number of stored coefficients, including the constant term. It is not a number of guaranteed significant digits. The implementation pairs each coefficient set with a fixed parameter `g`:
 
-| Functions | $N$ | $g$ | Source of the coefficients |
-|---|---|---|---|
-| `LnGamma7` / `Gamma7` | 7 | $5$ | Numerical Recipes [2] |
-| `LnGamma9` / `Gamma9` | 9 | $7$ | |
-| `LnGamma11` / `Gamma11` | 11 | $9$ | |
-| `LnGamma15` / `Gamma15` | 15 | $607/128$ | Boost-style, highest accuracy [3] |
+| Functions | Coefficients `N` | `g` |
+|---|---:|---:|
+| `Gamma7` / `LnGamma7` | 7 | 5 |
+| `Gamma9` / `LnGamma9` | 9 | 7 |
+| `Gamma11` / `LnGamma11` | 11 | 9 |
+| `Gamma15` / `LnGamma15` | 15 | 607/128 |
 
-## 2. Mathematical Background
+Both ordinary and dual Lanczos units contain their own coefficient definitions so that each implementation can be read in one source file. Ooura's implementation uses one fixed approximation and exposes no order parameter or complex log-gamma function.
 
-### 2.1 Lanczos approximation
+## 2. Usage
 
-For $\operatorname{Re} z \ge \tfrac{1}{2}$ the code evaluates, with $c_k$ the coefficient set and $g$ its parameter [1],
+Add the LUX root, `Complex`, and `Complex/Gamma` directories to the Delphi unit search path. The gamma units depend on the LUX numeric types; they do not depend on FireMonkey.
 
-```math
-\Gamma(z) \approx \sqrt{2\pi}\; \Big( z + g - \tfrac{1}{2} \Big)^{\,z - 1/2} \, e^{-\left( z + g - 1/2 \right)} \left[ c_0 + \sum_{k=1}^{N-1} \frac{c_k}{z - 1 + k} \right] \qquad \text{(2.1)}
-```
-
-`Gamma*` computes this directly through one complex `Exp`; `LnGamma*` computes its logarithm term by term.
-
-### 2.2 Reflection
-
-For $\operatorname{Re} z < \tfrac{1}{2}$ both families switch to the reflection formula
-
-```math
-\Gamma(z)\, \Gamma(1 - z) = \frac{\pi}{\sin \pi z} \qquad \text{(2.2)}
-```
-
-applied directly for `Gamma*` and in logarithmic form for `LnGamma*`, so the approximation is only ever used in the half-plane where it converges well.
-
-### 2.3 Branch of the logarithm
-
-`LnGamma*` satisfies $\exp( \mathrm{LnGamma}(z) ) = \Gamma(z)$, but it is **not** the continuous principal log-gamma (`lgamma`): because each `Ln` takes its principal branch, the result may differ from the principal value by an integer multiple of $2\pi i$.
-
-### 2.4 Poles
-
-The non-positive integers $z = 0, -1, -2, \dots$ are the poles of $\Gamma$, and there the implementations divide by zero. In the default environment with floating-point exceptions masked (Delphi 12+ / FMX) they return `INF` / `NaN`; if exceptions are unmasked with `SetExceptionMask`, `EZeroDivide` or similar is raised.
-
-### 2.5 Ooura's cdgamma
-
-`LUX.C2.Gamma.Ooura` is a Delphi port of `cdgamma.c` from Takuya Ooura's `gamerf` package [4] (whose licence permits free use, copying and modification). It evaluates one fixed rational-and-exponential approximation — there is no selectable order — and for $\operatorname{Re} z < 0$ folds the reflection formula into the same code path using $e^{\pm \pi \operatorname{Im} z}$ terms. The `.Diff` units are the identical algorithms written over the dual types, so seeding the derivative with the real unit yields $\Gamma'(z)$ alongside $\Gamma(z)$ by the analyticity of every step.
-
-## 3. Architecture
-
-```
-・Gamma/
-  ┣・LUX.C2.Gamma.Lanczos.pas      ･･･ LnGamma7/9/11/15, Gamma7/9/11/15
-  ┣・LUX.C2.Gamma.Lanczos.Diff.pas ･･･ the same over TdSingleC / TdDoubleC
-  ┣・LUX.C2.Gamma.Ooura.pas        ･･･ Gamma  ( port of gamerf cdgamma.c )
-  ┗・LUX.C2.Gamma.Ooura.Diff.pas   ･･･ Gamma over TdSingleC / TdDoubleC
-```
-
-The real-argument counterparts live in `D1/Gamma` (`LUX.D1.Gamma.*`); the complex types come from `LUX.Complex` / `LUX.Complex.Diff`.
-
-## 4. Usage
+This console example evaluates the value and a derivative at the same complex argument. Unit-qualified calls make the choice between the ordinary and dual overloads explicit.
 
 ```pascal
-uses LUX.D1.Diff, LUX.Complex, LUX.Complex.Diff,
-     LUX.C2.Gamma.Lanczos, LUX.C2.Gamma.Lanczos.Diff;
+program GammaExample;
+
+{$APPTYPE CONSOLE}
+
+uses
+  LUX.Complex,
+  LUX.Complex.Diff,
+  LUX.C2.Gamma.Lanczos,
+  LUX.C2.Gamma.Lanczos.Diff;
 
 var
-   Z, G :TDoubleC;
-   F    :TdDoubleC;
+  Z, G :TDoubleC;
+  D, F :TdDoubleC;
 begin
-     Z := TDoubleC.Create( 0.5, 14.134725 );
-     G := Gamma15( Z );                       // Lanczos, N = 15
+  Z := TDoubleC.Create( 2.5, 1 );
+  G := LUX.C2.Gamma.Lanczos.Gamma15( Z );
 
-     ///// Γ and Γ′ together, at z = 2.5
-     F := Gamma15( TdDoubleC.Create( TdDouble.Create( 2.5, 1 ) ) );
-     // F.o = Γ(2.5),  F.d = Γ′(2.5)
-end;
+  D.o := Z;
+  D.d := TDoubleC.Create( 1, 0 );
+  F := LUX.C2.Gamma.Lanczos.Diff.Gamma15( D );
+
+  Writeln( 'Gamma: ', G.R, ', ', G.I );
+  Writeln( 'Value: ', F.o.R, ', ', F.o.I );
+  Writeln( 'Derivative: ', F.d.R, ', ', F.d.I );
+end.
 ```
 
-`LUX.C2.Gamma.Ooura` exports plain `Gamma` and can be used with the same complex types for cross-checking against the Lanczos results.
+Setting `D.d` to `1 + 0i` seeds differentiation in the real direction. Where the approximation is analytic, `F.d` approximates the complex derivative of gamma at `Z`. At regular inputs with finite intermediate values, a zero seed produces a zero derivative component. Automatic differentiation differentiates the implemented approximation and remains subject to approximation and floating-point errors.
 
-## 5. References
+To use Ooura's method, add `LUX.C2.Gamma.Ooura` or `LUX.C2.Gamma.Ooura.Diff` and call its `Gamma` function with the corresponding type. The two methods can be compared at the same input; agreement alone is not an accuracy guarantee.
 
-1. C. Lanczos, [*A Precision Approximation of the Gamma Function*](https://doi.org/10.1137/0701008), Journal of the Society for Industrial and Applied Mathematics, Series B: Numerical Analysis, vol. 1, no. 1, pp. 86–96, 1964.
-2. W. H. Press, S. A. Teukolsky, W. T. Vetterling and B. P. Flannery, [*Numerical Recipes in C, 2nd Edition*](https://numerical.recipes/), Cambridge University Press, 1992.
-3. Boost.Math, [*The Lanczos Approximation*](https://www.boost.org/doc/libs/release/libs/math/doc/html/math_toolkit/lanczos.html), Boost C++ Libraries.
-4. T. Ooura, [*Gamma / Error Functions*](https://www.kurims.kyoto-u.ac.jp/~ooura/gamerf.html), Research Institute for Mathematical Sciences, Kyoto University, 1996.
+## 3. Mathematical formulation
 
-## 💖 [Embarcadero](https://www.embarcadero.com/) [**Delphi**](https://www.embarcadero.com/products/delphi)
-Integrated Development Environment (IDE) for Creating Native Cross-Platform Apps.
-### Free Download: [**Delphi** Community Edition](https://www.embarcadero.com/products/delphi/starter)
+### 3.1. Lanczos approximation
+
+For `Re(z) >= 1/2`, the implementation evaluates the finite Lanczos approximation [1, 2]:
+
+```math
+A(z)=c_0+\sum_{k=1}^{N-1}\frac{c_k}{z-1+k},
+\qquad B=z+g-\frac12,
+\qquad \Gamma(z)\approx\sqrt{2\pi}\,A(z)B^{z-1/2}e^{-B}.
+```
+
+`Gamma*` computes `A * Exp(Ln(B) * (z - 1/2) - B + Ln(2*pi)/2)`. `LnGamma*` evaluates the logarithmic expression term by term. Each `N` selects a complete coefficient set and its matching `g`; increasing `N` does not by itself guarantee a smaller floating-point error [2].
+
+### 3.2. Reflection
+
+For `Re(z) < 1/2`, the Lanczos functions use the reflection identity [3]:
+
+```math
+\Gamma(z)\Gamma(1-z)=\frac{\pi}{\sin(\pi z)},\qquad z\notin\mathbb Z.
+```
+
+`Gamma*` applies the identity directly. `LnGamma*` uses `Ln(pi / Sin(pi*z)) - LnGammaP(1-z)`. The helper evaluates the approximation in the reflected half-plane.
+
+### 3.3. Ooura's algorithm
+
+The Ooura units are Delphi ports of `cdgamma.c` from the author's `gamerf` package [4]. They evaluate a fixed rational-and-exponential approximation. Their reflection branch is selected at `Re(z) < 0`, rather than at the Lanczos threshold of `1/2`.
+
+The dual version propagates derivatives through the real and imaginary components, including conjugation and squared modulus. These intermediate operations are not themselves holomorphic; their derivatives are handled as real operations on the two components.
+
+## 4. Domain, branches, and accuracy
+
+### 4.1. Poles
+
+The non-positive integers `0, -1, -2, ...` are poles of gamma and are outside the supported input domain [3]. These implementations do not explicitly detect poles. At a pole they may return finite values, `INF`, or `NaN`, or raise a floating-point exception depending on the operations and exception mask. `INF`/`NaN` must not be used as a reliable pole detector.
+
+For example, in a Delphi Win64 double-precision check with floating-point exceptions masked, all five gamma variants returned a finite real value of approximately `-2.5653e16` at `z = -1`, while `z = 0` produced `NaN`. The ordinary and dual variants showed the same value behavior. This illustrates the limitation; it is not a portable specification of the returned bits. In the reflection calculation, a floating-point evaluation of `Sin(pi*z)` need not be exactly zero at a negative integer.
+
+### 4.2. Logarithm branches
+
+`LnGamma*` combines principal complex logarithms. Its exponential represents the corresponding gamma approximation, subject to floating-point effects, but the result is not guaranteed to follow the analytic principal log-gamma branch. In particular, values can differ by multiples of `2*pi*i`, in addition to numerical error. The principal logarithm of `Gamma(z)` and the principal log-gamma function are distinct branch conventions; see the mpmath documentation for this distinction [5]. Do not assume branch continuity when using these routines along a complex path.
+
+### 4.3. Numerical limits
+
+The functions provide no configurable error tolerance or full-domain error bound. Accuracy depends on the coefficient set, input, numeric type, elementary functions, and rounding. Large arguments and intermediate expressions can overflow or underflow, and cancellation can reduce accuracy even away from poles. A logarithmic formulation does not eliminate every intermediate-range limitation.
+
+No reproducible benchmark accompanying these units establishes a universal ranking or a guaranteed number of digits for the four Lanczos sets and Ooura's method. Validate the intended input range and derivative outputs against an independent high-precision reference when those guarantees are required.
+
+## 5. Source layout
+
+```text
+Gamma/
+├─ LUX.C2.Gamma.Lanczos.pas
+├─ LUX.C2.Gamma.Lanczos.Diff.pas
+├─ LUX.C2.Gamma.Ooura.pas
+├─ LUX.C2.Gamma.Ooura.Diff.pas
+├─ README.md
+└─ ja/README.md
+```
+
+The complex types are defined in `LUX.Complex` and `LUX.Complex.Diff`. The separate [real-argument gamma units](../../D1/Gamma/README.md) live in `D1/Gamma` and have their own APIs and domain conventions.
+
+## 6. References and attribution
+
+1. C. Lanczos, [*A Precision Approximation of the Gamma Function*](https://doi.org/10.1137/0701008), 1964, pp. 86–96.
+2. Boost.Math, [*The Lanczos Approximation*](https://www.boost.org/doc/libs/latest/libs/math/doc/html/math_toolkit/lanczos.html). Background on coefficient counts, parameter selection, and cancellation; not a measured accuracy specification for these Delphi routines.
+3. NIST DLMF, [*Gamma Function: Definitions*](https://dlmf.nist.gov/5.2) and [*Functional Relations*](https://dlmf.nist.gov/5.5).
+4. Takuya Ooura, [*Gamma / Error Functions*](https://www.kurims.kyoto-u.ac.jp/~ooura/gamerf.html), including `cdgamma.c` in `gamerf`.
+5. mpmath, [*Factorials and gamma functions*](https://mpmath.org/doc/current/functions/gamma.html), especially `loggamma`.
+
+The Ooura units retain the original attribution: Copyright(C) 1996 Takuya OOURA. See their source headers and the package's original notice.
+
+## 💖 [Embarcadero](https://www.embarcadero.com/) [Delphi](https://www.embarcadero.com/products/delphi)
+
+Integrated development environment for native cross-platform applications.

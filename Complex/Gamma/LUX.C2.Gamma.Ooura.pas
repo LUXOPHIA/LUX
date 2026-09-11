@@ -17,9 +17,9 @@ uses LUX, LUX.Complex;
 //    https://www.kurims.kyoto-u.ac.jp/~ooura/gamerf.html
 //    "You may use, copy, modify this code for any purpose and without fee."
 //
-//  ※ 非正整数 (0, -1, -2, ...) は極であり、内部で0除算が発生する。
-//     浮動小数点例外がマスクされた既定環境 (Delphi 12+ / FMX) では INF/NaN を返し、
-//     SetExceptionMask で例外を有効化した環境では EZeroDivide 等が発生する。
+//  ※ 非正整数 (0, -1, -2, ...) は極であり、計算対象外。
+//     本実装は極を明示的に検出しない。極では有限値・INF・NaN を返す場合や、
+//     演算内容と例外マスクに応じて浮動小数点例外が発生する場合がある。
 
 function Gamma( const X_:TSingleC ) :TSingleC; overload;
 function Gamma( const X_:TDoubleC ) :TDoubleC; overload;
