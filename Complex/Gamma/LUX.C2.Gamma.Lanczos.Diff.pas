@@ -115,7 +115,7 @@ const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LnGamma*
 
-function LnGammaP( const X_:TdSingleC; const LCg_:Double; const LCs_:array of Double ) :TdSingleC; overload;  // 0 < X
+function LnGammaP( const X_:TdSingleC; const LCg_:Double; const LCs_:array of Double ) :TdSingleC; overload;  // 呼び出し時は Re(X) >= 0.5
 var
    X1, B, A :TdSingleC;
    I :Integer;
@@ -130,7 +130,7 @@ begin
      Result := Ln(Pi2)/2 + Ln( A ) - B + Ln( B ) * ( X1 + 0.5 );
 end;
 
-function LnGammaP( const X_:TdDoubleC; const LCg_:Double; const LCs_:array of Double ) :TdDoubleC; overload;  // 0 < X
+function LnGammaP( const X_:TdDoubleC; const LCg_:Double; const LCs_:array of Double ) :TdDoubleC; overload;  // 呼び出し時は Re(X) >= 0.5
 var
    X1, B, A :TdDoubleC;
    I :Integer;
@@ -203,7 +203,7 @@ end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Gamma*
 
-function GammaP( const X_:TdSingleC; const LCg_:Double; const LCs_:array of Double ) :TdSingleC; overload;  // 0 < X
+function GammaP( const X_:TdSingleC; const LCg_:Double; const LCs_:array of Double ) :TdSingleC; overload;  // 呼び出し時は Re(X) >= 0.5
 var
    X1, B, A :TdSingleC;
    I :Integer;
@@ -217,7 +217,7 @@ begin
      Result := A * Exp( Ln( B ) * ( X1 + 0.5 ) - B + Ln(Pi2)/2 );
 end;
 
-function GammaP( const X_:TdDoubleC; const LCg_:Double; const LCs_:array of Double ) :TdDoubleC; overload;  // 0 < X
+function GammaP( const X_:TdDoubleC; const LCg_:Double; const LCs_:array of Double ) :TdDoubleC; overload;  // 呼び出し時は Re(X) >= 0.5
 var
    X1, B, A :TdDoubleC;
    I :Integer;
