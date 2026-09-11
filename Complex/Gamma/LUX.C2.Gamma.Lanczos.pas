@@ -147,13 +147,13 @@ end;
 
 //------------------------------------------------------------------------------
 
-function LnGamma( X_:TSingleC; const LCg_:Double; const LCs_:array of Double ) :TSingleC; overload;
+function LnGamma( const X_:TSingleC; const LCg_:Double; const LCs_:array of Double ) :TSingleC; overload;
 begin
      if X_.R < 0.5 then Result := Ln( Pi / Sin( Pi * X_ ) ) - LnGammaP( 1 - X_, LCg_, LCs_ )
                    else Result :=                             LnGammaP(     X_, LCg_, LCs_ );
 end;
 
-function LnGamma( X_:TDoubleC; const LCg_:Double; const LCs_:array of Double ) :TDoubleC; overload;
+function LnGamma( const X_:TDoubleC; const LCg_:Double; const LCs_:array of Double ) :TDoubleC; overload;
 begin
      if X_.R < 0.5 then Result := Ln( Pi / Sin( Pi * X_ ) ) - LnGammaP( 1 - X_, LCg_, LCs_ )
                    else Result :=                             LnGammaP(     X_, LCg_, LCs_ );
