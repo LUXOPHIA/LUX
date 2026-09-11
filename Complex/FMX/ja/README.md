@@ -5,7 +5,7 @@ FireMonkey 用の単一ユニット。複素関数 $f : \mathbb{C} \to \mathbb{C
 
 ## 1. 概要
 
-`TComplex3D` は `TF3DShaper`（`LUX.FMX.Graphics.D3`）を継承し、必要に応じて再構築される `TMeshData` を保持する。関数は `LUX.Complex.Diff` の双対数型 `TdDoubleCFunc` として与える。これにより曲面の偏微分が正確に得られ、頂点法線は差分近似ではなく `TexToMatrix`（`LUX.D4x4.Diff`）による自動微分から計算される。形状生成は `TParallel.For` で並列化され、定義域は `TDoubleAreaC` の窓を `DivX` × `DivY` に分割し、各セルを2枚の三角形で張る。
+`TComplex3D` は `TF3DShaper`（`LUX.FMX.Graphics.D3`）を継承し、必要に応じて再構築される `TMeshData` を保持する。関数は `LUX.Complex.Diff` の双対数型 `TdDoubleCFunc` として与える。`TexToMatrix`（`LUX.D4x4.Diff`）は、与えた曲面の計算式の偏微分を自動微分で求め、頂点法線を計算する。形状生成は `TParallel.For` で並列化され、定義域は `TDoubleAreaC` の窓を `DivX` × `DivY` に分割し、各セルを2枚の三角形で張る。
 
 ## 2. 技術的背景
 

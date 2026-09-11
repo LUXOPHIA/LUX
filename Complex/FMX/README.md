@@ -5,7 +5,7 @@ A single FireMonkey unit: `TComplex3D`, a 3-D control that draws the graph of a 
 
 ## 1. Overview
 
-`TComplex3D` derives from `TF3DShaper` (`LUX.FMX.Graphics.D3`) and owns a `TMeshData` rebuilt on demand. The function is supplied as a `TdDoubleCFunc` — the dual-number type of `LUX.Complex.Diff` — so the exact partial derivatives of the surface are available and the vertex normals come from automatic differentiation via `TexToMatrix` (`LUX.D4x4.Diff`) rather than from finite differences. Geometry is generated in parallel with `TParallel.For`; the domain is a `TDoubleAreaC` window, tessellated `DivX` × `DivY` with two triangles per cell.
+`TComplex3D` derives from `TF3DShaper` (`LUX.FMX.Graphics.D3`) and owns a `TMeshData` rebuilt on demand. The function is supplied as a `TdDoubleCFunc`, a function type using the dual complex numbers of `LUX.Complex.Diff`. `TexToMatrix` (`LUX.D4x4.Diff`) uses automatic differentiation to obtain the partial derivatives of the supplied surface expression and calculate the vertex normals. Geometry is generated in parallel with `TParallel.For`; the domain is a `TDoubleAreaC` window, tessellated `DivX` × `DivY` with two triangles per cell.
 
 ## 2. Technical Background
 
