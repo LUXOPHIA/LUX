@@ -17,16 +17,17 @@ uses LUX, LUX.Complex.Diff;
 //    LnGamma7 /Gamma7  … N= 7, g=5        (Numerical Recipes)
 //    LnGamma9 /Gamma9  … N= 9, g=7
 //    LnGamma11/Gamma11 … N=11, g=9
-//    LnGamma15/Gamma15 … N=15, g=607/128  (Boost 系・最高精度)
+//    LnGamma15/Gamma15 … N=15, g=607/128
 //
-//  ※ 非正整数 (0, -1, -2, ...) は極であり、内部で0除算が発生する。
-//     浮動小数点例外がマスクされた既定環境 (Delphi 12+ / FMX) では INF/NaN を返し、
-//     SetExceptionMask で例外を有効化した環境では EZeroDivide 等が発生する。
+//  ※ 非正整数 (0, -1, -2, ...) は極であり、計算対象外。
+//     本実装は極を明示的に検出しない。極では有限値・INF・NaN を返す場合や、
+//     演算内容と例外マスクに応じて浮動小数点例外が発生する場合がある。
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LnGamma*
 
-//  注意: LnGamma* は exp(LnGamma(z)) = Γ(z) を満たす対数を返すが、主枝 (lgamma 相当の
-//        連続な log-gamma) ではなく、2πi の整数倍だけ異なる場合がある。
+//  注意: LnGamma* は複素対数の主値を組み合わせて計算する。
+//        解析的な対数ガンマ関数の主枝は保証せず、数値誤差に加えて
+//        2πi の整数倍だけ異なる場合がある。
 
 function LnGamma7( const X_:TdSingleC ) :TdSingleC; overload;
 function LnGamma7( const X_:TdDoubleC ) :TdDoubleC; overload;
@@ -114,7 +115,7 @@ const //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LnGamma*
 
-function LnGammaP( const X_:TdSingleC; const LCg_:Double; const LCs_:array of Double ) :TdSingleC; overload;  // 0 < X
+function LnGammaP( const X_:TdSingleC; const LCg_:Double; const LCs_:array of Double ) :TdSingleC; overload;  // 呼び出し時は Re(X) >= 0.5
 var
    X1, B, A :TdSingleC;
    I :Integer;
@@ -129,7 +130,7 @@ begin
      Result := Ln(Pi2)/2 + Ln( A ) - B + Ln( B ) * ( X1 + 0.5 );
 end;
 
-function LnGammaP( const X_:TdDoubleC; const LCg_:Double; const LCs_:array of Double ) :TdDoubleC; overload;  // 0 < X
+function LnGammaP( const X_:TdDoubleC; const LCg_:Double; const LCs_:array of Double ) :TdDoubleC; overload;  // 呼び出し時は Re(X) >= 0.5
 var
    X1, B, A :TdDoubleC;
    I :Integer;
@@ -146,13 +147,13 @@ end;
 
 //------------------------------------------------------------------------------
 
-function LnGamma( X_:TdSingleC; const LCg_:Double; const LCs_:array of Double ) :TdSingleC; overload;
+function LnGamma( const X_:TdSingleC; const LCg_:Double; const LCs_:array of Double ) :TdSingleC; overload;
 begin
      if X_.R < 0.5 then Result := Ln( Pi / Sin( Pi * X_ ) ) - LnGammaP( 1 - X_, LCg_, LCs_ )
                    else Result :=                             LnGammaP(     X_, LCg_, LCs_ );
 end;
 
-function LnGamma( X_:TdDoubleC; const LCg_:Double; const LCs_:array of Double ) :TdDoubleC; overload;
+function LnGamma( const X_:TdDoubleC; const LCg_:Double; const LCs_:array of Double ) :TdDoubleC; overload;
 begin
      if X_.R < 0.5 then Result := Ln( Pi / Sin( Pi * X_ ) ) - LnGammaP( 1 - X_, LCg_, LCs_ )
                    else Result :=                             LnGammaP(     X_, LCg_, LCs_ );
@@ -202,32 +203,14 @@ end;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Gamma*
 
-function GammaP( const X_:TdSingleC; const LCg_:Double; const LCs_:array of Double ) :TdSingleC; overload;  // 0 < X
-var
-   X1, B, A :TdSingleC;
-   I :Integer;
+function GammaP( const X_:TdSingleC; const LCg_:Double; const LCs_:array of Double ) :TdSingleC; overload;  // 呼び出し時は Re(X) >= 0.5
 begin
-     // Result := Exp( LnGammaP( X_, LCg_, LCs_ ) );
-	 
-     X1 := X_ - 1;
-     A := LCs_[ 0 ];
-     for I := 1 to High( LCs_ ) do A := A + LCs_[ I ] / ( X1 + I );
-     B := X1 + LCg_ + 0.5;
-     Result := A * Exp( Ln( B ) * ( X1 + 0.5 ) - B + Ln(Pi2)/2 );
+     Result := Exp( LnGammaP( X_, LCg_, LCs_ ) );
 end;
 
-function GammaP( const X_:TdDoubleC; const LCg_:Double; const LCs_:array of Double ) :TdDoubleC; overload;  // 0 < X
-var
-   X1, B, A :TdDoubleC;
-   I :Integer;
+function GammaP( const X_:TdDoubleC; const LCg_:Double; const LCs_:array of Double ) :TdDoubleC; overload;  // 呼び出し時は Re(X) >= 0.5
 begin
-     // Result := Exp( LnGammaP( X_, LCg_, LCs_ ) );
-	 
-     X1 := X_ - 1;
-     A := LCs_[ 0 ];
-     for I := 1 to High( LCs_ ) do A := A + LCs_[ I ] / ( X1 + I );
-     B := X1 + LCg_ + 0.5;
-     Result := A * Exp( Ln( B ) * ( X1 + 0.5 ) - B + Ln(Pi2)/2 );
+     Result := Exp( LnGammaP( X_, LCg_, LCs_ ) );
 end;
 
 //------------------------------------------------------------------------------

@@ -5,7 +5,7 @@ A single FireMonkey unit: `TComplex3D`, a 3-D control that draws the graph of a 
 
 ## 1. Overview
 
-`TComplex3D` derives from `TF3DShaper` (`LUX.FMX.Graphics.D3`) and owns a `TMeshData` rebuilt on demand. The function is supplied as a `TdDoubleCFunc` — the dual-number type of `LUX.Complex.Diff` — so the exact partial derivatives of the surface are available and the vertex normals come from automatic differentiation via `TexToMatrix` (`LUX.D4x4.Diff`) rather than from finite differences. Geometry is generated in parallel with `TParallel.For`; the domain is a `TDoubleAreaC` window, tessellated `DivX` × `DivY` with two triangles per cell.
+`TComplex3D` derives from `TF3DShaper` (`LUX.FMX.Graphics.D3`) and owns a `TMeshData` rebuilt on demand. The function is supplied as a `TdDoubleCFunc`, a function type using the dual complex numbers of `LUX.Complex.Diff`. `TexToMatrix` (`LUX.D4x4.Diff`) uses automatic differentiation to obtain the partial derivatives of the supplied surface expression and calculate the vertex normals. Geometry is generated in parallel with `TParallel.For`; the domain is a `TDoubleAreaC` window, tessellated `DivX` × `DivY` with two triangles per cell.
 
 ## 2. Technical Background
 
@@ -15,13 +15,13 @@ For $z = x + i y$ ranging over `Area`, a vertex is placed at the modulus of the 
 \mathbf{p}(x, y) = \left(\, x,\ |f(z)|,\ y \,\right) \qquad \text{(2.1)}
 ```
 
-The value itself is encoded in the texture coordinates. Its modulus is compressed by `Scale` $= s$, which maps the whole plane into the unit disc while preserving the argument, and the disc is placed in the unit texture square:
+The value itself is encoded in the texture coordinates. For `Scale` $= s > 0$, the formula below compresses the modulus and maps finite complex values into the interior of the unit disc, preserving the argument of nonzero values. The disc is placed in the unit texture square:
 
 ```math
 w' = \frac{w}{s + |w|}, \qquad t = \left( \frac{1 + \operatorname{Re} w'}{2},\ \frac{1 + \operatorname{Im} w'}{2} \right), \qquad w = f(z) \qquad \text{(2.2)}
 ```
 
-A texture assigned to `Material` therefore acts as a colour map of the function value — domain colouring, with the disc centre representing $0$ and the rim representing $\infty$.
+A texture assigned to `Material` therefore acts as a colour map of the function value — domain colouring, with zero mapped to the disc centre and points approaching the rim as the modulus increases.
 
 ## 3. Architecture
 
@@ -34,7 +34,7 @@ A texture assigned to `Material` therefore acts as a colour map of the function 
   ┗・Material :TLightMaterialSource ･･･ lit material; texture = colour map
 ```
 
-Setting any property marks the geometry (and, for `DivX` / `DivY`, the topology) dirty and repaints. When `Func` is `nil` the mesh is emptied.
+Setting `Func`, `Area`, `DivX`, `DivY`, or `Scale` marks the geometry dirty and requests a repaint. Changing `DivX` or `DivY`, or switching `Func` between `nil` and an assigned function, also marks the topology dirty. On the next geometry and topology update, a `nil` function empties both buffers; assigning a function restores the mesh.
 
 ## 4. Usage
 
@@ -53,6 +53,8 @@ begin
                     Result := Gamma( C_ );        // Γ(z), with derivative
                end;
      G.Area  := TDoubleAreaC.Create( -4, -4, +4, +4 );
+     G.DivX  := 255;
+     G.DivY  := 255;
      G.Scale := 2;
 end;
 ```

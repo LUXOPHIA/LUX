@@ -5,7 +5,7 @@ FireMonkey 用の単一ユニット。複素関数 $f : \mathbb{C} \to \mathbb{C
 
 ## 1. 概要
 
-`TComplex3D` は `TF3DShaper`（`LUX.FMX.Graphics.D3`）を継承し、必要に応じて再構築される `TMeshData` を保持する。関数は `LUX.Complex.Diff` の双対数型 `TdDoubleCFunc` として与える。これにより曲面の偏微分が正確に得られ、頂点法線は差分近似ではなく `TexToMatrix`（`LUX.D4x4.Diff`）による自動微分から計算される。形状生成は `TParallel.For` で並列化され、定義域は `TDoubleAreaC` の窓を `DivX` × `DivY` に分割し、各セルを2枚の三角形で張る。
+`TComplex3D` は `TF3DShaper`（`LUX.FMX.Graphics.D3`）を継承し、必要に応じて再構築される `TMeshData` を保持する。関数は `LUX.Complex.Diff` の双対数型 `TdDoubleCFunc` として与える。`TexToMatrix`（`LUX.D4x4.Diff`）は、与えた曲面の計算式の偏微分を自動微分で求め、頂点法線を計算する。形状生成は `TParallel.For` で並列化され、定義域は `TDoubleAreaC` の窓を `DivX` × `DivY` に分割し、各セルを2枚の三角形で張る。
 
 ## 2. 技術的背景
 
@@ -15,13 +15,13 @@ FireMonkey 用の単一ユニット。複素関数 $f : \mathbb{C} \to \mathbb{C
 \mathbf{p}(x, y) = \left(\, x,\ |f(z)|,\ y \,\right) \qquad \text{(2.1)}
 ```
 
-関数値そのものはテクスチャ座標に符号化される。絶対値は `Scale` $= s$ で圧縮され、偏角を保ったまま全平面が単位円板に写り、円板は単位テクスチャ正方形に配置される。
+関数値そのものはテクスチャ座標に符号化される。`Scale` $= s > 0$ のとき、次の式で絶対値を圧縮し、有限の複素数値を単位円板の内部に写す。ゼロ以外の値では偏角を保つ。円板は単位テクスチャ正方形に配置される。
 
 ```math
 w' = \frac{w}{s + |w|}, \qquad t = \left( \frac{1 + \operatorname{Re} w'}{2},\ \frac{1 + \operatorname{Im} w'}{2} \right), \qquad w = f(z) \qquad \text{(2.2)}
 ```
 
-したがって `Material` に割り当てたテクスチャは関数値の色地図として働く。すなわちドメインカラーリングであり、円板の中心が $0$、縁が $\infty$ に対応する。
+したがって `Material` に割り当てたテクスチャは関数値の色地図として働く。すなわちドメインカラーリングであり、ゼロは円板の中心に写り、絶対値が大きくなるほど縁に近づく。
 
 ## 3. アーキテクチャ
 
@@ -34,7 +34,7 @@ w' = \frac{w}{s + |w|}, \qquad t = \left( \frac{1 + \operatorname{Re} w'}{2},\ \
   ┗・Material :TLightMaterialSource ･･･ 照明マテリアル。テクスチャ＝色地図
 ```
 
-いずれかのプロパティを設定すると形状（`DivX` / `DivY` の場合は位相も）が無効化され再描画される。`Func` が `nil` のときメッシュは空になる。
+`Func`、`Area`、`DivX`、`DivY`、`Scale` を設定すると形状の更新と再描画が要求される。`DivX`・`DivY` の変更時と、`Func` が `nil` と関数の間で切り替わるときは、三角形の接続情報も更新対象になる。次回の更新時に、`Func` が `nil` なら頂点・インデックスの両バッファが空になり、関数を設定すればメッシュが復帰する。
 
 ## 4. 使い方
 
@@ -53,6 +53,8 @@ begin
                     Result := Gamma( C_ );        // Γ(z)。微分付き
                end;
      G.Area  := TDoubleAreaC.Create( -4, -4, +4, +4 );
+     G.DivX  := 255;
+     G.DivY  := 255;
      G.Scale := 2;
 end;
 ```

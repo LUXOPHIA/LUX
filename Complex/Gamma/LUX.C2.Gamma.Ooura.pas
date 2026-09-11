@@ -17,9 +17,9 @@ uses LUX, LUX.Complex;
 //    https://www.kurims.kyoto-u.ac.jp/~ooura/gamerf.html
 //    "You may use, copy, modify this code for any purpose and without fee."
 //
-//  ※ 非正整数 (0, -1, -2, ...) は極であり、内部で0除算が発生する。
-//     浮動小数点例外がマスクされた既定環境 (Delphi 12+ / FMX) では INF/NaN を返し、
-//     SetExceptionMask で例外を有効化した環境では EZeroDivide 等が発生する。
+//  ※ 非正整数 (0, -1, -2, ...) は極であり、計算対象外。
+//     本実装は極を明示的に検出しない。極では有限値・INF・NaN を返す場合や、
+//     演算内容と例外マスクに応じて浮動小数点例外が発生する場合がある。
 
 function Gamma( const X_:TSingleC ) :TSingleC; overload;
 function Gamma( const X_:TDoubleC ) :TDoubleC; overload;
@@ -35,7 +35,6 @@ implementation //###############################################################
 function Gamma( const X_:TSingleC ) :TSingleC;
 var
    W, U, V, Y :TSingleC;
-   T :Single;
 begin
      if X_.R < 0 then W := 1 - X_
                  else W :=     X_;
@@ -52,30 +51,17 @@ begin
      V := U * ( W + 0.999999999999975753 );
      Y := Y + U * 10.5400280458730808 + V;
 
-     U := V * W;  T := U.Abs2;
-     V := Y * U.Conj + T * 0.0327673720261526849;
+     V := Y / ( V * W ) + 0.0327673720261526849;
 
      Y := W + 7.31790632447016203;
      U := Ln( Y ) - 1;
 
      Y := U * ( W - 0.5 );
-     U := Exp( Y - 3.48064577727581257 ) / T;
+     U := Exp( Y - 3.48064577727581257 );
 
      Y := U * V;
 
-     if X_.R < 0 then
-     begin
-          W := X_ * Pi;  W.I := Exp( W.I );
-
-          V.I := 1 / W.I;
-
-          U.R := ( V.I + W.I ) * Sin( W.R );
-          U.I := ( V.I - W.I ) * Cos( W.R );
-
-          V := U * Y.Conj;
-
-          Y := Pi2 / V.Abs2 * V;
-     end;
+     if X_.R < 0 then Y := Pi / ( Sin( Pi * X_ ) * Y );
 
      Result := Y;
 end;
@@ -83,7 +69,6 @@ end;
 function Gamma( const X_:TDoubleC ) :TDoubleC;
 var
    W, U, V, Y :TDoubleC;
-   T :Double;
 begin
      if X_.R < 0 then W := 1 - X_
                  else W :=     X_;
@@ -100,30 +85,17 @@ begin
      V := U * ( W + 0.999999999999975753 );
      Y := Y + U * 10.5400280458730808 + V;
 
-     U := V * W;  T := U.Abs2;
-     V := Y * U.Conj + T * 0.0327673720261526849;
+     V := Y / ( V * W ) + 0.0327673720261526849;
 
      Y := W + 7.31790632447016203;
      U := Ln( Y ) - 1;
 
      Y := U * ( W - 0.5 );
-     U := Exp( Y - 3.48064577727581257 ) / T;
+     U := Exp( Y - 3.48064577727581257 );
 
      Y := U * V;
 
-     if X_.R < 0 then
-     begin
-          W := X_ * Pi;  W.I := Exp( W.I );
-
-          V.I := 1 / W.I;
-
-          U.R := ( V.I + W.I ) * Sin( W.R );
-          U.I := ( V.I - W.I ) * Cos( W.R );
-
-          V := U * Y.Conj;
-
-          Y := Pi2 / V.Abs2 * V;
-     end;
+     if X_.R < 0 then Y := Pi / ( Sin( Pi * X_ ) * Y );
 
      Result := Y;
 end;
