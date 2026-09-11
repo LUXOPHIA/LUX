@@ -10,8 +10,6 @@
 //
 // 旧 INFTools / INFComplexTools の圧縮値を直接保持する方式に代わり、
 // 斉次成分を Single / Double で保持する。任意精度・厳密演算ではない。
-// ReC / ImC は数学上の 1/(x²+1) に対応する観測値を計算する。
-// W.Abs2 が 0 になった場合は、アンダーフローも含めて 0 を返す。
 // 不定形に与える値は実装上の方針であり、数学上の一意な値を定めるものではない。
 
 interface //#################################################################### ■
@@ -34,8 +32,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetIsInf :Boolean;
        function GetRe :Single;
        function GetIm :Single;
-       function GetReC :Single;
-       function GetImC :Single;
        function GetAbs2 :Single;
        function GetAbso :Single;
        ///// M E T H O D
@@ -55,8 +51,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property IsInf  :Boolean read GetIsInf ;
        property Re     :Single  read GetRe    ;   // Re( Z/W )。無限遠では +∞
        property Im     :Single  read GetIm    ;
-       property ReC    :Single  read GetReC   ;   // 1/(Re²+1) ∈ [0,1]。無限遠 = 0
-       property ImC    :Single  read GetImC   ;   // 1/(Im²+1) ∈ [0,1]。無限遠 = 0
        property Abs2   :Single  read GetAbs2  ;   // |z|²
        property Abso   :Single  read GetAbso  ;   // |z|
        ///// O P E R A T O R
@@ -89,8 +83,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        function GetIsInf :Boolean;
        function GetRe :Double;
        function GetIm :Double;
-       function GetReC :Double;
-       function GetImC :Double;
        function GetAbs2 :Double;
        function GetAbso :Double;
        ///// M E T H O D
@@ -110,8 +102,6 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        property IsInf  :Boolean read GetIsInf ;
        property Re     :Double  read GetRe    ;   // Re( Z/W )。無限遠では +∞
        property Im     :Double  read GetIm    ;
-       property ReC    :Double  read GetReC   ;   // 1/(Re²+1) ∈ [0,1]。無限遠 = 0
-       property ImC    :Double  read GetImC   ;   // 1/(Im²+1) ∈ [0,1]。無限遠 = 0
        property Abs2   :Double  read GetAbs2  ;   // |z|²
        property Abso   :Double  read GetAbso  ;   // |z|
        ///// O P E R A T O R
@@ -251,40 +241,6 @@ begin
 
      if System.Abs( B ) < D2 * 1E37 then Result := B / D2
                                     else Result := Sign( B ) * System.Math.Infinity;
-end;
-
-function TSingleCP1.GetReC :Single;
-var
-   A, D2, M, An, Dn :Single;
-begin
-     D2 := W.Abs2;
-     if D2 = 0 then Exit( 0 );                         // W = 0 または W.Abs2 のアンダーフロー → C = 0
-
-     A := Z.R * W.R + Z.I * W.I;                       // Re( Z・W~ ) = Re(z)・|W|²
-
-     M := System.Abs( A );  if D2 > M then M := D2;    // M ≧ 双方 かつ M > 0
-
-     An := A  / M;                                     // |An| ≦ 1
-     Dn := D2 / M;                                     //  Dn  ≦ 1、少なくとも一方は 1
-
-     Result := Sqr( Dn ) / ( Sqr( An ) + Sqr( Dn ) );  // = 1 / ( Re(z)² + 1 )
-end;
-
-function TSingleCP1.GetImC :Single;
-var
-   B, D2, M, Bn, Dn :Single;
-begin
-     D2 := W.Abs2;
-     if D2 = 0 then Exit( 0 );
-
-     B := Z.I * W.R - Z.R * W.I;                       // Im( Z・W~ ) = Im(z)・|W|²
-
-     M := System.Abs( B );  if D2 > M then M := D2;
-
-     Bn := B  / M;
-     Dn := D2 / M;
-
-     Result := Sqr( Dn ) / ( Sqr( Bn ) + Sqr( Dn ) );  // = 1 / ( Im(z)² + 1 )
 end;
 
 function TSingleCP1.GetAbs2 :Single;
@@ -511,40 +467,6 @@ begin
 
      if System.Abs( B ) < D2 * 1E307 then Result := B / D2
                                      else Result := Sign( B ) * System.Math.Infinity;
-end;
-
-function TDoubleCP1.GetReC :Double;
-var
-   A, D2, M, An, Dn :Double;
-begin
-     D2 := W.Abs2;
-     if D2 = 0 then Exit( 0 );                         // W = 0 または W.Abs2 のアンダーフロー → C = 0
-
-     A := Z.R * W.R + Z.I * W.I;                       // Re( Z・W~ ) = Re(z)・|W|²
-
-     M := System.Abs( A );  if D2 > M then M := D2;    // M ≧ 双方 かつ M > 0
-
-     An := A  / M;                                     // |An| ≦ 1
-     Dn := D2 / M;                                     //  Dn  ≦ 1、少なくとも一方は 1
-
-     Result := Sqr( Dn ) / ( Sqr( An ) + Sqr( Dn ) );  // = 1 / ( Re(z)² + 1 )
-end;
-
-function TDoubleCP1.GetImC :Double;
-var
-   B, D2, M, Bn, Dn :Double;
-begin
-     D2 := W.Abs2;
-     if D2 = 0 then Exit( 0 );
-
-     B := Z.I * W.R - Z.R * W.I;                       // Im( Z・W~ ) = Im(z)・|W|²
-
-     M := System.Abs( B );  if D2 > M then M := D2;
-
-     Bn := B  / M;
-     Dn := D2 / M;
-
-     Result := Sqr( Dn ) / ( Sqr( Bn ) + Sqr( Dn ) );  // = 1 / ( Im(z)² + 1 )
 end;
 
 function TDoubleCP1.GetAbs2 :Double;
