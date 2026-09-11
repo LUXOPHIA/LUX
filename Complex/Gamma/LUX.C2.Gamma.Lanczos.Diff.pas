@@ -204,31 +204,13 @@ end;
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Gamma*
 
 function GammaP( const X_:TdSingleC; const LCg_:Double; const LCs_:array of Double ) :TdSingleC; overload;  // 呼び出し時は Re(X) >= 0.5
-var
-   X1, B, A :TdSingleC;
-   I :Integer;
 begin
-     // Result := Exp( LnGammaP( X_, LCg_, LCs_ ) );
-	 
-     X1 := X_ - 1;
-     A := LCs_[ 0 ];
-     for I := 1 to High( LCs_ ) do A := A + LCs_[ I ] / ( X1 + I );
-     B := X1 + LCg_ + 0.5;
-     Result := A * Exp( Ln( B ) * ( X1 + 0.5 ) - B + Ln(Pi2)/2 );
+     Result := Exp( LnGammaP( X_, LCg_, LCs_ ) );
 end;
 
 function GammaP( const X_:TdDoubleC; const LCg_:Double; const LCs_:array of Double ) :TdDoubleC; overload;  // 呼び出し時は Re(X) >= 0.5
-var
-   X1, B, A :TdDoubleC;
-   I :Integer;
 begin
-     // Result := Exp( LnGammaP( X_, LCg_, LCs_ ) );
-	 
-     X1 := X_ - 1;
-     A := LCs_[ 0 ];
-     for I := 1 to High( LCs_ ) do A := A + LCs_[ I ] / ( X1 + I );
-     B := X1 + LCg_ + 0.5;
-     Result := A * Exp( Ln( B ) * ( X1 + 0.5 ) - B + Ln(Pi2)/2 );
+     Result := Exp( LnGammaP( X_, LCg_, LCs_ ) );
 end;
 
 //------------------------------------------------------------------------------
