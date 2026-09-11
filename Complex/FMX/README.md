@@ -53,6 +53,8 @@ begin
                     Result := Gamma( C_ );        // Γ(z), with derivative
                end;
      G.Area  := TDoubleAreaC.Create( -4, -4, +4, +4 );
+     G.DivX  := 255;
+     G.DivY  := 255;
      G.Scale := 2;
 end;
 ```
