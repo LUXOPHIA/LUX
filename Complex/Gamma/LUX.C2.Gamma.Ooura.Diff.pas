@@ -65,19 +65,7 @@ begin
 
      Y := U * V;
 
-     if X_.R < 0 then
-     begin
-          W := X_ * Pi;  W.I := Exp( W.I );
-
-          V.I := 1 / W.I;
-
-          U.R := ( V.I + W.I ) * Sin( W.R );
-          U.I := ( V.I - W.I ) * Cos( W.R );
-
-          V := U * Y.Conj;
-
-          Y := Pi2 / V.Abs2 * V;
-     end;
+     if X_.R < 0 then Y := Pi / ( Sin( Pi * X_ ) * Y );
 
      Result := Y;
 end;
@@ -113,19 +101,7 @@ begin
 
      Y := U * V;
 
-     if X_.R < 0 then
-     begin
-          W := X_ * Pi;  W.I := Exp( W.I );
-
-          V.I := 1 / W.I;
-
-          U.R := ( V.I + W.I ) * Sin( W.R );
-          U.I := ( V.I - W.I ) * Cos( W.R );
-
-          V := U * Y.Conj;
-
-          Y := Pi2 / V.Abs2 * V;
-     end;
+     if X_.R < 0 then Y := Pi / ( Sin( Pi * X_ ) * Y );
 
      Result := Y;
 end;
