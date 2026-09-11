@@ -76,7 +76,7 @@ A(z)=c_0+\sum_{k=1}^{N-1}\frac{c_k}{z-1+k},
 \qquad \Gamma(z)\approx\sqrt{2\pi}\,A(z)B^{z-1/2}e^{-B}.
 ```
 
-`Gamma*` computes `A * Exp(Ln(B) * (z - 1/2) - B + Ln(2*pi)/2)`. `LnGamma*` evaluates the logarithmic expression term by term. Each `N` selects a complete coefficient set and its matching `g`; increasing `N` does not by itself guarantee a smaller floating-point error [2].
+The internal `LnGammaP` evaluates the logarithmic expression term by term. `GammaP` returns `Exp(LnGammaP(...))`, sharing the coefficient sum and approximation formula with the log-gamma calculation. Each `N` selects a complete coefficient set and its matching `g`; increasing `N` does not by itself guarantee a smaller floating-point error [2].
 
 ### 3.2. Reflection
 
