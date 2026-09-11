@@ -10,6 +10,8 @@
 //
 // 旧 INFTools / INFComplexTools の圧縮値を直接保持する方式に代わり、
 // 斉次成分を Single / Double で保持する。任意精度・厳密演算ではない。
+// Re / Im は分母を二乗前に正規化して通常の成分値へ戻す。
+// 中間計算は Double で行い、返却型の範囲外だけ符号付き無限大とする。
 // 不定形に与える値は実装上の方針であり、数学上の一意な値を定めるものではない。
 
 interface //#################################################################### ■
@@ -219,28 +221,44 @@ end;
 
 function TSingleCP1.GetRe :Single;
 var
-   A, D2 :Single;
+   Scale, Wr, Wi, A, D :Double;
 begin
-     D2 := W.Abs2;
-     if D2 = 0 then Exit( System.Math.Infinity );
+     Scale := Max( Abs( W.R ), Abs( W.I ) );
+     if Scale = 0 then Exit( System.Math.Infinity );
 
-     A := Z.R * W.R + Z.I * W.I;                       // Re( Z・W~ )
+     ///// W を二乗する前に正規化する。求める成分は A / D。
+     Wr := W.R / Scale;
+     Wi := W.I / Scale;
+     A := Z.R * Wr + Z.I * Wi;
+     D := Scale * ( Sqr( Wr ) + Sqr( Wi ) );
 
-     if System.Abs( A ) < D2 * 1E37 then Result := A / D2
-                                    else Result := Sign( A ) * System.Math.Infinity;
+     ///// 返却型の範囲を超える場合だけ、符号付き無限大にする。
+     if D < 1 then
+     begin
+          if Abs( A ) > D * MaxSingle then Exit( Sign( A ) * System.Math.Infinity );
+     end;
+     Result := A / D;
 end;
 
 function TSingleCP1.GetIm :Single;
 var
-   B, D2 :Single;
+   Scale, Wr, Wi, A, D :Double;
 begin
-     D2 := W.Abs2;
-     if D2 = 0 then Exit( System.Math.Infinity );
+     Scale := Max( Abs( W.R ), Abs( W.I ) );
+     if Scale = 0 then Exit( System.Math.Infinity );
 
-     B := Z.I * W.R - Z.R * W.I;                       // Im( Z・W~ )
+     ///// W を二乗する前に正規化する。求める成分は A / D。
+     Wr := W.R / Scale;
+     Wi := W.I / Scale;
+     A := Z.I * Wr - Z.R * Wi;
+     D := Scale * ( Sqr( Wr ) + Sqr( Wi ) );
 
-     if System.Abs( B ) < D2 * 1E37 then Result := B / D2
-                                    else Result := Sign( B ) * System.Math.Infinity;
+     ///// 返却型の範囲を超える場合だけ、符号付き無限大にする。
+     if D < 1 then
+     begin
+          if Abs( A ) > D * MaxSingle then Exit( Sign( A ) * System.Math.Infinity );
+     end;
+     Result := A / D;
 end;
 
 function TSingleCP1.GetAbs2 :Single;
@@ -445,28 +463,44 @@ end;
 
 function TDoubleCP1.GetRe :Double;
 var
-   A, D2 :Double;
+   Scale, Wr, Wi, A, D :Double;
 begin
-     D2 := W.Abs2;
-     if D2 = 0 then Exit( System.Math.Infinity );
+     Scale := Max( Abs( W.R ), Abs( W.I ) );
+     if Scale = 0 then Exit( System.Math.Infinity );
 
-     A := Z.R * W.R + Z.I * W.I;                       // Re( Z・W~ )
+     ///// W を二乗する前に正規化する。求める成分は A / D。
+     Wr := W.R / Scale;
+     Wi := W.I / Scale;
+     A := Z.R * Wr + Z.I * Wi;
+     D := Scale * ( Sqr( Wr ) + Sqr( Wi ) );
 
-     if System.Abs( A ) < D2 * 1E307 then Result := A / D2
-                                     else Result := Sign( A ) * System.Math.Infinity;
+     ///// 返却型の範囲を超える場合だけ、符号付き無限大にする。
+     if D < 1 then
+     begin
+          if Abs( A ) > D * MaxDouble then Exit( Sign( A ) * System.Math.Infinity );
+     end;
+     Result := A / D;
 end;
 
 function TDoubleCP1.GetIm :Double;
 var
-   B, D2 :Double;
+   Scale, Wr, Wi, A, D :Double;
 begin
-     D2 := W.Abs2;
-     if D2 = 0 then Exit( System.Math.Infinity );
+     Scale := Max( Abs( W.R ), Abs( W.I ) );
+     if Scale = 0 then Exit( System.Math.Infinity );
 
-     B := Z.I * W.R - Z.R * W.I;                       // Im( Z・W~ )
+     ///// W を二乗する前に正規化する。求める成分は A / D。
+     Wr := W.R / Scale;
+     Wi := W.I / Scale;
+     A := Z.I * Wr - Z.R * Wi;
+     D := Scale * ( Sqr( Wr ) + Sqr( Wi ) );
 
-     if System.Abs( B ) < D2 * 1E307 then Result := B / D2
-                                     else Result := Sign( B ) * System.Math.Infinity;
+     ///// 返却型の範囲を超える場合だけ、符号付き無限大にする。
+     if D < 1 then
+     begin
+          if Abs( A ) > D * MaxDouble then Exit( Sign( A ) * System.Math.Infinity );
+     end;
+     Result := A / D;
 end;
 
 function TDoubleCP1.GetAbs2 :Double;
