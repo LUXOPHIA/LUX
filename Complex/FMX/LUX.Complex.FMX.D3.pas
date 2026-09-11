@@ -220,7 +220,7 @@ begin
 
                C := Func( C ).o;
 
-               C.Abso := C.Abso / ( _Scale + C.Abso );
+               C := C / ( _Scale + C.Abso );
 
                T2.X := 0.5 + C.R / 2;
                T2.Y := 0.5 + C.I / 2;
