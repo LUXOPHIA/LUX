@@ -34,7 +34,7 @@ A texture assigned to `Material` therefore acts as a colour map of the function 
   ┗・Material :TLightMaterialSource ･･･ lit material; texture = colour map
 ```
 
-Setting any property marks the geometry (and, for `DivX` / `DivY`, the topology) dirty and repaints. When `Func` is `nil` the mesh is emptied.
+Setting `Func`, `Area`, `DivX`, `DivY`, or `Scale` marks the geometry dirty and requests a repaint. Changing `DivX` or `DivY`, or switching `Func` between `nil` and an assigned function, also marks the topology dirty. On the next geometry and topology update, a `nil` function empties both buffers; assigning a function restores the mesh.
 
 ## 4. Usage
 

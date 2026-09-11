@@ -34,7 +34,7 @@ w' = \frac{w}{s + |w|}, \qquad t = \left( \frac{1 + \operatorname{Re} w'}{2},\ \
   ┗・Material :TLightMaterialSource ･･･ 照明マテリアル。テクスチャ＝色地図
 ```
 
-いずれかのプロパティを設定すると形状（`DivX` / `DivY` の場合は位相も）が無効化され再描画される。`Func` が `nil` のときメッシュは空になる。
+`Func`、`Area`、`DivX`、`DivY`、`Scale` を設定すると形状の更新と再描画が要求される。`DivX`・`DivY` の変更時と、`Func` が `nil` と関数の間で切り替わるときは、三角形の接続情報も更新対象になる。次回の更新時に、`Func` が `nil` なら頂点・インデックスの両バッファが空になり、関数を設定すればメッシュが復帰する。
 
 ## 4. 使い方
 

@@ -92,6 +92,8 @@ end;
 
 procedure TComplex3D.SetFunc( const Func_:TdDoubleCFunc );
 begin
+     if Assigned( _Func ) <> Assigned( Func_ ) then upTopology := True;
+
      _Func := Func_;
 
      upGeometry := True;
