@@ -244,7 +244,7 @@ end;
 class operator TdSingle.Divide( const A_,B_:TdSingle ) :TdSingle;
 begin
      Result.o := A_.o / B_.o;
-     Result.d := ( A_.d * B_.o - A_.o * B_.d ) / Pow2( B_.o );
+     Result.d := ( A_.d - Result.o * B_.d ) / B_.o;
 end;
 
 //------------------------------------------------------------------------------
@@ -408,7 +408,7 @@ end;
 class operator TdDouble.Divide( const A_,B_:TdDouble ) :TdDouble;
 begin
      Result.o := A_.o / B_.o;
-     Result.d := ( A_.d * B_.o - A_.o * B_.d ) / Pow2( B_.o );
+     Result.d := ( A_.d - Result.o * B_.d ) / B_.o;
 end;
 
 //------------------------------------------------------------------------------
