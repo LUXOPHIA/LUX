@@ -35,7 +35,6 @@ implementation //###############################################################
 function Gamma( const X_:TSingleC ) :TSingleC;
 var
    W, U, V, Y :TSingleC;
-   T :Single;
 begin
      if X_.R < 0 then W := 1 - X_
                  else W :=     X_;
@@ -52,14 +51,13 @@ begin
      V := U * ( W + 0.999999999999975753 );
      Y := Y + U * 10.5400280458730808 + V;
 
-     U := V * W;  T := U.Abs2;
-     V := Y * U.Conj + T * 0.0327673720261526849;
+     V := Y / ( V * W ) + 0.0327673720261526849;
 
      Y := W + 7.31790632447016203;
      U := Ln( Y ) - 1;
 
      Y := U * ( W - 0.5 );
-     U := Exp( Y - 3.48064577727581257 ) / T;
+     U := Exp( Y - 3.48064577727581257 );
 
      Y := U * V;
 
@@ -71,7 +69,6 @@ end;
 function Gamma( const X_:TDoubleC ) :TDoubleC;
 var
    W, U, V, Y :TDoubleC;
-   T :Double;
 begin
      if X_.R < 0 then W := 1 - X_
                  else W :=     X_;
@@ -88,14 +85,13 @@ begin
      V := U * ( W + 0.999999999999975753 );
      Y := Y + U * 10.5400280458730808 + V;
 
-     U := V * W;  T := U.Abs2;
-     V := Y * U.Conj + T * 0.0327673720261526849;
+     V := Y / ( V * W ) + 0.0327673720261526849;
 
      Y := W + 7.31790632447016203;
      U := Ln( Y ) - 1;
 
      Y := U * ( W - 0.5 );
-     U := Exp( Y - 3.48064577727581257 ) / T;
+     U := Exp( Y - 3.48064577727581257 );
 
      Y := U * V;
 
