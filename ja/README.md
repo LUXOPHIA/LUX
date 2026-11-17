@@ -1,7 +1,7 @@
 # LUX
 [English](../README.md) | [日本語](README.md)
 
-LUX は LUXOPHIA コレクションの基盤ライブラリである。スカラ・ベクトル・行列・四元数・複素数・色といった値型の数値型を、それぞれの前進型自動微分の対型とともに提供し、併せて汎用のコンテナ・メッシュ・画像のデータ構造を備える。すべてのユニットは `LUX` という単一の名前空間に属し、明確に分離されたごく一部の描画系ユニットを除いて、Delphi の RTL 以外には一切依存しない。
+LUX は LUXOPHIA コレクションの基盤ライブラリである。スカラ・ベクトル・行列・四元数・複素数・色といった値型の数値型を、それぞれの前進型自動微分の対型とともに提供し、併せて汎用のコンテナ・メッシュ・画像のデータ構造を備える。すべてのユニットは `LUX` という単一の名前空間に属し、明確に分離されたごく一部の描画系ユニットを除いて、Delphi の RTL 以外には一切依存しない。加えて、Windows のデスクトップアプリがその用途によらず必要とする部品、すなわち FireMonkey のウィンドウの振る舞い・スタイル・再描画と、Windows での起動・常駐・インストールの部品を備える。
 
 ## 利用ライブラリ
 
@@ -11,7 +11,7 @@ LUX は LUXOPHIA コレクションの基盤ライブラリである。スカラ
 
 ### 1.1 対象範囲
 
-本ライブラリは先頭が常に `LUX` である平坦な名前空間として構成される。主たる関心事は次の4つである。
+本ライブラリは先頭が常に `LUX` である平坦な名前空間として構成される。主たる関心事は次の5つである。
 
 | 関心事 | 代表的なユニット | 代表的な型 |
 |---|---|---|
@@ -19,6 +19,7 @@ LUX は LUXOPHIA コレクションの基盤ライブラリである。スカラ
 | 数値計算 | `LUX.D*.Diff` ・ `LUX.D1.Half` ・ `LUX.Complex` ・ `LUX.D1.Gamma.*` ・ `LUX.D1.Legendre` | `TdSingle` ・ `THalf` ・ `TSingleC` |
 | 色と曲線 | `LUX.Color` ・ `LUX.Color.Half` ・ `LUX.Color.Space` ・ `LUX.Curve.*` | `TSingleRGBA` ・ `THalfRGBA` ・ `TLuxColorSpace` ・ `TSingleWector<T>` |
 | データ構造 | `LUX.Data.List` ・ `LUX.Data.Tree` ・ `LUX.Data.Grid.*` ・ `LUX.Data.Model.*` ・ `LUX.Data.Image` | `TTreeNode` ・ `TTriaGrid<T>` ・ `TLuxImage` |
+| アプリの部品 | `LUX.FMX.*` ・ `LUX.Windows.*` ・ `LUX.Thread.Inbox` ・ `LUX.Process.Deadline` | `TMainWindow` ・ `TFmxStyle` ・ `TWinSingle` ・ `IInbox<T>` |
 
 数値型は演算子・コンストラクタ・プロパティ・暗黙変換を備えた Delphi の `record` である。したがってスタックに置かれ、値としてコピーされ、寿命管理を必要としない。コンテナ型はクラスであり、集合の層はジェネリックなので、相互参照プロパティには基底型ではなく利用側の派生クラスがそのまま現れる。
 
@@ -72,7 +73,11 @@ LUX は LUXOPHIA コレクションの基盤ライブラリである。スカラ
     * [**LUX.Data.Model.TriFlip**](../Data/Model/TriFlip/ja/README.md) ：2次元三角形メッシュ — 貼り合わせ・頂点環・対角線交換・`*.lxtf`
     * [**LUX.Data.Model.TetraFlip**](../Data/Model/TetraFlip/ja/README.md) ：3次元四面体メッシュ — 回転コードによる面の貼り合わせ・`*.lxtc`
   * [**LUX.Data.Tree**](../Data/Tree/ja/README.md) ：リスト上の汎用木構造 — TTreeRoot / TTreeKnot / TTreeLeaf と一括更新
+* [**LUX.FMX**](../FMX/ja/README.md) ：Windows の FireMonkey — メインウィンドウの振る舞い・表面の下塗り・明暗のスタイル・即時の再描画・滑らかさの測定
+* [**LUX.Process**](../Process/ja/README.md) ：プロセス全体に関わる部品 — プロセスの終了の期限
 * [**LUX.Quaternion**](../Quaternion/ja/README.md) ：四元数 TSingleQ / TDoubleQ — 回転・行列との相互変換・exp / ln / pow
+* [**LUX.Thread**](../Thread/ja/README.md) ：スレッド間の受け渡し — 参照カウントされる、メインスレッドへの受け口
+* [**LUX.Windows**](../Windows/ja/README.md) ：Windows のデスクトップの部品 — 単一インスタンス・通知領域・サインイン時の起動・インストーラー・モニターの周期・マシンの負荷
 
 ## 3. 数学的背景
 
@@ -123,6 +128,11 @@ LUX は LUXOPHIA コレクションの基盤ライブラリである。スカラ
   ┃  ┣・Grid/           ･･･ 規則的な1次元グリッドと三角形の2次元グリッド
   ┃  ┣・Model/          ･･･ コーナーテーブルメッシュ：TriFlip 2D・TetraFlip 3D
   ┃  ┗・Image/          ･･･ 超高解像度画像 — 独自の README を持つ
+  ┣・FMX/                ･･･ LUX.FMX.*.pas と明・暗のスタイルファイル
+  ┣・Windows/            ･･･ LUX.Windows.*.pas — Windows のデスクトップの部品
+  ┣・Thread/             ･･･ LUX.Thread.Inbox.pas
+  ┣・Process/            ･･･ LUX.Process.Deadline.pas
+  ┣・_TEST/              ･･･ DUnitX の試験（LUX.Tests.dpr）。test.bat で走らせる
   ┗・--------/2022/      ･･･ 凍結された旧い木。現在の名前空間には属さない
 ```
 

@@ -1,7 +1,7 @@
 # LUX
 [English](README.md) | [日本語](ja/README.md)
 
-LUX is the base library of the LUXOPHIA collection. It supplies value-semantics numeric types — scalars, vectors, matrices, quaternions, complex numbers and colours — each with a forward-mode automatic-differentiation twin, together with generic container, mesh and image data structures. Every unit lives in the single `LUX` namespace and, apart from a few clearly separated presentation units, depends on nothing beyond the Delphi RTL.
+LUX is the base library of the LUXOPHIA collection. It supplies value-semantics numeric types — scalars, vectors, matrices, quaternions, complex numbers and colours — each with a forward-mode automatic-differentiation twin, together with generic container, mesh and image data structures. Every unit lives in the single `LUX` namespace and, apart from a few clearly separated presentation units, depends on nothing beyond the Delphi RTL. It also carries the application parts that a Windows desktop program needs whatever it does: window behaviour, style and repainting for FireMonkey, and start-up, residence and installation on Windows.
 
 ## 利用ライブラリ
 
@@ -11,7 +11,7 @@ LUX is the base library of the LUXOPHIA collection. It supplies value-semantics 
 
 ### 1.1 Scope
 
-The library is organised as a flat namespace whose leading segment is always `LUX`. Four concerns dominate it:
+The library is organised as a flat namespace whose leading segment is always `LUX`. Five concerns dominate it:
 
 | Concern | Representative units | Representative types |
 |---|---|---|
@@ -19,6 +19,7 @@ The library is organised as a flat namespace whose leading segment is always `LU
 | Numerics | `LUX.D*.Diff`, `LUX.D1.Half`, `LUX.Complex`, `LUX.D1.Gamma.*`, `LUX.D1.Legendre` | `TdSingle`, `THalf`, `TSingleC` |
 | Colour and curves | `LUX.Color`, `LUX.Color.Half`, `LUX.Color.Space`, `LUX.Curve.*` | `TSingleRGBA`, `THalfRGBA`, `TLuxColorSpace`, `TSingleWector<T>` |
 | Data structures | `LUX.Data.List`, `LUX.Data.Tree`, `LUX.Data.Grid.*`, `LUX.Data.Model.*`, `LUX.Data.Image` | `TTreeNode`, `TTriaGrid<T>`, `TLuxImage` |
+| Application parts | `LUX.FMX.*`, `LUX.Windows.*`, `LUX.Thread.Inbox`, `LUX.Process.Deadline` | `TMainWindow`, `TFmxStyle`, `TWinSingle`, `IInbox<T>` |
 
 Numeric types are Delphi `record`s with overloaded operators, constructors, properties and implicit casts, so they are stack-allocated, copied by value and need no lifetime management. Container types are classes, and the collection layers are generic so that a client's own derived classes appear in the cross-reference properties rather than the base types.
 
@@ -72,7 +73,11 @@ Each domain folder carries its own pair of READMEs ( `README.md` / `ja/README.md
     * [**LUX.Data.Model.TriFlip**](Data/Model/TriFlip/README.md) ：2-D triangle meshes — welding, vertex rings, edge flips, `*.lxtf`
     * [**LUX.Data.Model.TetraFlip**](Data/Model/TetraFlip/README.md) ：3-D tetrahedral meshes — gluing by rotation codes, `*.lxtc`
   * [**LUX.Data.Tree**](Data/Tree/README.md) ：generic tree over the list — TTreeRoot / TTreeKnot / TTreeLeaf, batching
+* [**LUX.FMX**](FMX/README.md) ：FireMonkey on Windows — main window behaviour, surface priming, light / dark style, prompt repainting, smoothness probe
+* [**LUX.Process**](Process/README.md) ：process-wide parts — a deadline on the termination of the process
 * [**LUX.Quaternion**](Quaternion/README.md) ：quaternions TSingleQ / TDoubleQ — rotation, matrix casts, exp / ln / pow
+* [**LUX.Thread**](Thread/README.md) ：passing work between threads — a reference-counted inbox to the main thread
+* [**LUX.Windows**](Windows/README.md) ：Windows desktop parts — single instance, notification area, start at sign-in, installer, monitor period, machine load
 
 ## 3. Mathematical Background
 
@@ -123,6 +128,11 @@ Implicit casts from `Integer`, `Int64` and `Single` seed `d` with zero, so a lit
   ┃  ┣・Grid/           ･･･ regular 1-D grids and a triangular 2-D grid
   ┃  ┣・Model/          ･･･ corner-table meshes: TriFlip 2-D, TetraFlip 3-D
   ┃  ┗・Image/          ･･･ ultra-high-resolution images — see its own README
+  ┣・FMX/                ･･･ LUX.FMX.*.pas and the light / dark style files
+  ┣・Windows/            ･･･ LUX.Windows.*.pas — Windows desktop parts
+  ┣・Thread/             ･･･ LUX.Thread.Inbox.pas
+  ┣・Process/            ･･･ LUX.Process.Deadline.pas
+  ┣・_TEST/              ･･･ DUnitX tests ( LUX.Tests.dpr ), run by test.bat
   ┗・--------/2022/      ･･･ frozen earlier tree, outside the current namespace
 ```
 
