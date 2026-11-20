@@ -18,7 +18,7 @@ The library is organised as a flat namespace whose leading segment is always `LU
 | Linear algebra | `LUX.D1` … `LUX.D4`, `LUX.D2x2`, `LUX.D3x3`, `LUX.D4x4`, `LUX.Quaternion` | `TSingle3D`, `TSingleM4`, `TSingleQ` |
 | Numerics | `LUX.D*.Diff`, `LUX.D1.Half`, `LUX.Complex`, `LUX.D1.Gamma.*`, `LUX.D1.Legendre` | `TdSingle`, `THalf`, `TSingleC` |
 | Colour and curves | `LUX.Color`, `LUX.Color.Half`, `LUX.Color.Space`, `LUX.Curve.*` | `TSingleRGBA`, `THalfRGBA`, `TLuxColorSpace`, `TSingleWector<T>` |
-| Data structures | `LUX.Data.List`, `LUX.Data.Tree`, `LUX.Data.Grid.*`, `LUX.Data.Model.*`, `LUX.Data.Image` | `TTreeNode`, `TTriaGrid<T>`, `TLuxImage` |
+| Data structures | `LUX.Data.List`, `LUX.Data.Tree`, `LUX.Data.Grid.*`, `LUX.Data.Model.*`, `LUX.Data.Image`, `LUX.Data.Codec.Image` | `TTreeNode`, `TTriaGrid<T>`, `TLuxImage`, `TImageCodec` |
 | Application parts | `LUX.FMX.*`, `LUX.Windows.*`, `LUX.Thread.Inbox`, `LUX.Process.Deadline` | `TMainWindow`, `TFmxStyle`, `TWinSingle`, `IInbox<T>` |
 
 Numeric types are Delphi `record`s with overloaded operators, constructors, properties and implicit casts, so they are stack-allocated, copied by value and need no lifetime management. Container types are classes, and the collection layers are generic so that a client's own derived classes appear in the cross-reference properties rather than the base types.
@@ -66,6 +66,7 @@ Each domain folder carries its own pair of READMEs ( `README.md` / `ja/README.md
   * [**LUX.D1.Half**](D1/Half/README.md) ：IEEE 754 binary16 as the value record THalf, plus its dual twin TdHalf
   * [**LUX.D1.Legendre**](D1/Legendre/README.md) ：orthonormal Legendre polynomials and derivatives via a stable recurrence
 * [**LUX.Data**](Data/README.md) ：data structures — generic containers, meshes and images, plus stream helpers
+  * [**LUX.Data.Codec.Image**](Data/Codec/Image/README.md) ：image codecs — PNG, JPEG and Radiance HDR, independent of the container
   * [**LUX.Data.Grid**](Data/Grid/README.md) ：regular 1-D point grids and a triangular 2-D grid in barycentric indices
   * [**LUX.Data.Image**](Data/Image/README.md) ：tiled ultra-high-resolution images with mip pyramids and async file I/O
   * [**LUX.Data.List**](Data/List/README.md) ：intrusive doubly linked list with an incremental index, core + typed layers

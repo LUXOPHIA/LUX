@@ -5,6 +5,7 @@
 
 ## 1. 概要
 
+* [**Codec.Image**](../Codec/Image/ja/README.md) ：画像のコーデック — PNG ・ JPEG ・ Radiance HDR（入れ物を知らない）
 * [**Grid**](../Grid/ja/README.md) ：1次元の点グリッドと三角形の2次元グリッド
 * [**Image**](../Image/ja/README.md) ：タイル＋縮小ピラミッドの超高解像度画像、リアルタイムビューア、並列ブロックスケジューラ
 * [**List**](../List/ja/README.md) ：逐次インデックス付きの侵入型双方向リスト（核＋型付け層）
@@ -30,8 +31,9 @@ magic 行     ･･･ 形式を識別する。UTF-8・LF 終端
 ```
 ・Data/
   ┣・LUX.Data.pas ･･･ WriteLine / ReadLine / WriteHead / ReadHead
+  ┣・Codec/Image/ ･･･ LUX.Data.Codec.Image ( + .Png  .Jpg  .Hdr )
   ┣・Grid/        ･･･ LUX.Data.Grid.D1  LUX.Data.Grid.Tria.D2
-  ┣・Image/       ･･･ LUX.Data.Image ( + .Files[.Png .Jpg]  .Worker  .Viewer )
+  ┣・Image/       ･･･ LUX.Data.Image ( + .Codec  .Worker  .Viewer )
   ┣・List/        ･･･ LUX.Data.List.core  LUX.Data.List
   ┣・Model/       ･･･ LUX.Data.Model.*  ( TriFlip/  TetraFlip/ )
   ┗・Tree/        ･･･ LUX.Data.Tree

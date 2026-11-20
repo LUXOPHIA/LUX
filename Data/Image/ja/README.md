@@ -17,7 +17,7 @@ FireMonkey の `TBitmap` は GPU とデータを共有するため GPU のテク
 - **`TLuxImageWorker`**。任意のブロック処理を画像全体にわたって全コアで実行するスケジューラ。ブロックを 1 個ずつ配るので、レイトレーシングやフラクタルのように画素ごとの計算量が桁で違っても均される。
 - **リアルタイムビューア**。滑らかなホイールズームとドラッグスクロール、GPU によるトーンマッピングとガンマ補正。描画途中の画像をブロック単位で映し出す。
 - **色管理。** 画像は `ColorSpace` ── sRGB ・ Display P3 ・ Adobe RGB ・ Rec.2020 ・ ProPhoto ・ ACEScg とそれらの線形版、あるいは自作の空間 ── を持てる。保存時に PNG（`sRGB` / `iCCP` ＋ `gAMA` ＋ `cHRM`）と JPEG（APP2 `ICC_PROFILE`）へ埋め込まれ、読み込み時に復元され、ビューアはモニター自身のプロファイルへ GPU で変換して表示する。`nil` なら色管理なし。画素値はどの段階でも変えない。
-- **形式ごとのクラス。** 各ファイル形式は `TLuxImageFiler` から派生したクラスで、その形式固有の設定をプロパティとして持つ（PNG は α の有無と圧縮率、JPEG は品質）。したがって共通のメソッド署名に、別の形式にしか意味のない引数が混ざることがない。形式を増やすのは、自己登録する 1 ユニットを足すだけである。
+- **ファイル形式はコーデックで。** ファイルの読み書きは、[LUX.Data.Codec.Image](../../Codec/Image/ja/README.md) のコーデック（PNG ・ JPEG ・ Radiance HDR）が行い、それぞれが固有の設定をプロパティとして持つ。`TLuxImage` はファイル形式を一切知らず、橋である `LUX.Data.Image.Codec` が両者をつなぐ。ゆえに、向こうに足した形式は、こちらで直ちに使える。
 - **非同期のファイル入出力**。進捗の通知と完了イベントを備える。
 - 依存は RTL ・ FireMonkey ・ Skia のみ。いずれも RAD Studio に標準搭載。
 
@@ -133,16 +133,9 @@ C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + 
   ┣・TLuxTile                        ･･･ ( Data, Stamp, Dirty )
   ┣・TLuxLevel                       ･･･ ( Width, Height, Tiles* )
   ┣・TLuxImage                       ･･･ ( see the class hierarchy below )
-  ┣・LUX.Data.Image.Files            ･･･ RTL only
-  ┃  ┣・TLuxImageFiler               ･･･ abstract: Extensions / Caption / DoLoad / DoSave
-  ┃  ┃  ┣・LoadFromFile / SaveToFile          ( + …Async )
-  ┃  ┃  ┣・Regist / ClassFor / CreateFor      ･･･ the registry of formats
-  ┃  ┃  ┗・DialogFilter / ImageSize / Clone
-  ┃  ┣・LUX.Data.Image.Files.Png     ･･･ System.ZLib only
-  ┃  ┃  ┣・TLuxPngLevel              ･･･ ( plNone, plFastest, plDefault, plMax )
-  ┃  ┃  ┗・TLuxImageFilerPng         ･･･ Alpha, Level
-  ┃  ┗・LUX.Data.Image.Files.Jpg     ･･･ [ Skia ]
-  ┃     ┗・TLuxImageFilerJpg         ･･･ Quality
+  ┣・LUX.Data.Image.Codec            ･･･ bridge to LUX.Data.Codec.Image
+  ┃  ┣・TLuxImageRaster              ･･･ a TLuxImage seen as a TImageRaster
+  ┃  ┗・TLuxImageFiler               ･･･ load / save ( + …Async ), progress, pyramid
   ┣・LUX.Data.Image.Worker           ･･･ RTL only
   ┃  ┣・TLuxBlockProc                ･･･ procedure( ThreadI_, X_,Y_,W_,H_ )
   ┃  ┗・TLuxImageWorker              ･･･ block scheduler on N threads
@@ -187,25 +180,24 @@ C' = \operatorname{clamp}\!\left( \frac{C \left( 1 + C / L_w^{\,2} \right)}{1 + 
   ┃  ┣・LUX.Color.Half              ･･･ THalfRGB  THalfRGBA
   ┃  ┗・LUX.Color.Space             ･･･ TLuxColorSpace, presets, TLuxColorSpaces, ICC read / write
   ┣・LUX.D2  LUX.D3  LUX.D3x3        ･･･ chromaticities, XYZ, 3 × 3 matrices
+  ┣・LUX.Data.Codec.Image            ･･･ TImageCodec, TImageRaster, PNG / JPEG / HDR
   ┗・LUX.D1.Half                     ･･･ THalf, the half-precision scalar
      ┗・LUX.D1.Half.DIff             ･･･ TdHalf, automatic differentiation
 ```
 
-Skia に触れるのは JPEG のファイラとビューアだけ、FireMonkey に触れるのはビューアだけである。PNG しか読み書きしないプログラムはどちらもリンクしない。`TLuxImage` 自身はファイル入出力を一切持たず、ファイル形式というものを知らない。
+Skia に触れるのは JPEG のコーデックとビューアだけ、FireMonkey に触れるのはビューアだけである。PNG しか読み書きしないプログラムはどちらもリンクしない。`TLuxImage` 自身はファイル入出力を一切持たず、ファイル形式というものを知らない。
 
 ### 3.2 ファイル構成
 
 ```
 ・Data/Image/
   ┣・LUX.Data.Image.pas            ･･･ TLuxImage と 4 つの具象クラス
-  ┣・LUX.Data.Image.Files.pas      ･･･ TLuxImageFiler、形式の基底クラスと登録
-  ┣・LUX.Data.Image.Files.Png.pas  ･･･ TLuxImageFilerPng（ System.ZLib ）
-  ┣・LUX.Data.Image.Files.Jpg.pas  ･･･ TLuxImageFilerJpg（ Skia ）
+  ┣・LUX.Data.Image.Codec.pas      ･･･ TLuxImageRaster ・ TLuxImageFiler（橋）
   ┣・LUX.Data.Image.Worker.pas     ･･･ TLuxImageWorker、並列ブロックスケジューラ
   ┗・LUX.Data.Image.Viewer.pas     ･･･ TLuxImageViewer（TFrame 継承）
 ```
 
-形式を増やすのは 1 ユニットを足すだけである。`TLuxImageFiler` から派生して `Extensions` ・ `Caption` ・ `DoLoad` ・ `DoSave` を実装し、その形式が持つ設定をプロパティとして公開し、ユニットの `initialization` で `Regist` する。基底クラスにも `TLuxImage` にも変更は要らず、その形式は直ちに拡張子による選択と `DialogFilter` に加わる。
+ファイル形式は、このフォルダーには無い。[LUX.Data.Codec.Image](../../Codec/Image/ja/README.md) のコーデックであり、橋は、その基底クラスだけに対して書いてある。ゆえに、向こうに形式を足しても、こちらに変更は要らない。
 
 ## 4. 使い方
 
@@ -234,7 +226,8 @@ begin
 ### 4.2 読み込みと表示
 
 ```pascal
-uses LUX.Data.Image, LUX.Data.Image.Files, LUX.Data.Image.Files.Png, LUX.Data.Image.Files.Jpg;
+uses LUX.Data.Image, LUX.Data.Image.Codec,
+     LUX.Data.Codec.Image, LUX.Data.Codec.Image.Png, LUX.Data.Codec.Image.Jpg, LUX.Data.Codec.Image.Hdr;
 
 Image  := TLuxImageUInt08.Create;
 
@@ -245,12 +238,7 @@ Viewer.Image  := Image;
 
 Image.OnLoaded.Add( ImageLoaded );
 
-Filer := TLuxImageFiler.CreateFor( 'huge.jpg' );   // 拡張子が TLuxImageFilerJpg を選ぶ
-try
-   Filer.LoadFromFileAsync( Image, 'huge.jpg' );    // 設定は複製されるので、すぐ解放してよい
-finally
-   Filer.Free;
-end;
+TLuxImageFiler.LoadFromFileAsync( Image, 'huge.jpg' );   // 形式は、ファイルの中身から見分けられる
 ```
 
 ```pascal
@@ -286,7 +274,7 @@ Worker.Start( procedure( const ThreadI_,X_,Y_,W_,H_:Integer )
                    begin
                         for I := 0 to W_-1 do Row[ I ] := Shade( X_+I, J );  // 任意の計算
 
-                        Image.SetRow( 0, X_, J, W_, @Row[ 0 ] );
+                        Image.SetRow( 0, X_, J, 1, W_, @Row[ 0 ] );
                    end;
               end );
 ```
@@ -300,20 +288,16 @@ Worker.Start( procedure( const ThreadI_,X_,Y_,W_,H_:Integer )
 ```pascal
 Image.ColorSpace := TLuxColorSpaces.LinearRec2020;   // 「この画素は線形 Rec.2020 である」── 画素値そのものは触らない
 
-Png := TLuxImageFilerPng.Create;
+Png := TImageCodecPng.Create;
 try
-   Png.SaveToFile( Image, 'render.png' );             // iCCP ＋ cHRM ＋ gAMA が書かれる
+   TLuxImageFiler.SaveToFile( Image, 'render.png', Png );    // iCCP ＋ cHRM ＋ gAMA が書かれる
 finally
    Png.Free;
 end;
 
-Jpg := TLuxImageFilerJpg.Create;
-try
-   Jpg.Quality := 95;
-   Jpg.LoadFromFile( Image, 'photo.jpg' );            // Adobe RGB のプロファイル入り → Image.ColorSpace = TLuxColorSpaces.AdobeRGB
-finally                                               // 未知のプロファイル → 新しい TLuxColorSpace（ TLuxColorSpaces に登録される ）
-   Jpg.Free;                                          // プロファイル無し → nil
-end;
+TLuxImageFiler.LoadFromFile( Image, 'photo.jpg' );        // Adobe RGB のプロファイル入り → Image.ColorSpace = TLuxColorSpaces.AdobeRGB
+                                                          // 未知のプロファイル → 新しい TLuxColorSpace（TLuxColorSpaces が保持）
+                                                          // プロファイル無し → nil
 
 Viewer.ColorSpace := nil;                             // 既定：モニター自身のプロファイルへ変換
 Viewer.ColorSpace := TLuxColorSpaces.sRGB;            // または sRGB に固定
@@ -355,8 +339,8 @@ class function DefaultGamma :Single;
 
 ///// 画素アクセス（書式非依存）
 property Colors[ const X_,Y_:Integer ] :TSingleRGBA; default;
-procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );
-procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );
+procedure GetRow( const L_,X_,Y_,DX_,N_:Integer; const Dst_:PSingleRGBA );  // X_ から DX_ 画素おきに N_ 個
+procedure SetRow( const L_,X_,Y_,DX_,N_:Integer; const Src_:PSingleRGBA );
 
 ///// 画素アクセス（型付き。各具象クラスが宣言）
 property Pixels[ const X_,Y_:Integer ] :TByteRGBA;    // TLuxImageUInt08
@@ -385,7 +369,7 @@ procedure Notify;                                // OnChange をメインスレ�
 procedure Changed;                               // 全体が変わった：全タイル Dirty、Version++、Notify
 procedure UpdateLevels;                          // Dirty なタイルを段 1 以上へ反映する（呼び出しは直列化される）
 
-///// 入出力（ TLuxImageFiler が駆動する。TLuxImage はファイル形式を一切知らない ）
+///// 入出力（ LUX.Data.Image.Codec の TLuxImageFiler が駆動する。TLuxImage はファイル形式を一切知らない ）
 procedure RunAsync( const Work_:TProc; const Saving_:Boolean );  // 別スレッドで走らせ、Busy と OnLoaded / OnSaved を面倒みる
 procedure BeginProgress;
 procedure ProgRange( const A_,B_:Single );
@@ -438,85 +422,54 @@ property OnFinished :TDelegates;  // メインスレッド。完了でも中止�
 
 手続きが例外を送出すると実行は中止され、`OnFinished` の後にメインスレッドで再送出される。デストラクタは中止して待つので、実行中のワーカーを破棄してもよい。
 
-### 6.3 TLuxImageFiler
+### 6.3 TLuxImageRaster と TLuxImageFiler
+
+`LUX.Data.Image.Codec` は、`TLuxImage` と、[LUX.Data.Codec.Image](../../Codec/Image/ja/README.md) のコーデックをつなぐ橋である。
 
 ```pascal
-///// 形式ごとに実装する
-class function Extensions :TArray<String>;   // ( '.png' )。先頭が既定の拡張子
-class function Caption :String;              // 'PNG'
-procedure DoLoad( const Image_:TLuxImage; const Stream_:TStream );   // protected
-procedure DoSave( const Image_:TLuxImage; const Stream_:TStream );   // protected
+///// TLuxImageRaster = class( TImageRaster )：画像の段 0 を、コーデックが読み書きするラスターとして見せる
+constructor Create( const Image_:TLuxImage );    // 画像は所有しない
+property Image :TLuxImage;
+property Header :TImageHeader;                   // 読む：大きさ・ColorSpace と、クラスの標本の精度
+                                                 // 書く：SetSize と ColorSpace（画素形式は変わらない）
+procedure GetLine( const X_,Y_,DX_,DY_,N_:Integer; const Pixels_:PSingleRGBA );
+procedure SetLine( const X_,Y_,DX_,DY_,N_:Integer; const Pixels_:PSingleRGBA );
 
-///// 登録（基底クラス）
-class procedure Regist( const Filer_:TLuxImageFilerClass );          // ユニットの initialization から
-class function Filers :TArray<TLuxImageFilerClass>;
-class function ClassFor( const FileName_:String ) :TLuxImageFilerClass;
-class function CreateFor( const FileName_:String ) :TLuxImageFiler;  // 未対応の拡張子なら nil
-class function DialogFilter( const All_:Boolean = True ) :String;
-class function Handles( const FileName_:String ) :Boolean;
-
-///// 読み書き
-procedure LoadFromStream / SaveToStream ( const Image_:TLuxImage; const Stream_:TStream );
-procedure LoadFromFile   / SaveToFile   ( const Image_:TLuxImage; const FileName_:String );
-procedure LoadFromFileAsync / SaveToFileAsync( const Image_:TLuxImage; const FileName_:String );
-function  ImageSize( const FileName_:String; out Width_,Height_:Integer ) :Boolean;
-
-///// 設定
-function  Clone :TLuxImageFiler;
-procedure Assign( const Filer_:TLuxImageFiler );   // 形式ごとに上書きする
+///// TLuxImageFiler：コーデックを、画像に対して走らせる
+class function CodecOf( const FileName_:String ) :TImageCodecClass;   // ファイルの中身の形式。どれでもなければ nil
+class procedure LoadFromStream( const Image_:TLuxImage; const Stream_:TStream );
+class procedure LoadFromFile( const Image_:TLuxImage; const FileName_:String );
+class procedure LoadFromFileAsync( const Image_:TLuxImage; const FileName_:String );
+class procedure SaveToStream( const Image_:TLuxImage; const Stream_:TStream; const Codec_:TImageCodec );
+class procedure SaveToFile( const Image_:TLuxImage; const FileName_:String; const Codec_:TImageCodec );
+class procedure SaveToFileAsync( const Image_:TLuxImage; const FileName_:String; const Codec_:TImageCodec );
 ```
 
-```pascal
-TLuxImageFilerPng    property Alpha :Boolean;        // α を書くか        （既定 True ）
-                     property Level :TLuxPngLevel;   // plNone 〜 plMax    （既定 plDefault ）
+読み込みは、コーデックを取らない。形式は、ファイルの先頭のバイトから見分けるので、拡張子には依らない。登録されたどの形式でもないストリームは、`EImageCodec` を送出する。保存は、書くのに使うコーデックを取る。コーデックは、形式を決めて作る（`TImageCodecPng.Create` で作り、`Alpha` と `Level` を望みのとおりにする）か、`TImageCodec.CreateFor` でファイル名から選ぶ。形式固有の設定は、これらのメソッドの引数ではなくコーデックのプロパティなので、その形式に意味のない選択肢を署名が持つことがない。
 
-TLuxImageFilerJpg    property Quality :Integer;      // 1 〜 100           （既定 90 ）
-```
-
-形式固有の設定は共通メソッドの引数ではなくファイラのプロパティなので、その形式に意味のない選択肢を署名が持つことがない。ファイラは小さく安価なオブジェクトである。作って、必要な設定をして、使って、解放する。
+読み込みは、`Changed` と `UpdateLevels` で終わるので、戻ったときには縮小ピラミッドができあがっている。
 
 ### 6.4 非同期のファイル入出力
 
-`LoadFromFileAsync` と `SaveToFileAsync` はファイラを複製し、同じ入出力処理を画像の `TTask` で実行し、通知はすべて `TThread.Queue` でメインスレッドへ戻す。したがってハンドラから直接 UI を触ってよく、呼び出し側は自分のファイラを直ちに解放してよい。
+`LoadFromFileAsync` と `SaveToFileAsync` は、同じ入出力処理を画像の `TTask` で実行し（保存は、コーデックの複製を使う）、通知はすべて `TThread.Queue` でメインスレッドへ戻す。したがってハンドラから直接 UI を触ってよく、呼び出し側は自分のコーデックを直ちに解放してよい。
 
 `Busy` はタスクの開始前に立ち、`OnLoaded` / `OnSaved` の直前に降りる。ビューアは `Busy` の間まったく描画しない。読み込みは `SetSize` から始まり、タイルの構造そのものが入れ替わるためである。デストラクタはタスクの終了を待ち、保留中の通知も流し切るので、読み込み中に画像を破棄しても問題ない。
 
 読み込みでは縮小ピラミッドの構築までタスクのスレッドで、全タイルを Dirty にした `UpdateLevels` により、利用可能なコアを使って行う。最初の再描画時に構築すると、その分だけ UI が止まってしまうためである。
 
-`Progress` はピラミッドの構築も含めた全体を 0 から 1 で表す。行単位で報告するため PNG は滑らかに進むが、JPEG は Skia の復号がコールバックを持たない単一の呼び出しであるため、復号が終わるまで進まない。
+`Progress` はピラミッドの構築も含めた全体を 0 から 1 で表す。復号と符号化の間は、コーデックと受け渡した画素の数の割合なので、PNG と Radiance HDR は滑らかに進む。JPEG は、Skia の復号が単一の呼び出しであるため、復号が終わるまで進まない。
 
 ### 6.5 対応ファイル形式
 
 | 形式 | 読み | 書き | 備考 |
 |---|---|---|---|
-| PNG | ✔ | ✔ | `System.ZLib` の上に直接実装。読みは規格の定める全ての形式に対応。書きは RGBA（`Alpha_ = False` なら α 無しの RGB）で、`TLuxImageUInt08` なら 8bit、それ以外は 16bit。`ColorSpace` があれば、sRGB は `sRGB` チャンク（＋規格の勧める `gAMA` と `cHRM`）、それ以外は `iCCP` プロファイル＋ `cHRM`（曲線が純ガンマなら `gAMA` も）として書く。読み込みでは `iCCP`、次に `sRGB`、次に `gAMA` ＋ `cHRM` の順に採用する。 |
-| JPEG | ✔ | ✔ | Skia のコーデックを使用。`ColorSpace` があれば ICC プロファイルを APP2 `ICC_PROFILE` セグメントとして JFIF ヘッダの後ろに埋め込み、読み込みではそのセグメントを繋いで解析する。 |
+| PNG [1] | ✔ | ✔ | 読みは規格の定める全ての形式に対応。書きは RGBA（`Alpha = False` なら RGB）で、`TLuxImageUInt08` なら 8bit、それ以外は 16bit。圧縮率は 4 段階。 |
+| JPEG [3] | ✔ | ✔ | Skia のコーデック [6] を使用。一辺は 65,535 画素まで。読み書きの間だけ、画像本体とは別に `幅 × 高さ × 4` バイトを必要とする。 |
+| Radiance HDR | ✔ | ✔ | 無圧縮と 2 つの連長、8 通りの向き、RGBE と XYZE。`TLuxImageSFlo16` と `TLuxImageSFlo32` に自然に合う形式である。 |
 
-PNG の読み込みは [1] の規格全体を網羅する。その圧縮データ列は DEFLATE [2] である。
+形式そのもの ―― 何を読み、何を書き、色空間がそれぞれの中でどう運ばれるか ―― は、[LUX.Data.Codec.Image](../../Codec/Image/ja/README.md) に書いてある。PNG のデータ列は DEFLATE [2] である。画像は、インターレースの有無によらず、走査線を 1 本ずつ復号してそのままタイルへ書き込むので、ファイルがどれだけ大きくても画像 1 枚分の一時領域を確保しない。
 
-| | 対応 |
-|---|---|
-| ビット深度 | 1 ・ 2 ・ 4 ・ 8 ・ 16 |
-| カラータイプ | 0 グレイスケール、2 トゥルーカラー、3 パレット、4 グレイスケール＋α、6 トゥルーカラー＋α |
-| 透明度 | `tRNS` の3形態すべて ―― パレットのα、グレイの透明色指定、RGB の透明色指定 |
-| インターレース | 無し、および Adam7 |
-
-非インターレースの画像は1行ずつ復号してそのままタイルへ書き込むので、ファイルがどれだけ大きくても画像1枚分の一時領域を確保しない。Adam7 の画像はパス毎に復号して画素を最終位置へ散らす。こちらは遅いが、同じく全画面分のバッファを持たない。
-
-JPEG は Skia [6] を経由する。Skia は画像 1 枚分の連続バッファを要求するため、読み書きの間だけ画像本体とは別に `幅 × 高さ × 4` バイトを必要とする。また JPEG の規格 [3] 上の上限は 65,535 画素。
-
-浮動小数の画像を PNG に保存すると 0〜1 にクランプして 16bit へ、JPEG に保存すると 0〜1 にクランプして 8bit へ量子化する。トーンマッピングは表示側の設定なので保存時には掛けない。
-
-PNG の圧縮は DEFLATE なので、`Level` が変えるのは大きさと時間だけで、画素は決して変わらない（どの設定でも完全に復元される）。zlib のレベルは 0〜9 あるが、実際に違いが出るのは 4 点だけで、中間値はファイルが縮まらないのに時間だけ延びる。画像編集ソフトが 10 段階ではなく 3〜4 択しか出さないのはそのためである。4 つの設定と zlib のレベルの対応：
-
-| `Level` | zlib |
-|---|---|
-| `plNone` | 0（stored） |
-| `plFastest` | 1 |
-| `plDefault` | 6 |
-| `plMax` | 9 |
-
-`plNone` は DEFLATE の *stored* ブロックを書く。どのデコーダでも読めるごく普通の PNG であり、大きさより書き出し速度が大事なときの選択肢である。圧縮率は読み込みには一切影響しない。
+浮動小数の画像を PNG に保存すると 0〜1 にクランプして 16bit へ、JPEG に保存すると 0〜1 にクランプして 8bit へ量子化する。Radiance HDR に保存すると、1 を超える値も保たれる。トーンマッピングは表示側の設定なので保存時には掛けない。
 
 ### 6.6 TLuxImageViewer
 
@@ -565,13 +518,13 @@ CPU 側でのリサンプルは一切行わない。1 フレームあたりの C
 ## 7. 制限
 
 - ディスクへの退避機構は持たない。`SetSize` は、タイルが物理メモリの空きに載らない画像を拒否する。
-- TIFF ・ OpenEXR ・ Radiance HDR は未実装。
+- TIFF ・ OpenEXR は未実装。
 - Skia のコーデックが確実に変換できるのは 8bit までなので、JPEG は常に BGRA8888 で受けて、対象クラスがそれより広い場合は後から変換する。JPEG は 8bit の形式なので損失は無い。
 - `TLuxImageWorker` が向くのはブロックごとに独立な処理である。走査順や画像全体への依存を持つアルゴリズム（積分画像、FFT）には別のスケジューリングが要る。
 
 ## 8. デモ
 
-リポジトリのルートにある `LuxImage.dproj` は、PNG または JPEG を 4 つの形式のいずれかで開くか、`TLuxImageWorker` で 4,096² 〜 65,536² 画素のマンデルブロ集合を全コアで描き、終わったブロックから順に表示する。結果は PNG または JPEG に保存できる。
+リポジトリのルートにある `LuxImage.dproj` は、PNG ・ JPEG ・ Radiance HDR のファイルを 4 つの形式のいずれかで開くか、`TLuxImageWorker` で 4,096² 〜 65,536² 画素のマンデルブロ集合を全コアで描き、終わったブロックから順に表示する。結果は PNG ・ JPEG ・ Radiance HDR に保存できる。
 
 ## 9. 参考文献
 

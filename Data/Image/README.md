@@ -17,7 +17,7 @@ FireMonkey's `TBitmap` shares its storage with the GPU and therefore inherits th
 - **`TLuxImageWorker`**, a block scheduler that runs an arbitrary per-block procedure over the whole image on all cores, handing out blocks one at a time so that wildly uneven per-pixel cost — ray tracing, fractals — still balances.
 - **Real-time viewer** with smooth wheel zoom and drag scrolling, GPU tone mapping and gamma correction, which shows a rendering in progress block by block.
 - **Colour management.** An image may carry a `ColorSpace` — sRGB, Display P3, Adobe RGB, Rec.2020, ProPhoto, ACEScg, their linear forms, or any space of your own — which is embedded in PNG (`sRGB` / `iCCP` + `gAMA` + `cHRM`) and JPEG (APP2 `ICC_PROFILE`) on save, recovered on load, and honoured by the viewer, which converts on the GPU to the monitor's own profile. `nil` means no colour management, and pixel values are never altered.
-- **Format classes.** Each file format is a class derived from `TLuxImageFiler`, carrying its own settings as properties — PNG its alpha flag and compression level, JPEG its quality — so no method signature ever mixes options belonging to different formats. A new format is one new unit that registers itself; nothing else changes.
+- **File formats through codecs.** Files are read and written by the codecs of [LUX.Data.Codec.Image](../Codec/Image/README.md) — PNG, JPEG and Radiance HDR — each carrying its own settings as properties. `TLuxImage` knows nothing of file formats; the bridge `LUX.Data.Image.Codec` connects the two, so a format added there is available here at once.
 - **Asynchronous file I/O** with progress reporting and completion events.
 - Depends only on the RTL, FireMonkey and Skia, all of which ship with RAD Studio.
 
@@ -133,16 +133,9 @@ Both are evaluated by an SkSL runtime colour filter on the GPU, so changing `Gam
   ┣・TLuxTile                        ･･･ ( Data, Stamp, Dirty )
   ┣・TLuxLevel                       ･･･ ( Width, Height, Tiles* )
   ┣・TLuxImage                       ･･･ ( see the class hierarchy below )
-  ┣・LUX.Data.Image.Files            ･･･ RTL only
-  ┃  ┣・TLuxImageFiler               ･･･ abstract: Extensions / Caption / DoLoad / DoSave
-  ┃  ┃  ┣・LoadFromFile / SaveToFile          ( + …Async )
-  ┃  ┃  ┣・Regist / ClassFor / CreateFor      ･･･ the registry of formats
-  ┃  ┃  ┗・DialogFilter / ImageSize / Clone
-  ┃  ┣・LUX.Data.Image.Files.Png     ･･･ System.ZLib only
-  ┃  ┃  ┣・TLuxPngLevel              ･･･ ( plNone, plFastest, plDefault, plMax )
-  ┃  ┃  ┗・TLuxImageFilerPng         ･･･ Alpha, Level
-  ┃  ┗・LUX.Data.Image.Files.Jpg     ･･･ [ Skia ]
-  ┃     ┗・TLuxImageFilerJpg         ･･･ Quality
+  ┣・LUX.Data.Image.Codec            ･･･ bridge to LUX.Data.Codec.Image
+  ┃  ┣・TLuxImageRaster              ･･･ a TLuxImage seen as a TImageRaster
+  ┃  ┗・TLuxImageFiler               ･･･ load / save ( + …Async ), progress, pyramid
   ┣・LUX.Data.Image.Worker           ･･･ RTL only
   ┃  ┣・TLuxBlockProc                ･･･ procedure( ThreadI_, X_,Y_,W_,H_ )
   ┃  ┗・TLuxImageWorker              ･･･ block scheduler on N threads
@@ -187,25 +180,24 @@ Both are evaluated by an SkSL runtime colour filter on the GPU, so changing `Gam
   ┃  ┣・LUX.Color.Half              ･･･ THalfRGB  THalfRGBA
   ┃  ┗・LUX.Color.Space             ･･･ TLuxColorSpace, presets, TLuxColorSpaces, ICC read / write
   ┣・LUX.D2  LUX.D3  LUX.D3x3        ･･･ chromaticities, XYZ, 3 × 3 matrices
+  ┣・LUX.Data.Codec.Image            ･･･ TImageCodec, TImageRaster, PNG / JPEG / HDR
   ┗・LUX.D1.Half                     ･･･ THalf, the half-precision scalar
      ┗・LUX.D1.Half.DIff             ･･･ TdHalf, automatic differentiation
 ```
 
-Only the JPEG filer and the viewer touch Skia, and only the viewer touches FireMonkey; a program that reads and writes PNG alone links neither. `TLuxImage` itself has no file I/O at all — it does not know what a file format is.
+Only the JPEG codec and the viewer touch Skia, and only the viewer touches FireMonkey; a program that reads and writes PNG alone links neither. `TLuxImage` itself has no file I/O at all — it does not know what a file format is.
 
 ### 3.2 File layout
 
 ```
 ・Data/Image/
   ┣・LUX.Data.Image.pas            ･･･ TLuxImage and the 4 concrete classes
-  ┣・LUX.Data.Image.Files.pas      ･･･ TLuxImageFiler, the format base class and registry
-  ┣・LUX.Data.Image.Files.Png.pas  ･･･ TLuxImageFilerPng   ( System.ZLib )
-  ┣・LUX.Data.Image.Files.Jpg.pas  ･･･ TLuxImageFilerJpg   ( Skia )
+  ┣・LUX.Data.Image.Codec.pas      ･･･ TLuxImageRaster, TLuxImageFiler ( the bridge )
   ┣・LUX.Data.Image.Worker.pas     ･･･ TLuxImageWorker, parallel block scheduler
   ┗・LUX.Data.Image.Viewer.pas     ･･･ TLuxImageViewer ( TFrame )
 ```
 
-A new format is one new unit: derive from `TLuxImageFiler`, implement `Extensions`, `Caption`, `DoLoad` and `DoSave`, expose whatever settings the format has as properties, and `Regist` the class in the unit's `initialization`. Nothing in the base class or in `TLuxImage` changes, and the new format immediately joins extension lookup and `DialogFilter`.
+File formats are not part of this folder. They are the codecs of [LUX.Data.Codec.Image](../Codec/Image/README.md), and the bridge is written against their base class alone, so a format added there needs no change here.
 
 ## 4. Usage
 
@@ -234,7 +226,8 @@ With this in place the viewer draws straight into the window surface: there is n
 ### 4.2 Loading and displaying an image
 
 ```pascal
-uses LUX.Data.Image, LUX.Data.Image.Files, LUX.Data.Image.Files.Png, LUX.Data.Image.Files.Jpg;
+uses LUX.Data.Image, LUX.Data.Image.Codec,
+     LUX.Data.Codec.Image, LUX.Data.Codec.Image.Png, LUX.Data.Codec.Image.Jpg, LUX.Data.Codec.Image.Hdr;
 
 Image  := TLuxImageUInt08.Create;
 
@@ -245,12 +238,7 @@ Viewer.Image  := Image;
 
 Image.OnLoaded.Add( ImageLoaded );
 
-Filer := TLuxImageFiler.CreateFor( 'huge.jpg' );   // the extension picks TLuxImageFilerJpg
-try
-   Filer.LoadFromFileAsync( Image, 'huge.jpg' );    // settings are cloned, so the filer may be freed at once
-finally
-   Filer.Free;
-end;
+TLuxImageFiler.LoadFromFileAsync( Image, 'huge.jpg' );   // the format is recognised from the content of the file
 ```
 
 ```pascal
@@ -286,7 +274,7 @@ Worker.Start( procedure( const ThreadI_,X_,Y_,W_,H_:Integer )
                    begin
                         for I := 0 to W_-1 do Row[ I ] := Shade( X_+I, J );  // your computation
 
-                        Image.SetRow( 0, X_, J, W_, @Row[ 0 ] );
+                        Image.SetRow( 0, X_, J, 1, W_, @Row[ 0 ] );
                    end;
               end );
 ```
@@ -300,20 +288,16 @@ Threads of your own can do the same thing without the worker: write disjoint reg
 ```pascal
 Image.ColorSpace := TLuxColorSpaces.LinearRec2020;   // "these pixels are linear Rec.2020" — the pixels themselves are untouched
 
-Png := TLuxImageFilerPng.Create;
+Png := TImageCodecPng.Create;
 try
-   Png.SaveToFile( Image, 'render.png' );             // iCCP + cHRM + gAMA are written
+   TLuxImageFiler.SaveToFile( Image, 'render.png', Png );    // iCCP + cHRM + gAMA are written
 finally
    Png.Free;
 end;
 
-Jpg := TLuxImageFilerJpg.Create;
-try
-   Jpg.Quality := 95;
-   Jpg.LoadFromFile( Image, 'photo.jpg' );            // an embedded Adobe RGB profile → Image.ColorSpace = TLuxColorSpaces.AdobeRGB
-finally                                               // an unknown profile → a new TLuxColorSpace, kept in TLuxColorSpaces
-   Jpg.Free;                                          // no profile → nil
-end;
+TLuxImageFiler.LoadFromFile( Image, 'photo.jpg' );        // an embedded Adobe RGB profile → Image.ColorSpace = TLuxColorSpaces.AdobeRGB
+                                                          // an unknown profile → a new TLuxColorSpace, kept in TLuxColorSpaces
+                                                          // no profile → nil
 
 Viewer.ColorSpace := nil;                             // default: convert to the monitor's own profile
 Viewer.ColorSpace := TLuxColorSpaces.sRGB;            // or force sRGB
@@ -355,8 +339,8 @@ class function DefaultGamma :Single;
 
 ///// pixel access, format independent
 property Colors[ const X_,Y_:Integer ] :TSingleRGBA; default;
-procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );
-procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );
+procedure GetRow( const L_,X_,Y_,DX_,N_:Integer; const Dst_:PSingleRGBA );  // N_ pixels, every DX_-th from X_
+procedure SetRow( const L_,X_,Y_,DX_,N_:Integer; const Src_:PSingleRGBA );
 
 ///// pixel access, typed  ( declared on each concrete class )
 property Pixels[ const X_,Y_:Integer ] :TByteRGBA;    // TLuxImageUInt08
@@ -385,7 +369,7 @@ procedure Notify;                                // raise OnChange on the main t
 procedure Changed;                               // whole image changed: every tile dirty, Version++, Notify
 procedure UpdateLevels;                          // propagate dirty tiles to levels 1…  ( calls are serialised )
 
-///// file I/O  ( driven by TLuxImageFiler; TLuxImage knows nothing about file formats )
+///// file I/O  ( driven by TLuxImageFiler of LUX.Data.Image.Codec; TLuxImage knows nothing about file formats )
 procedure RunAsync( const Work_:TProc; const Saving_:Boolean );  // run on a worker thread, managing Busy and OnLoaded / OnSaved
 procedure BeginProgress;
 procedure ProgRange( const A_,B_:Single );
@@ -438,85 +422,54 @@ Blocks lie within tiles and are handed out in raster order, one per atomic incre
 
 An exception raised by the procedure cancels the run and is re-raised on the main thread after `OnFinished`. The destructor cancels and waits, so a worker may be freed while it is running.
 
-### 6.3 TLuxImageFiler
+### 6.3 TLuxImageRaster and TLuxImageFiler
+
+`LUX.Data.Image.Codec` is the bridge between `TLuxImage` and the codecs of [LUX.Data.Codec.Image](../Codec/Image/README.md).
 
 ```pascal
-///// implemented by each format
-class function Extensions :TArray<String>;   // ( '.png' ); the first is the default
-class function Caption :String;              // 'PNG'
-procedure DoLoad( const Image_:TLuxImage; const Stream_:TStream );   // protected
-procedure DoSave( const Image_:TLuxImage; const Stream_:TStream );   // protected
+///// TLuxImageRaster = class( TImageRaster ) : level 0 of an image as the raster a codec reads and writes
+constructor Create( const Image_:TLuxImage );    // the image is not owned
+property Image :TLuxImage;
+property Header :TImageHeader;                   // read: size, ColorSpace and the sample precision of the class
+                                                 // write: SetSize and ColorSpace  ( the pixel format does not change )
+procedure GetLine( const X_,Y_,DX_,DY_,N_:Integer; const Pixels_:PSingleRGBA );
+procedure SetLine( const X_,Y_,DX_,DY_,N_:Integer; const Pixels_:PSingleRGBA );
 
-///// the registry, on the base class
-class procedure Regist( const Filer_:TLuxImageFilerClass );          // from the unit's initialization
-class function Filers :TArray<TLuxImageFilerClass>;
-class function ClassFor( const FileName_:String ) :TLuxImageFilerClass;
-class function CreateFor( const FileName_:String ) :TLuxImageFiler;  // nil if the extension is unknown
-class function DialogFilter( const All_:Boolean = True ) :String;
-class function Handles( const FileName_:String ) :Boolean;
-
-///// reading and writing
-procedure LoadFromStream / SaveToStream ( const Image_:TLuxImage; const Stream_:TStream );
-procedure LoadFromFile   / SaveToFile   ( const Image_:TLuxImage; const FileName_:String );
-procedure LoadFromFileAsync / SaveToFileAsync( const Image_:TLuxImage; const FileName_:String );
-function  ImageSize( const FileName_:String; out Width_,Height_:Integer ) :Boolean;
-
-///// settings
-function  Clone :TLuxImageFiler;
-procedure Assign( const Filer_:TLuxImageFiler );   // overridden by each format
+///// TLuxImageFiler : run a codec on an image
+class function CodecOf( const FileName_:String ) :TImageCodecClass;   // the format of a file, by its content; nil if none
+class procedure LoadFromStream( const Image_:TLuxImage; const Stream_:TStream );
+class procedure LoadFromFile( const Image_:TLuxImage; const FileName_:String );
+class procedure LoadFromFileAsync( const Image_:TLuxImage; const FileName_:String );
+class procedure SaveToStream( const Image_:TLuxImage; const Stream_:TStream; const Codec_:TImageCodec );
+class procedure SaveToFile( const Image_:TLuxImage; const FileName_:String; const Codec_:TImageCodec );
+class procedure SaveToFileAsync( const Image_:TLuxImage; const FileName_:String; const Codec_:TImageCodec );
 ```
 
-```pascal
-TLuxImageFilerPng    property Alpha :Boolean;        // write alpha            ( default True )
-                     property Level :TLuxPngLevel;   // plNone … plMax         ( default plDefault )
+Loading takes no codec: the format is recognised from the first bytes of the file, so the extension does not matter, and a stream in none of the registered formats raises `EImageCodec`. Saving takes the codec to write with, either created for a format — `TImageCodecPng.Create`, with `Alpha` and `Level` set as wanted — or picked from the file name with `TImageCodec.CreateFor`. Format-specific settings are properties of the codec, not parameters of these methods, so no signature carries an option that is meaningless for the format in hand.
 
-TLuxImageFilerJpg    property Quality :Integer;      // 1 … 100                ( default 90 )
-```
-
-Format-specific settings are properties of the filer, not parameters of a shared method, so no signature ever carries an option that is meaningless for the format in hand. A filer is a small, cheap object: create it, set what you care about, use it, free it.
+A load ends with `Changed` and `UpdateLevels`, so the mip pyramid is complete when it returns.
 
 ### 6.4 Asynchronous file I/O
 
-`LoadFromFileAsync` and `SaveToFileAsync` clone the filer, run the ordinary loader on the image's `TTask`, and deliver every notification to the main thread through `TThread.Queue`, so handlers may touch the UI directly and the caller may free its own filer immediately.
+`LoadFromFileAsync` and `SaveToFileAsync` run the ordinary load or save on the image's `TTask` — the save with a clone of the codec — and deliver every notification to the main thread through `TThread.Queue`, so handlers may touch the UI directly and the caller may free its own codec immediately.
 
 `Busy` is raised before the task starts and lowered immediately before `OnLoaded` or `OnSaved` is raised. The viewer draws nothing while `Busy` is set, because a load begins with `SetSize`, which replaces the tile structure. The destructor waits for the task and drains any pending notification, so an image may be freed while a load is in flight.
 
 Loading also builds the whole mip pyramid on the task's thread, through `UpdateLevels` with every tile dirty, using all available cores. Were it left to the first repaint, that work would block the UI instead.
 
-`Progress` runs from 0 to 1 over the entire operation, including the pyramid. It is reported per row, so PNG advances smoothly; JPEG cannot, because Skia's decode is a single call with no callback, and progress therefore stands still until the decode completes.
+`Progress` runs from 0 to 1 over the entire operation, including the pyramid. During decoding and encoding it is the share of pixels exchanged with the codec, so PNG and Radiance HDR advance smoothly; JPEG cannot, because Skia's decode is a single call, and progress therefore stands still until the decode completes.
 
 ### 6.5 File formats
 
 | Format | Read | Write | Notes |
 |---|---|---|---|
-| PNG | ✔ | ✔ | Implemented directly on `System.ZLib`. Reads every variant the format defines; writes RGBA (or RGB without alpha when `Alpha = False`), 8 bit for `TLuxImageUInt08` and 16 bit otherwise. With a `ColorSpace`, sRGB is written as the `sRGB` chunk (plus `gAMA` and `cHRM`, as the specification recommends) and any other space as an `iCCP` profile plus `cHRM` (and `gAMA` when the curve is a pure gamma). On reading, `iCCP`, then `sRGB`, then `gAMA` + `cHRM` are honoured, in that order. |
-| JPEG | ✔ | ✔ | Uses the Skia codec. With a `ColorSpace`, the ICC profile is embedded as APP2 `ICC_PROFILE` segments after the JFIF header; on reading, those segments are reassembled and parsed. |
+| PNG [1] | ✔ | ✔ | Reads every variant the format defines. Writes RGBA ( RGB when `Alpha = False` ), 8 bit for `TLuxImageUInt08` and 16 bit otherwise, at one of four compression levels. |
+| JPEG [3] | ✔ | ✔ | Through the Skia codec [6]; at most 65,535 pixels on a side; needs `width × height × 4` bytes in addition to the image while reading or writing. |
+| Radiance HDR | ✔ | ✔ | Flat and both run-length forms, all eight orientations, RGBE and XYZE. The natural format for `TLuxImageSFlo16` and `TLuxImageSFlo32`. |
 
-The PNG reader covers the whole of the format as specified in [1], whose compressed data stream is DEFLATE [2]:
+The formats themselves — what is read, what is written, and how the colour space travels in each — are described in [LUX.Data.Codec.Image](../Codec/Image/README.md). PNG's data stream is DEFLATE [2]; an image is decoded a scanline at a time straight into the tiles, interlaced or not, so no whole-image temporary is allocated regardless of the size of the file.
 
-| | supported |
-|---|---|
-| Bit depths | 1, 2, 4, 8, 16 |
-| Colour types | 0 grayscale, 2 truecolour, 3 palette, 4 grayscale + alpha, 6 truecolour + alpha |
-| Transparency | `tRNS` in all three of its forms — palette alpha, grayscale colour key, RGB colour key |
-| Interlacing | none, and Adam7 |
-
-Non-interlaced images are decoded a row at a time and written straight into the tiles, so no whole-image temporary is ever allocated regardless of the size of the file. Adam7 images are decoded pass by pass and the pixels scattered to their final positions, which is slower but equally free of a full-size buffer.
-
-JPEG passes through Skia [6], which requires the whole image in one contiguous buffer, so reading or writing a JPEG temporarily needs `width × height × 4` bytes in addition to the image itself. The JPEG standard [3] also caps dimensions at 65,535.
-
-Saving a floating-point image to PNG clamps to 0…1 and quantises to 16 bit; saving to JPEG clamps to 0…1 and quantises to 8 bit. Tone mapping is not applied when saving, as it is a display setting.
-
-PNG's compression is DEFLATE, so `Level` changes only the size and the time — never the pixels, which are recovered exactly at every setting. zlib defines levels 0…9, but only four of them are distinct in practice: the intermediate values cost time without shrinking the file, which is why image editors offer three or four choices rather than ten. The four settings correspond to these zlib levels:
-
-| `Level` | zlib |
-|---|---|
-| `plNone` | 0 (stored) |
-| `plFastest` | 1 |
-| `plDefault` | 6 |
-| `plMax` | 9 |
-
-`plNone` writes DEFLATE *stored* blocks — a perfectly ordinary PNG that any decoder reads — and is the setting to choose when write speed matters more than size. Note that the level does not affect reading at all.
+Saving a floating-point image to PNG clamps to 0…1 and quantises to 16 bit; saving to JPEG clamps to 0…1 and quantises to 8 bit; saving to Radiance HDR keeps values above 1. Tone mapping is not applied when saving, as it is a display setting.
 
 ### 6.6 TLuxImageViewer
 
@@ -565,13 +518,13 @@ Nothing is resampled on the CPU. The per-frame CPU work is the pyramid update fo
 ## 7. Limitations
 
 - There is no paging to disk. `SetSize` refuses an image whose tiles would not fit in free physical memory.
-- TIFF, OpenEXR and Radiance HDR are not implemented.
+- TIFF and OpenEXR are not implemented.
 - Skia's codec converts reliably only to 8-bit, so a JPEG is always decoded as BGRA8888 and converted afterwards when the target class is wider. As JPEG is an 8-bit format, nothing is lost.
 - `TLuxImageWorker` suits work that is independent per block. Algorithms with a scan-order or whole-image dependency (integral images, FFTs) need their own scheduling.
 
 ## 8. Demo
 
-`LuxImage.dproj` in the repository root opens a PNG or JPEG in any of the four formats, or renders a Mandelbrot set of 4,096² to 65,536² pixels on all cores with `TLuxImageWorker`, showing the blocks as they finish; the result can be saved as PNG or JPEG.
+`LuxImage.dproj` in the repository root opens a PNG, JPEG or Radiance HDR file in any of the four formats, or renders a Mandelbrot set of 4,096² to 65,536² pixels on all cores with `TLuxImageWorker`, showing the blocks as they finish; the result can be saved as PNG, JPEG or Radiance HDR.
 
 ## 9. References
 

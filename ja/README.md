@@ -18,7 +18,7 @@ LUX は LUXOPHIA コレクションの基盤ライブラリである。スカラ
 | 線形代数 | `LUX.D1` 〜 `LUX.D4` ・ `LUX.D2x2` ・ `LUX.D3x3` ・ `LUX.D4x4` ・ `LUX.Quaternion` | `TSingle3D` ・ `TSingleM4` ・ `TSingleQ` |
 | 数値計算 | `LUX.D*.Diff` ・ `LUX.D1.Half` ・ `LUX.Complex` ・ `LUX.D1.Gamma.*` ・ `LUX.D1.Legendre` | `TdSingle` ・ `THalf` ・ `TSingleC` |
 | 色と曲線 | `LUX.Color` ・ `LUX.Color.Half` ・ `LUX.Color.Space` ・ `LUX.Curve.*` | `TSingleRGBA` ・ `THalfRGBA` ・ `TLuxColorSpace` ・ `TSingleWector<T>` |
-| データ構造 | `LUX.Data.List` ・ `LUX.Data.Tree` ・ `LUX.Data.Grid.*` ・ `LUX.Data.Model.*` ・ `LUX.Data.Image` | `TTreeNode` ・ `TTriaGrid<T>` ・ `TLuxImage` |
+| データ構造 | `LUX.Data.List` ・ `LUX.Data.Tree` ・ `LUX.Data.Grid.*` ・ `LUX.Data.Model.*` ・ `LUX.Data.Image` ・ `LUX.Data.Codec.Image` | `TTreeNode` ・ `TTriaGrid<T>` ・ `TLuxImage` ・ `TImageCodec` |
 | アプリの部品 | `LUX.FMX.*` ・ `LUX.Windows.*` ・ `LUX.Thread.Inbox` ・ `LUX.Process.Deadline` | `TMainWindow` ・ `TFmxStyle` ・ `TWinSingle` ・ `IInbox<T>` |
 
 数値型は演算子・コンストラクタ・プロパティ・暗黙変換を備えた Delphi の `record` である。したがってスタックに置かれ、値としてコピーされ、寿命管理を必要としない。コンテナ型はクラスであり、集合の層はジェネリックなので、相互参照プロパティには基底型ではなく利用側の派生クラスがそのまま現れる。
@@ -66,6 +66,7 @@ LUX は LUXOPHIA コレクションの基盤ライブラリである。スカラ
   * [**LUX.D1.Half**](../D1/Half/ja/README.md) ：IEEE 754 binary16 の値レコード THalf と双対数の対型 TdHalf
   * [**LUX.D1.Legendre**](../D1/Legendre/ja/README.md) ：正規直交ルジャンドル多項式と導関数 — 安定な漸化式で評価
 * [**LUX.Data**](../Data/ja/README.md) ：データ構造 — 汎用コンテナ・メッシュ・画像とストリーム補助
+  * [**LUX.Data.Codec.Image**](../Data/Codec/Image/ja/README.md) ：画像のコーデック — PNG ・ JPEG ・ Radiance HDR（入れ物に依存しない）
   * [**LUX.Data.Grid**](../Data/Grid/ja/README.md) ：1次元の点グリッドと、重心座標で歩く三角形の2次元グリッド
   * [**LUX.Data.Image**](../Data/Image/ja/README.md) ：タイルとミップピラミッドによる超高解像度画像と非同期ファイル入出力
   * [**LUX.Data.List**](../Data/List/ja/README.md) ：逐次インデックス付きの侵入型双方向リスト（核＋型付け層）

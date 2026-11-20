@@ -5,6 +5,7 @@
 
 ## 1. Overview
 
+* [**Codec.Image**](Codec/Image/README.md) ：image codecs — PNG, JPEG and Radiance HDR — that know nothing of the container
 * [**Grid**](Grid/README.md) ：regular 1-D point grids and a triangular 2-D grid
 * [**Image**](Image/README.md) ：ultra-high-resolution tiled mip-pyramid images with a real-time viewer and a parallel block scheduler
 * [**List**](List/README.md) ：intrusive doubly linked list with an incremental index, core + typed layers
@@ -30,8 +31,9 @@ blank line  ･･･ terminator — everything after it is binary
 ```
 ・Data/
   ┣・LUX.Data.pas ･･･ WriteLine / ReadLine / WriteHead / ReadHead
+  ┣・Codec/Image/ ･･･ LUX.Data.Codec.Image ( + .Png  .Jpg  .Hdr )
   ┣・Grid/        ･･･ LUX.Data.Grid.D1  LUX.Data.Grid.Tria.D2
-  ┣・Image/       ･･･ LUX.Data.Image ( + .Files[.Png .Jpg]  .Worker  .Viewer )
+  ┣・Image/       ･･･ LUX.Data.Image ( + .Codec  .Worker  .Viewer )
   ┣・List/        ･･･ LUX.Data.List.core  LUX.Data.List
   ┣・Model/       ･･･ LUX.Data.Model.*  ( TriFlip/  TetraFlip/ )
   ┗・Tree/        ･･･ LUX.Data.Tree
