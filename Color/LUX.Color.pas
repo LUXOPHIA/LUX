@@ -1190,35 +1190,47 @@ begin
      end;
 end;
 
+// Radiance の定義（color.h の cx2real、color.c の setcolr）に従う。
+// 仮数 M は、区間 [ M, M+1 ) / 256 の代表であり、その中点 ( M + 0.5 ) / 256 に 2^( E - 128 ) を掛けた値を表す。
+// E = 0 は、黒である。
+
 class operator TByteRGBE.Implicit( const C_:TByteRGBE ) :TSingleRGB;
 var
-   E :Shortint;
    S :Single;
 begin
-     E := C_.E - 128;
+     if C_.E = 0 then Exit( TSingleRGB.Create( 0, 0, 0 ) );
 
-     S := IntPower( 2, +E ) / 255;
+     S := Ldexp( Single( 1 ), C_.E - ( 128 + 8 ) );
 
-     Result.R := S * C_.R;
-     Result.G := S * C_.G;
-     Result.B := S * C_.B;
+     Result.R := S * ( C_.R + 0.5 );
+     Result.G := S * ( C_.G + 0.5 );
+     Result.B := S * ( C_.B + 0.5 );
 end;
+
+// 最大の成分 L を、仮数（0.5 以上 1 未満）と指数 E に分ける（ L = 仮数 × 2^E ）。
+// 各成分に 256 / 2^E を掛けて切り捨てると、最大の成分の仮数は 128〜255 になる。
+// 負の成分は表せないので、0 にする。L が 1e-32 以下なら、黒（指数 0）にする。
 
 class operator TByteRGBE.Implicit( const C_:TSingleRGB ) :TByteRGBE;
 var
-   L :Single;
-   E :Shortint;
-   S :Single;
+   L, M, S :Single;
+   E :Integer;
 begin
      with C_ do L := Max( R, G, B );
 
-     E := Ceil( Log2( L ) );
+     if not ( L > 1e-32 ) then Exit( TByteRGBE.Create( 0, 0 ) );
 
-     S := IntPower( 2, -E ) * 255;
+     Frexp( L, M, E );
 
-     Result.R := Round( S * C_.R );
-     Result.G := Round( S * C_.G );
-     Result.B := Round( S * C_.B );
+     S := Ldexp( Single( 256 ), -E );
+
+     with C_ do
+     begin
+          Result.R := Trunc( S * ClampMin( R, 0 ) );
+          Result.G := Trunc( S * ClampMin( G, 0 ) );
+          Result.B := Trunc( S * ClampMin( B, 0 ) );
+     end;
+
      Result.E := 128 + E;
 end;
 
