@@ -140,7 +140,7 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );                        // 書式非依存の行読み
        procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );                        // 書式非依存の行書き
        /////
-       ///// 入出力（ TLuxImageFiler とその派生クラスが使う。ファイル形式は一切知らない ）
+       ///// 入出力（ LUX.Data.Image.Codec の TLuxImageFiler が使う。ファイル形式は一切知らない ）
        procedure RunAsync( const Work_:TProc; const Saving_:Boolean );                               // 別スレッドで走らせ、Busy と OnLoaded / OnSaved を面倒みる
        procedure BeginProgress;                                                                      // 進捗を 0 に戻す
        procedure ProgRange( const A_,B_:Single );                                                    // 以降の DoProgress を全体の A_〜B_ に割り当てる
