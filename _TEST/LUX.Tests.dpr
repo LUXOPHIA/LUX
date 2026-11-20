@@ -1,7 +1,7 @@
 ﻿program LUX.Tests;
 
 // 共通の部品（LUX.Windows.Single・Notify・Startup・Install・Monitor・Load、LUX.Thread.Inbox、LUX.Process.Deadline と、LUX.FMX.Motion・Redraw の、窓を出さずに確かめられる所）の試験
-// と、画像のコーデック（LUX.Data.Codec.Image と、PNG・JPEG・Radiance HDR）、LUX.Color の RGBE の変換の試験
+// と、画像のコーデック（LUX.Data.Codec.Image と、PNG・JPEG・Radiance HDR）、TLuxImage との橋（LUX.Data.Image.Codec）、LUX.Color の RGBE の変換の試験
 //
 // ・最初の引数が Tests.Peer の役の名前なら、試験ではなく相手役のプロセスとして動いて終わる。
 // ・作って走らせる手順は、同じフォルダーの test.bat。失敗は、終了コード（1：試験の失敗・2：試験を動かせなかった）に出す。
@@ -37,6 +37,8 @@ uses
   LUX.Data.Codec.Image.Png in '..\Data\Codec\Image\LUX.Data.Codec.Image.Png.pas',
   LUX.Data.Codec.Image.Jpg in '..\Data\Codec\Image\LUX.Data.Codec.Image.Jpg.pas',
   LUX.Data.Codec.Image.Hdr in '..\Data\Codec\Image\LUX.Data.Codec.Image.Hdr.pas',
+  LUX.Data.Image in '..\Data\Image\LUX.Data.Image.pas',
+  LUX.Data.Image.Codec in '..\Data\Image\LUX.Data.Image.Codec.pas',
   Tests.Peer in 'Tests.Peer.pas',
   Tests.Windows.Single in 'Tests.Windows.Single.pas',
   Tests.Windows.Notify in 'Tests.Windows.Notify.pas',
@@ -53,7 +55,8 @@ uses
   Tests.Codec.Image in 'Tests.Codec.Image.pas',
   Tests.Codec.Image.Png in 'Tests.Codec.Image.Png.pas',
   Tests.Codec.Image.Jpg in 'Tests.Codec.Image.Jpg.pas',
-  Tests.Codec.Image.Hdr in 'Tests.Codec.Image.Hdr.pas';
+  Tests.Codec.Image.Hdr in 'Tests.Codec.Image.Hdr.pas',
+  Tests.Data.Image.Codec in 'Tests.Data.Image.Codec.pas';
 
 var
    Runner  :ITestRunner;

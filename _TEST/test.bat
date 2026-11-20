@@ -34,7 +34,7 @@ mkdir "%OUT%" || goto :fail
 
 rem ソースが、UTF-8 の BOM つき・CRLF であることを確かめる
 %DCC% SourceCheck.dpr || goto :fail
-"%OUT%\SourceCheck.exe" *.dpr *.pas ..\FMX\*.pas ..\Windows\*.pas ..\Thread\*.pas ..\Process\*.pas ..\Data\Codec\Image\*.pas || goto :fail
+"%OUT%\SourceCheck.exe" *.dpr *.pas ..\FMX\*.pas ..\Windows\*.pas ..\Thread\*.pas ..\Process\*.pas ..\Data\Codec\Image\*.pas ..\Data\Image\LUX.Data.Image.Codec.pas || goto :fail
 
 rem 試験を作って走らせる
 %DCC% LUX.Tests.dpr || goto :fail
