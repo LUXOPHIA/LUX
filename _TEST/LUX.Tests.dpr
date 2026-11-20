@@ -37,7 +37,8 @@ uses
   Tests.FMX.Redraw in 'Tests.FMX.Redraw.pas',
   Tests.Thread.Inbox in 'Tests.Thread.Inbox.pas',
   Tests.Process.Deadline in 'Tests.Process.Deadline.pas',
-  Tests.Color in 'Tests.Color.pas';
+  Tests.Color in 'Tests.Color.pas',
+  Tests.Color.Space in 'Tests.Color.Space.pas';
 
 var
    Runner  :ITestRunner;
