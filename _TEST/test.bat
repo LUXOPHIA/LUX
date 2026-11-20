@@ -34,10 +34,12 @@ mkdir "%OUT%" || goto :fail
 
 rem ソースが、UTF-8 の BOM つき・CRLF であることを確かめる
 %DCC% SourceCheck.dpr || goto :fail
-"%OUT%\SourceCheck.exe" *.dpr *.pas ..\FMX\*.pas ..\Windows\*.pas ..\Thread\*.pas ..\Process\*.pas || goto :fail
+"%OUT%\SourceCheck.exe" *.dpr *.pas ..\FMX\*.pas ..\Windows\*.pas ..\Thread\*.pas ..\Process\*.pas ..\Data\Codec\Image\*.pas || goto :fail
 
 rem 試験を作って走らせる
 %DCC% LUX.Tests.dpr || goto :fail
+rem JPEG のコーデックは、製品に同梱の Skia の DLL を使う
+copy /y "%STUDIO%\Redist\win64\sk4d.dll" "%OUT%" >nul || goto :fail
 "%OUT%\LUX.Tests.exe" || goto :fail
 
 rmdir /s /q "%OUT%"

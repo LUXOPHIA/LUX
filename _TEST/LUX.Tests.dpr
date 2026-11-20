@@ -1,7 +1,7 @@
 ﻿program LUX.Tests;
 
 // 共通の部品（LUX.Windows.Single・Notify・Startup・Install・Monitor・Load、LUX.Thread.Inbox、LUX.Process.Deadline と、LUX.FMX.Motion・Redraw の、窓を出さずに確かめられる所）の試験
-// と、LUX.Color の RGBE の変換の試験
+// と、画像のコーデック（LUX.Data.Codec.Image と、PNG・JPEG・Radiance HDR）、LUX.Color の RGBE の変換の試験
 //
 // ・最初の引数が Tests.Peer の役の名前なら、試験ではなく相手役のプロセスとして動いて終わる。
 // ・作って走らせる手順は、同じフォルダーの test.bat。失敗は、終了コード（1：試験の失敗・2：試験を動かせなかった）に出す。
@@ -25,7 +25,18 @@ uses
   LUX.Process.Deadline in '..\Process\LUX.Process.Deadline.pas',
   LUX in '..\LUX.pas',
   LUX.D1 in '..\LUX.D1.pas',
+  LUX.D2 in '..\LUX.D2.pas',
+  LUX.D2x2 in '..\LUX.D2x2.pas',
+  LUX.D3 in '..\LUX.D3.pas',
+  LUX.D3x3 in '..\LUX.D3x3.pas',
+  LUX.D1.Half in '..\D1\Half\LUX.D1.Half.pas',
   LUX.Color in '..\Color\LUX.Color.pas',
+  LUX.Color.Half in '..\Color\LUX.Color.Half.pas',
+  LUX.Color.Space in '..\Color\LUX.Color.Space.pas',
+  LUX.Data.Codec.Image in '..\Data\Codec\Image\LUX.Data.Codec.Image.pas',
+  LUX.Data.Codec.Image.Png in '..\Data\Codec\Image\LUX.Data.Codec.Image.Png.pas',
+  LUX.Data.Codec.Image.Jpg in '..\Data\Codec\Image\LUX.Data.Codec.Image.Jpg.pas',
+  LUX.Data.Codec.Image.Hdr in '..\Data\Codec\Image\LUX.Data.Codec.Image.Hdr.pas',
   Tests.Peer in 'Tests.Peer.pas',
   Tests.Windows.Single in 'Tests.Windows.Single.pas',
   Tests.Windows.Notify in 'Tests.Windows.Notify.pas',
@@ -38,7 +49,11 @@ uses
   Tests.Thread.Inbox in 'Tests.Thread.Inbox.pas',
   Tests.Process.Deadline in 'Tests.Process.Deadline.pas',
   Tests.Color in 'Tests.Color.pas',
-  Tests.Color.Space in 'Tests.Color.Space.pas';
+  Tests.Color.Space in 'Tests.Color.Space.pas',
+  Tests.Codec.Image in 'Tests.Codec.Image.pas',
+  Tests.Codec.Image.Png in 'Tests.Codec.Image.Png.pas',
+  Tests.Codec.Image.Jpg in 'Tests.Codec.Image.Jpg.pas',
+  Tests.Codec.Image.Hdr in 'Tests.Codec.Image.Hdr.pas';
 
 var
    Runner  :ITestRunner;
