@@ -138,9 +138,9 @@ procedure TLuxImageRaster.GetLine( const X_,Y_,DX_,DY_,N_:Integer; const Pixels_
 var
    I :Integer;
 begin
-     if ( DX_ = 1 ) and ( DY_ = 0 ) then _Image.GetRow( 0, X_, Y_, N_, Pixels_ )
+     if ( DX_ > 0 ) and ( DY_ = 0 ) then _Image.GetRow( 0, X_, Y_, DX_, N_, Pixels_ )
      else
-     for I := 0 to N_-1 do _Image.GetRow( 0, X_ + I * DX_, Y_ + I * DY_, 1, @Pixels_[ I ] );
+     for I := 0 to N_-1 do _Image.GetRow( 0, X_ + I * DX_, Y_ + I * DY_, 1, 1, @Pixels_[ I ] );
 
      Passed( N_ );
 end;
@@ -149,9 +149,9 @@ procedure TLuxImageRaster.SetLine( const X_,Y_,DX_,DY_,N_:Integer; const Pixels_
 var
    I :Integer;
 begin
-     if ( DX_ = 1 ) and ( DY_ = 0 ) then _Image.SetRow( 0, X_, Y_, N_, Pixels_ )
+     if ( DX_ > 0 ) and ( DY_ = 0 ) then _Image.SetRow( 0, X_, Y_, DX_, N_, Pixels_ )
      else
-     for I := 0 to N_-1 do _Image.SetRow( 0, X_ + I * DX_, Y_ + I * DY_, 1, @Pixels_[ I ] );
+     for I := 0 to N_-1 do _Image.SetRow( 0, X_ + I * DX_, Y_ + I * DY_, 1, 1, @Pixels_[ I ] );
 
      Passed( N_ );
 end;

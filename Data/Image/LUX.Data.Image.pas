@@ -91,8 +91,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure InitLevels;
        procedure FillLevels;
        /////
-       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer ); virtual; abstract;  // 記憶形式 → TSingleRGBA
-       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer ); virtual; abstract;  // TSingleRGBA → 記憶形式
+       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_,DX_:Integer ); virtual; abstract;  // 記憶形式 → TSingleRGBA
+       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_,DX_:Integer ); virtual; abstract;  // TSingleRGBA → 記憶形式
        procedure MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer ); virtual; abstract;              // 2N_×2 画素 → N_ 画素（平均）
        /////
        procedure MakeBlock( const L_,X_,Y_,W_,H_:Integer; const R0_,R1_,D_:Pointer );                        // 段 L_-1 から段 L_ の矩形を作る
@@ -137,8 +137,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure GetRaws( const L_,X_,Y_,N_:Integer; const Dst_:Pointer );                           // 生画素を N_ 個読む（タイル跨ぎ対応）
        procedure SetRaws( const L_,X_,Y_,N_:Integer; const Src_:Pointer );                           // 生画素を N_ 個書く（タイル跨ぎ対応）
        /////
-       procedure GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );                        // 書式非依存の行読み
-       procedure SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );                        // 書式非依存の行書き
+       procedure GetRow( const L_,X_,Y_,DX_,N_:Integer; const Dst_:PSingleRGBA );                    // 書式非依存の行読み（X_ から DX_ 画素おきに N_ 個）
+       procedure SetRow( const L_,X_,Y_,DX_,N_:Integer; const Src_:PSingleRGBA );                    // 書式非依存の行書き（同上）
        /////
        ///// 入出力（ LUX.Data.Image.Codec の TLuxImageFiler が使う。ファイル形式は一切知らない ）
        procedure RunAsync( const Work_:TProc; const Saving_:Boolean );                               // 別スレッドで走らせ、Busy と OnLoaded / OnSaved を面倒みる
@@ -164,8 +164,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetPixels( const X_,Y_:Integer; const P_:TByteRGBA );
      protected
        ///// M E T H O D
-       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer ); override;
-       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer ); override;
+       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_,DX_:Integer ); override;
+       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_,DX_:Integer ); override;
        procedure MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer ); override;
      public
        ///// C L A S S
@@ -184,8 +184,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetPixels( const X_,Y_:Integer; const P_:TWordRGBA );
      protected
        ///// M E T H O D
-       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer ); override;
-       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer ); override;
+       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_,DX_:Integer ); override;
+       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_,DX_:Integer ); override;
        procedure MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer ); override;
      public
        ///// C L A S S
@@ -204,8 +204,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetPixels( const X_,Y_:Integer; const P_:THalfRGBA );
      protected
        ///// M E T H O D
-       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer ); override;
-       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer ); override;
+       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_,DX_:Integer ); override;
+       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_,DX_:Integer ); override;
        procedure MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer ); override;
      public
        ///// C L A S S
@@ -226,8 +226,8 @@ type //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
        procedure SetPixels( const X_,Y_:Integer; const P_:TSingleRGBA );
      protected
        ///// M E T H O D
-       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer ); override;
-       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer ); override;
+       procedure RowIn ( const Src_:Pointer; const Dst_:PSingleRGBA; const N_,DX_:Integer ); override;
+       procedure RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_,DX_:Integer ); override;
        procedure MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer ); override;
      public
        ///// C L A S S
@@ -278,12 +278,12 @@ end;
 
 function TLuxImage.GetColors( const X_,Y_:Integer ) :TSingleRGBA;
 begin
-     GetRow( 0, X_, Y_, 1, @Result );
+     GetRow( 0, X_, Y_, 1, 1, @Result );
 end;
 
 procedure TLuxImage.SetColors( const X_,Y_:Integer; const C_:TSingleRGBA );
 begin
-     SetRow( 0, X_, Y_, 1, @C_ );
+     SetRow( 0, X_, Y_, 1, 1, @C_ );
 
      TileChanged( X_ shr LUXIMAGE_TILE_LOG, Y_ shr LUXIMAGE_TILE_LOG );
 end;
@@ -818,7 +818,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TLuxImage.GetRow( const L_,X_,Y_,N_:Integer; const Dst_:PSingleRGBA );
+procedure TLuxImage.GetRow( const L_,X_,Y_,DX_,N_:Integer; const Dst_:PSingleRGBA );
 var
    Z, I, C, TX, PX, TY, PY :Integer;
    D :PSingleRGBA;
@@ -833,19 +833,19 @@ begin
 
      while I < N_ do
      begin
-          TX := ( X_ + I ) shr LUXIMAGE_TILE_LOG;
-          PX := ( X_ + I ) and ( LUXIMAGE_TILE - 1 );
+          TX := ( X_ + I * DX_ ) shr LUXIMAGE_TILE_LOG;
+          PX := ( X_ + I * DX_ ) and ( LUXIMAGE_TILE - 1 );
 
-          C := Min( LUXIMAGE_TILE - PX, N_ - I );
+          C := Min( ( LUXIMAGE_TILE - PX + DX_ - 1 ) div DX_, N_ - I );  // このタイルに入る個数
 
-          RowIn( PByte( TileData( L_, TX, TY ) ) + ( PY * LUXIMAGE_TILE + PX ) * Z, D, C );
+          RowIn( PByte( TileData( L_, TX, TY ) ) + ( PY * LUXIMAGE_TILE + PX ) * Z, D, C, DX_ );
 
           Inc( D, C );
           Inc( I, C );
      end;
 end;
 
-procedure TLuxImage.SetRow( const L_,X_,Y_,N_:Integer; const Src_:PSingleRGBA );
+procedure TLuxImage.SetRow( const L_,X_,Y_,DX_,N_:Integer; const Src_:PSingleRGBA );
 var
    Z, I, C, TX, PX, TY, PY :Integer;
    S :PSingleRGBA;
@@ -860,12 +860,12 @@ begin
 
      while I < N_ do
      begin
-          TX := ( X_ + I ) shr LUXIMAGE_TILE_LOG;
-          PX := ( X_ + I ) and ( LUXIMAGE_TILE - 1 );
+          TX := ( X_ + I * DX_ ) shr LUXIMAGE_TILE_LOG;
+          PX := ( X_ + I * DX_ ) and ( LUXIMAGE_TILE - 1 );
 
-          C := Min( LUXIMAGE_TILE - PX, N_ - I );
+          C := Min( ( LUXIMAGE_TILE - PX + DX_ - 1 ) div DX_, N_ - I );  // このタイルに入る個数
 
-          RowOut( S, PByte( TileData( L_, TX, TY ) ) + ( PY * LUXIMAGE_TILE + PX ) * Z, C );
+          RowOut( S, PByte( TileData( L_, TX, TY ) ) + ( PY * LUXIMAGE_TILE + PX ) * Z, C, DX_ );
 
           Inc( S, C );
           Inc( I, C );
@@ -923,7 +923,7 @@ end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
-procedure TLuxImageUInt08.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer );
+procedure TLuxImageUInt08.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_,DX_:Integer );
 var
    S :PByteRGBA;
    D :PSingleRGBA;
@@ -933,11 +933,11 @@ begin
 
      for I := 1 to N_ do
      begin
-          D^ := S^;  Inc( S );  Inc( D );
+          D^ := S^;  Inc( S, DX_ );  Inc( D );
      end;
 end;
 
-procedure TLuxImageUInt08.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer );
+procedure TLuxImageUInt08.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_,DX_:Integer );
 var
    S :PSingleRGBA;
    D :PByteRGBA;
@@ -947,7 +947,7 @@ begin
 
      for I := 1 to N_ do
      begin
-          D^ := TByteRGBA( S^ );  Inc( S );  Inc( D );
+          D^ := TByteRGBA( S^ );  Inc( S );  Inc( D, DX_ );
      end;
 end;
 
@@ -1009,7 +1009,7 @@ end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
-procedure TLuxImageUInt16.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer );
+procedure TLuxImageUInt16.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_,DX_:Integer );
 var
    S :PWordRGBA;
    D :PSingleRGBA;
@@ -1019,11 +1019,11 @@ begin
 
      for I := 1 to N_ do
      begin
-          D^ := S^;  Inc( S );  Inc( D );
+          D^ := S^;  Inc( S, DX_ );  Inc( D );
      end;
 end;
 
-procedure TLuxImageUInt16.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer );
+procedure TLuxImageUInt16.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_,DX_:Integer );
 var
    S :PSingleRGBA;
    D :PWordRGBA;
@@ -1033,7 +1033,7 @@ begin
 
      for I := 1 to N_ do
      begin
-          D^ := S^;  Inc( S );  Inc( D );
+          D^ := S^;  Inc( S );  Inc( D, DX_ );
      end;
 end;
 
@@ -1095,7 +1095,7 @@ end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
-procedure TLuxImageSFlo16.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer );
+procedure TLuxImageSFlo16.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_,DX_:Integer );
 var
    S :PHalfRGBA;
    D :PSingleRGBA;
@@ -1105,11 +1105,11 @@ begin
 
      for I := 1 to N_ do
      begin
-          D^ := S^;  Inc( S );  Inc( D );
+          D^ := S^;  Inc( S, DX_ );  Inc( D );
      end;
 end;
 
-procedure TLuxImageSFlo16.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer );
+procedure TLuxImageSFlo16.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_,DX_:Integer );
 var
    S :PSingleRGBA;
    D :PHalfRGBA;
@@ -1119,7 +1119,7 @@ begin
 
      for I := 1 to N_ do
      begin
-          D^ := S^;  Inc( S );  Inc( D );
+          D^ := S^;  Inc( S );  Inc( D, DX_ );
      end;
 end;
 
@@ -1191,14 +1191,30 @@ end;
 
 //////////////////////////////////////////////////////////////////// M E T H O D
 
-procedure TLuxImageSFlo32.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_:Integer );
+procedure TLuxImageSFlo32.RowIn( const Src_:Pointer; const Dst_:PSingleRGBA; const N_,DX_:Integer );
+var
+   S, D :PSingleRGBA;
+   I :Integer;
 begin
-     Move( Src_^, Dst_^, N_ * SizeOf( TSingleRGBA ) );  // 記憶形式そのもの
+     S := Src_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          D^ := S^;  Inc( S, DX_ );  Inc( D );  // 記憶形式そのもの
+     end;
 end;
 
-procedure TLuxImageSFlo32.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_:Integer );
+procedure TLuxImageSFlo32.RowOut( const Src_:PSingleRGBA; const Dst_:Pointer; const N_,DX_:Integer );
+var
+   S, D :PSingleRGBA;
+   I :Integer;
 begin
-     Move( Src_^, Dst_^, N_ * SizeOf( TSingleRGBA ) );  // 記憶形式そのもの
+     S := Src_;  D := Dst_;
+
+     for I := 1 to N_ do
+     begin
+          D^ := S^;  Inc( S );  Inc( D, DX_ );  // 記憶形式そのもの
+     end;
 end;
 
 procedure TLuxImageSFlo32.MipRow( const Src0_,Src1_,Dst_:Pointer; const N_:Integer );

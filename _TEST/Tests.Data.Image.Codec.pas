@@ -88,7 +88,7 @@ begin
                            else Row[ X ] := TSingleRGBA.Create( 0.01 + X * 0.05, 0.01 + Y * 0.03, 0.01 + ( X + Y ) * 0.001, 1 );
           end;
 
-          Image_.SetRow( 0, 0, Y, Image_.Width, @Row[ 0 ] );
+          Image_.SetRow( 0, 0, Y, 1, Image_.Width, @Row[ 0 ] );
      end;
 
      Image_.Changed;
@@ -112,8 +112,8 @@ begin
 
      for Y := 0 to A_.Height-1 do
      begin
-          A_.GetRow( 0, 0, Y, A_.Width, @RA[ 0 ] );
-          B_.GetRow( 0, 0, Y, A_.Width, @RB[ 0 ] );
+          A_.GetRow( 0, 0, Y, 1, A_.Width, @RA[ 0 ] );
+          B_.GetRow( 0, 0, Y, 1, A_.Width, @RB[ 0 ] );
 
           for X := 0 to A_.Width-1 do
           begin
@@ -362,7 +362,7 @@ begin
         begin
              for X := 0 to W-1 do Row[ X ] := TSingleRGBA.Create( X / ( W - 1 ), Y / ( H - 1 ), 0.5, 1 );
 
-             A.SetRow( 0, 0, Y, W, @Row[ 0 ] );
+             A.SetRow( 0, 0, Y, 1, W, @Row[ 0 ] );
         end;
 
         Through( C, A, B );
@@ -402,7 +402,7 @@ begin
              Q[ 2 ] := B.Pixels[ 2 * X    , 2 * Y + 1 ];
              Q[ 3 ] := B.Pixels[ 2 * X + 1, 2 * Y + 1 ];
 
-             B.GetRow( 1, X, Y, 1, @P );
+             B.GetRow( 1, X, Y, 1, 1, @P );
 
              Assert.AreEqual( ( Q[ 0 ].R + Q[ 1 ].R + Q[ 2 ].R + Q[ 3 ].R ) / 4, P.R, 1e-5, Format( '段 1 の (%d, %d)', [ X, Y ] ) );
         end;
